@@ -34,3 +34,5 @@ pytest = "*"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.masonry.api"
+[tool.pytest.ini_options]
+addopts = "--ignore=tests/intg --ignore=intg"
