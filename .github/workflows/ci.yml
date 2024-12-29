@@ -32,18 +32,20 @@ jobs:
       matrix:
         extra: [
             'test_census.py',
-                 'test_customizing.py',
-                 'test_forest.py',
-                 'test_multi_regression.py',
-                 'test_multi_task_.py',
-'test_pretraining.py',
-'test_regression.py'
+            'test_customizing.py',
+            'test_forest.py',
+            'test_multi_regression.py',
+            'test_multi_task_.py',
+            'test_pretraining.py',
+            'test_regression.py'
         ]
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v4
+      - run: pipx install poetry
+      - uses: actions/setup-python@v5
         with:
-          enable-cache: true
-      - run: uv python install 3.11
-      - run: uv sync --extra ${{ matrix.extra }} --frozen
-      - run: uv run pytest tests/intg/${{ matrix.extra }}
+          python-version: ${{ matrix.python-version }}
+          cache: poetry
+
+      - run: poetry install
+      - run: poetry run pytest tests/intg/${{ matrix.extra }}
