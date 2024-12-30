@@ -1,38 +1,62 @@
-[tool.poetry]
+
+[project]
 name = "pytorch_tabnet"
 version = "4.1.0"
 description = "PyTorch implementation of TabNet"
-homepage = "https://github.com/dreamquark-ai/tabnet"
-repository = "https://github.com/dreamquark-ai/tabnet"
-documentation = "https://github.com/dreamquark-ai/tabnet"
 readme = "README.md"
 authors = []
+requires-python = ">=3.10"
+
 keywords = ["tabnet", "pytorch", "neural-networks" ]
 exclude = ["tabnet/*.ipynb"]
 
-[tool.poetry.dependencies]
-python = ">=3.9"
 
-numpy="*"
-torch="*"
-tqdm="*"
-scikit_learn="*"
-scipy="*"
+dependencies = [
+    "numpy",
+    "torch",
+    "tqdm",
+    "scikit_learn",
+    "scipy",
+]
 
-[tool.poetry.dev-dependencies]
-jupyter="*"
-xgboost="*"
-matplotlib="*"
-wget="*"
-pandas="*"
-flake8="*"
-sphinx = "*"
-sphinx-rtd-theme = "*"
-recommonmark = "*"
-pytest = "*"
+
+[dependency-groups]
+dev = [
+    "jupyter",
+    "xgboost",
+    "matplotlib",
+    "wget",
+    "pandas",
+    "sphinx",
+    "sphinx-rtd-theme",
+    "recommonmark",
+    "db-dtypes",
+    "pytest",
+    "hypothesis",
+    "pre-commit",
+    "pytest-cov",
+    "mypy",
+    "pytest-parametrization",
+    "types-pytz",
+    "pandas-stubs",
+    "ruff",
+]
+
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.masonry.api"
+requires = ["hatchling", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
 [tool.pytest.ini_options]
 addopts = "--ignore=tests/intg --ignore=intg"
+
+[tool.hatch.build.targets.sdist]
+only-include = ["pytorch_tabnet", ]
+source = "."
+
+[tool.hatch.build.targets.wheel]
+only-include = ["pytorch_tabnet", ]
+source = "."
