@@ -253,4 +253,3 @@ def test_census():
         axs[i].imshow(masks[i][:50])
         axs[i].set_title(f"mask {i}")
         axs[i].set_xticklabels(labels=features, rotation=45)
-    assert False

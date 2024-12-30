@@ -44,5 +44,5 @@ jobs:
           enable-cache: true
       - run: uv python install 3.11
       - run: make
-      - run: uv run pytest tests/intg/${{ matrix.extra }}
+      - run: uv run pytest tests/intg/${{ matrix.extra }} -s
     continue-on-error: true

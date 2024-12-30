@@ -115,5 +115,4 @@ def test_multi_regression():
         axs[i].imshow(masks[i][:50])
         axs[i].set_title(f"mask {i}")
 
-    assert False
 
