@@ -1,0 +1,48 @@
+name: CI
+on:
+  pull_request:
+    paths:
+      - 'pytorch_tabnet/**'
+      - 'tests/**'
+      - '.github/workflows/ci.yml'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+  workflow_dispatch:
+jobs:
+  tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        python-version: [  '3.10', '3.11', '3.12',  ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      - run: uv python install ${{ matrix.python-version }}
+      - run: make
+      - run: make test
+    continue-on-error: true
+  model-train-checks:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        extra: [
+            'test_census.py',
+            'test_customizing.py',
+            'test_forest.py',
+            'test_multi_regression.py',
+            'test_multi_task_.py',
+            'test_pretraining.py',
+            'test_regression.py'
+        ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      - run: uv python install 3.11
+      - run: make
+      - run: uv run pytest tests/intg/${{ matrix.extra }} -s
+    continue-on-error: true

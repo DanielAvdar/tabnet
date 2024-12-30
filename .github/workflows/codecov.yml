@@ -1,0 +1,29 @@
+name: Codecov
+on:
+  pull_request:
+    paths:
+      - 'pandas_pyarrow/**'
+      - 'tests/**'
+      - '.github/workflows/codecov.yml'
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  upload-coverage-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      - run: uv python install 3.11
+      - run: make
+      - run: make coverage
+      - uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: true
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    continue-on-error: true
