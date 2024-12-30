@@ -45,7 +45,7 @@ def test_attentive_transformer(mask_type):
     bs = 3
     priors = torch.rand((bs, group_dim))
     processed_feat = torch.rand((bs, input_dim))
-    output = transformer(priors, processed_feat)
+    output = transformer.forward(priors, processed_feat)
     assert output.shape == (bs, group_dim)
 
 
@@ -66,7 +66,7 @@ def test_feat_transformer():
     bs = 3
     input_data = torch.rand((bs, input_dim))
 
-    output = transformer(input_data)
+    output = transformer.forward(input_data)
     assert output.shape == (bs, output_dim)
 
 
@@ -78,7 +78,7 @@ def test_random_obfuscator():
     obfuscator = RandomObfuscator(pretraining_ratio, group_matrix)
     x = torch.rand((bs, input_dim))
 
-    masked_x, obfuscated_groups, obfuscated_vars = obfuscator(x)
+    masked_x, obfuscated_groups, obfuscated_vars = obfuscator.forward(x)
     assert masked_x.shape == x.shape
     assert obfuscated_groups.shape == (bs, group_matrix.shape[0])
     assert obfuscated_vars.shape == x.shape
