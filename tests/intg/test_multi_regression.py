@@ -84,7 +84,7 @@ def test_multi_regression():
     y_test = train[target].values[test_indices]
     y_test = np.transpose(np.tile(y_test, (n_targets, 1)))
 
-    max_epochs = 1000 if not os.getenv("CI", False) else 2
+    max_epochs =  2
 
     clf.fit(
         X_train=X_train, y_train=y_train,

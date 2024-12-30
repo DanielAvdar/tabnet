@@ -154,7 +154,7 @@ def test_forest():
     X_test = train[features].values[test_indices]
     y_test = train[target].values[test_indices]
     # %%
-    max_epochs = 100 if not os.getenv("CI", False) else 2
+    max_epochs =  5
     # %%
     from pytorch_tabnet.augmentations import ClassificationSMOTE
     aug = ClassificationSMOTE(p=0.2)
@@ -191,6 +191,7 @@ def test_forest():
 
     print(f"BEST VALID SCORE FOR {dataset_name} : {clf.best_cost}")
     print(f"FINAL TEST SCORE FOR {dataset_name} : {test_acc}")
+
     # %%
     # or you can simply use the predict method
 
@@ -214,7 +215,9 @@ def test_forest():
 
     print(f"FINAL TEST SCORE FOR {dataset_name} : {loaded_test_acc}")
     # %%
+
     assert (test_acc == loaded_test_acc)
+    assert test_acc > 0.2
     # %% md
     # # Global explainability : feat importance summing to 1
     # %%

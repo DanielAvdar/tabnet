@@ -118,7 +118,7 @@ def test_multi_task():
     # Set random labels to the last task to show how this works
     y_test[:, -1] = np.random.randint(10, 15, y_test.shape[0]).astype(str)
     # %%
-    max_epochs = 200 if not os.getenv("CI", False) else 2
+    max_epochs =  2
     # %%
     clf.fit(
         X_train=X_train, y_train=y_train,
@@ -182,6 +182,8 @@ def test_multi_task():
     print(f"FINAL AUCS SCORE FOR {dataset_name} : {loaded_test_auc}")
     # %%
     assert (test_aucs == loaded_test_auc)
+    assert len(test_aucs) == NB_TASKS
+    assert sum(test_aucs)/len(test_aucs) > 0.81
     # %%
     loaded_clf.predict(X_test)
     # %% md

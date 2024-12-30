@@ -125,7 +125,7 @@ def test_customizing():
     # NB3: Note that you can also customize your optimizer function, any torch optimizer should work
     # %%
     # Network parameters
-    max_epochs = 20 if not os.getenv("CI", False) else 2
+    max_epochs =  4
     batch_size = 1024
     clf = TabNetClassifier(cat_idxs=cat_idxs,
                            cat_dims=cat_dims,
@@ -261,6 +261,7 @@ def test_customizing():
 
     print(f"FINAL VALID SCORE FOR {dataset_name} : {clf.history['val_auc'][-1]}")
     print(f"FINAL TEST SCORE FOR {dataset_name} : {test_auc}")
+    assert test_auc > 0.9
     # %%
     # check that last epoch's weight are used
     assert np.isclose(valid_auc, clf.history['val_auc'][-1], atol=1e-6)

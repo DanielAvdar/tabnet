@@ -128,7 +128,7 @@ def test_census():
     X_test = train[features].values[test_indices]
     y_test = train[target].values[test_indices]
     # %%
-    max_epochs = 50 if not os.getenv("CI", False) else 2
+    max_epochs =  4
     # %%
     from pytorch_tabnet.augmentations import ClassificationSMOTE
     aug = ClassificationSMOTE(p=0.2)
@@ -235,6 +235,7 @@ def test_census():
 
     print(f"FINAL TEST SCORE FOR {dataset_name} : {loaded_test_auc}")
     # %%
+    assert test_auc > 0.88
     assert (test_auc == loaded_test_auc)
     # %%
     loaded_clf.predict(X_test)

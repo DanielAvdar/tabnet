@@ -3,9 +3,7 @@
 
 
 def test_pretraining():
-    # %%
 
-    # %%
     from pytorch_tabnet.tab_model import TabNetClassifier
 
     import torch
@@ -21,22 +19,18 @@ def test_pretraining():
     from pathlib import Path
 
     from matplotlib import pyplot as plt
-    # %% md
-    # # Download census-income dataset
-    # %%
+
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data"
     dataset_name = 'census-income'
     out = Path(os.getcwd() + '/data/' + dataset_name + '.csv')
-    # %%
+
     out.parent.mkdir(parents=True, exist_ok=True)
     if out.exists():
         print("File already exists.")
     else:
         print("Downloading file...")
         wget.download(url, out.as_posix())
-    # %% md
-    # # Load data and split
-    # %%
+
     train = pd.read_csv(out)
     target = ' <=50K'
     if "Set" not in train.columns:
@@ -45,11 +39,7 @@ def test_pretraining():
     train_indices = train[train.Set == "train"].index
     valid_indices = train[train.Set == "valid"].index
     test_indices = train[train.Set == "test"].index
-    # %% md
-    # # Simple preprocessing
-    #
-    # Label encode categorical features and fill empty cells.
-    # %%
+
     nunique = train.nunique()
     types = train.dtypes
 
@@ -65,9 +55,7 @@ def test_pretraining():
             categorical_dims[col] = len(l_enc.classes_)
         else:
             train.fillna(train.loc[train_indices, col].mean(), inplace=True)
-    # %% md
-    # # Define categorical features for categorical embeddings
-    # %%
+
     unused_feat = ['Set']
 
     features = [col for col in train.columns if col not in unused_feat + [target]]
@@ -76,7 +64,6 @@ def test_pretraining():
 
     cat_dims = [categorical_dims[f] for i, f in enumerate(features) if f in categorical_columns]
 
-    # %%
     X_train = train[features].values[train_indices]
     y_train = train[target].values[train_indices]
 
@@ -85,12 +72,9 @@ def test_pretraining():
 
     X_test = train[features].values[test_indices]
     y_test = train[target].values[test_indices]
-    # %% md
-    # # Network parameters
-    # %%
+
     from pytorch_tabnet.pretraining import TabNetPretrainer
-    # %%
-    # TabNetPretrainer
+
     unsupervised_model = TabNetPretrainer(
         cat_idxs=cat_idxs,
         cat_dims=cat_dims,
@@ -103,11 +87,9 @@ def test_pretraining():
         #     grouped_features=[[0, 1]], # you can group features together here
         verbose=5,
     )
-    # %% md
-    # # Self Supervised Training
-    # %%
-    max_epochs = 100 if not os.getenv("CI", False) else 2  # 1000
-    # %%
+
+
+    max_epochs =  2  # 1000
     unsupervised_model.fit(
         X_train=X_train,
         eval_set=[X_valid],
@@ -117,28 +99,23 @@ def test_pretraining():
         drop_last=False,
         pretraining_ratio=0.5,
     )
-    # %%
-    # Make reconstruction from a dataset
+
+    score_unsup = unsupervised_model.best_cost
+    assert score_unsup<2.1
     reconstructed_X, embedded_X = unsupervised_model.predict(X_valid)
     assert (reconstructed_X.shape == embedded_X.shape)
-    # %%
     unsupervised_explain_matrix, unsupervised_masks = unsupervised_model.explain(X_valid)
-    # %%
     fig, axs = plt.subplots(1, 3, figsize=(20, 20))
 
     for i in range(3):
         axs[i].imshow(unsupervised_masks[i][:50])
         axs[i].set_title(f"mask {i}")
 
-    # %% md
-    # ## Save and load the same way as other TabNet models
-    # %%
+
     unsupervised_model.save_model('./test_pretrain')
     loaded_pretrain = TabNetPretrainer()
     loaded_pretrain.load_model('./test_pretrain.zip')
-    # %% md
-    # # Training
-    # %%
+
     clf = TabNetClassifier(optimizer_fn=torch.optim.Adam,
                            optimizer_params=dict(lr=2e-3),
                            scheduler_params={"step_size": 10,  # how to use learning rate scheduler
@@ -147,7 +124,7 @@ def test_pretraining():
                            mask_type='sparsemax',  # This will be overwritten if using pretrain model
                            verbose=5,
                            )
-    # %%
+
     clf.fit(
         X_train=X_train, y_train=y_train,
         eval_set=[(X_train, y_train), (X_valid, y_valid)],
@@ -161,19 +138,14 @@ def test_pretraining():
         from_unsupervised=loaded_pretrain,
 
     )
-    # %%
-    # plot losses
+
     plt.plot(clf.history['loss'])
-    # %%
-    # plot auc
+
     plt.plot(clf.history['train_auc'])
     plt.plot(clf.history['valid_auc'])
-    # %%
-    # plot learning rates
+
     plt.plot(clf.history['lr'])
-    # %% md
-    # ## Predictions
-    # %%
+
     preds = clf.predict_proba(X_test)
     test_auc = roc_auc_score(y_score=preds[:, 1], y_true=y_test)
 
@@ -181,36 +153,30 @@ def test_pretraining():
     valid_auc = roc_auc_score(y_score=preds_valid[:, 1], y_true=y_valid)
 
     print(f"BEST VALID SCORE FOR {dataset_name} : {clf.best_cost}")
+    assert (clf.best_cost-0.7).__abs__() < 0.03
+
     print(f"FINAL TEST SCORE FOR {dataset_name} : {test_auc}")
-    # %%
-    # check that best weights are used
+    assert (test_auc-0.71).__abs__() < 0.03
+
     assert np.isclose(valid_auc, np.max(clf.history['valid_auc']), atol=1e-6)
-    # %% md
-    # # Save and load Model
-    # %%
-    # save tabnet model
+
     saving_path_name = "./tabnet_model_test_1"
     saved_filepath = clf.save_model(saving_path_name)
-    # %%
-    # define new model with basic parameters and load state dict weights
+
     loaded_clf = TabNetClassifier()
     loaded_clf.load_model(saved_filepath)
-    # %%
+
     loaded_preds = loaded_clf.predict_proba(X_test)
     loaded_test_auc = roc_auc_score(y_score=loaded_preds[:, 1], y_true=y_test)
 
     print(f"FINAL TEST SCORE FOR {dataset_name} : {loaded_test_auc}")
-    # %%
+
     assert (test_auc == loaded_test_auc)
-    # %% md
-    # # Global explainability : feat importance summing to 1
-    # %%
+
     clf.feature_importances_
-    # %% md
-    # # Local explainability and masks
-    # %%
+
     explain_matrix, masks = clf.explain(X_test)
-    # %%
+
     fig, axs = plt.subplots(1, 3, figsize=(20, 20))
 
     for i in range(3):
