@@ -1,18 +1,4 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 def test_forest():
-    # %%
     from pytorch_tabnet.tab_model import TabNetClassifier
 
     import torch
@@ -30,14 +16,12 @@ def test_forest():
     import gzip
 
     from matplotlib import pyplot as plt
-    # %% md
-    # # Download ForestCoverType dataset
-    # %%
+
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/covtype/covtype.data.gz"
     dataset_name = 'forest-cover-type'
     tmp_out = Path('./data/' + dataset_name + '.gz')
     out = Path(os.getcwd() + '/data/' + dataset_name + '.csv')
-    # %%
+
     out.parent.mkdir(parents=True, exist_ok=True)
     if out.exists():
         print("File already exists.")
@@ -48,10 +32,6 @@ def test_forest():
             with open(out, 'wb') as f_out:
                 shutil.copyfileobj(f_in, f_out)
 
-    # %% md
-    # # Load data and split
-    # Same split as in original paper
-    # %%
     target = "Covertype"
 
     bool_columns = [
@@ -75,27 +55,17 @@ def test_forest():
     ]
 
     feature_columns = (
-        int_columns + bool_columns + [target])
+            int_columns + bool_columns + [target])
 
-    # %%
     train = pd.read_csv(out, header=None, names=feature_columns)
 
     n_total = len(train)
-
-    # Train, val and test split follows
-    # Rory Mitchell, Andrey Adinets, Thejaswi Rao, and Eibe Frank.
-    # Xgboost: Scalable GPU accelerated learning. arXiv:1806.11248, 2018.
 
     train_val_indices, test_indices = train_test_split(
         range(n_total), test_size=0.2, random_state=0)
     train_indices, valid_indices = train_test_split(
         train_val_indices, test_size=0.2 / 0.6, random_state=0)
 
-    # %% md
-    # # Simple preprocessing
-    #
-    # Label encode categorical features and fill empty cells.
-    # %%
     categorical_columns = []
     categorical_dims = {}
     for col in train.columns[train.dtypes == object]:
@@ -108,10 +78,6 @@ def test_forest():
 
     for col in train.columns[train.dtypes == 'float64']:
         train.fillna(train.loc[train_indices, col].mean(), inplace=True)
-    # %% md
-    # # Define categorical features for categorical embeddings
-    # %%
-    # This is a generic pipeline but actually no categorical features are available for this dataset
 
     unused_feat = []
 
@@ -121,9 +87,6 @@ def test_forest():
 
     cat_dims = [categorical_dims[f] for i, f in enumerate(features) if f in categorical_columns]
 
-    # %% md
-    # # Network parameters
-    # %%
     clf = TabNetClassifier(
         n_d=64, n_a=64, n_steps=5,
         gamma=1.5, n_independent=2, n_shared=2,
@@ -137,11 +100,8 @@ def test_forest():
                           "step_size": 20},
         scheduler_fn=torch.optim.lr_scheduler.StepLR, epsilon=1e-15
     )
-    # %% md
-    # # Training
-    # %%
+
     if os.getenv("CI", False):
-        # Take only a subsample to run CI
         X_train = train[features].values[train_indices][:1000, :]
         y_train = train[target].values[train_indices][:1000]
     else:
@@ -153,9 +113,9 @@ def test_forest():
 
     X_test = train[features].values[test_indices]
     y_test = train[target].values[test_indices]
-    # %%
-    max_epochs =  5
-    # %%
+
+    max_epochs = 5
+
     from pytorch_tabnet.augmentations import ClassificationSMOTE
     aug = ClassificationSMOTE(p=0.2)
 
@@ -167,19 +127,11 @@ def test_forest():
         batch_size=16384, virtual_batch_size=256,
         augmentations=aug
     )
-    # %%
-    # plot losses
+
     plt.plot(clf.history['loss'])
-    # %%
-    # plot accuracy
+
     plt.plot(clf.history['train_accuracy'])
     plt.plot(clf.history['valid_accuracy'])
-    # %% md
-    # ### Predictions
-    #
-    # %%
-    # To get final results you may need to use a mapping for classes
-    # as you are allowed to use targets like ["yes", "no", "maybe", "I don't know"]
 
     preds_mapper = {idx: class_name for idx, class_name in enumerate(clf.classes_)}
 
@@ -192,41 +144,29 @@ def test_forest():
     print(f"BEST VALID SCORE FOR {dataset_name} : {clf.best_cost}")
     print(f"FINAL TEST SCORE FOR {dataset_name} : {test_acc}")
 
-    # %%
-    # or you can simply use the predict method
-
     y_pred = clf.predict(X_test)
     test_acc = accuracy_score(y_pred=y_pred, y_true=y_test)
     print(f"FINAL TEST SCORE FOR {dataset_name} : {test_acc}")
-    # %% md
-    # # Save and load Model
-    # %%
-    # save state dict
+
     saved_filename = clf.save_model('test_model')
-    # %%
-    # define new model and load save parameters
+
     loaded_clf = TabNetClassifier()
     loaded_clf.load_model(saved_filename)
-    # %%
+
     loaded_preds = loaded_clf.predict_proba(X_test)
     loaded_y_pred = np.vectorize(preds_mapper.get)(np.argmax(loaded_preds, axis=1))
 
     loaded_test_acc = accuracy_score(y_pred=loaded_y_pred, y_true=y_test)
 
     print(f"FINAL TEST SCORE FOR {dataset_name} : {loaded_test_acc}")
-    # %%
 
     assert (test_acc == loaded_test_acc)
     assert test_acc > 0.2
-    # %% md
-    # # Global explainability : feat importance summing to 1
-    # %%
+
     clf.feature_importances_
-    # %% md
-    # # Local explainability and masks
-    # %%
+
     explain_matrix, masks = clf.explain(X_test)
-    # %%
+
     fig, axs = plt.subplots(1, 5, figsize=(20, 20))
 
     for i in range(5):

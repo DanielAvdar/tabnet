@@ -1,13 +1,6 @@
-
-
-
-
-
 def test_census():
-    # %%
     from pytorch_tabnet.tab_model import TabNetClassifier
 
-    import torch
     from sklearn.preprocessing import LabelEncoder
     from sklearn.metrics import roc_auc_score
 
@@ -17,34 +10,27 @@ def test_census():
 
     import scipy
 
-    import os
     import wget
     from pathlib import Path
 
     from matplotlib import pyplot as plt
-    # %%
+
     import os
-    # os.environ['CUDA_VISIBLE_DEVICES'] = f"1"
-    # %%
+
     import torch
     torch.__version__
     torch.cuda.is_available()
-    # %% md
-    # # Download census-income dataset
-    # %%
+
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data"
     dataset_name = 'census-income'
     out = Path(os.getcwd() + '/data/' + dataset_name + '.csv')
-    # %%
     out.parent.mkdir(parents=True, exist_ok=True)
     if out.exists():
         print("File already exists.")
     else:
         print("Downloading file...")
         wget.download(url, out.as_posix())
-    # %% md
-    # # Load data and split
-    # %%
+
     train = pd.read_csv(out)
     target = ' <=50K'
     if "Set" not in train.columns:
@@ -53,11 +39,7 @@ def test_census():
     train_indices = train[train.Set == "train"].index
     valid_indices = train[train.Set == "valid"].index
     test_indices = train[train.Set == "test"].index
-    # %% md
-    # # Simple preprocessing
-    #
-    # Label encode categorical features and fill empty cells.
-    # %%
+
     nunique = train.nunique()
     types = train.dtypes
 
@@ -73,13 +55,10 @@ def test_census():
             categorical_dims[col] = len(l_enc.classes_)
         else:
             train.fillna(train.loc[train_indices, col].mean(), inplace=True)
-    # %%
-    # check that pipeline accepts strings
+
     train.loc[train[target] == 0, target] = "wealthy"
     train.loc[train[target] == 1, target] = "not_wealthy"
-    # %% md
-    # # Define categorical features for categorical embeddings
-    # %%
+
     unused_feat = ['Set']
 
     features = [col for col in train.columns if col not in unused_feat + [target]]
@@ -88,37 +67,26 @@ def test_census():
 
     cat_dims = [categorical_dims[f] for i, f in enumerate(features) if f in categorical_columns]
 
-    # %% md
-    # # Grouped features
-    #
-    # You can now specify groups of feature which will share a common attention.
-    #
-    # This may be very usefull for features comming from a same preprocessing technique like PCA for example.
-    # %%
     len(features)
-    # %%
+
     grouped_features = [[0, 1, 2], [8, 9, 10]]
-    # %% md
-    # # Network parameters
-    # %%
+
     tabnet_params = {"cat_idxs": cat_idxs,
                      "cat_dims": cat_dims,
                      "cat_emb_dim": 2,
                      "optimizer_fn": torch.optim.Adam,
                      "optimizer_params": dict(lr=2e-2),
-                     "scheduler_params": {"step_size": 50,  # how to use learning rate scheduler
+                     "scheduler_params": {"step_size": 50,
                                           "gamma": 0.9},
                      "scheduler_fn": torch.optim.lr_scheduler.StepLR,
-                     "mask_type": 'entmax',  # "sparsemax"
+                     "mask_type": 'entmax',
                      "grouped_features": grouped_features
                      }
 
     clf = TabNetClassifier(**tabnet_params
                            )
     clf.device
-    # %% md
-    # # Training
-    # %%
+
     X_train = train[features].values[train_indices]
     y_train = train[target].values[train_indices]
 
@@ -127,17 +95,15 @@ def test_census():
 
     X_test = train[features].values[test_indices]
     y_test = train[target].values[test_indices]
-    # %%
-    max_epochs =  4
-    # %%
+
+    max_epochs = 4
+
     from pytorch_tabnet.augmentations import ClassificationSMOTE
     aug = ClassificationSMOTE(p=0.2)
-    # %%
-    # This illustrates the behaviour of the model's fit method using Compressed Sparse Row matrices
-    sparse_X_train = scipy.sparse.csr_matrix(X_train)  # Create a CSR matrix from X_train
-    sparse_X_valid = scipy.sparse.csr_matrix(X_valid)  # Create a CSR matrix from X_valid
 
-    # Fitting the model
+    sparse_X_train = scipy.sparse.csr_matrix(X_train)
+    sparse_X_valid = scipy.sparse.csr_matrix(X_valid)
+
     clf.fit(
         X_train=sparse_X_train, y_train=y_train,
         eval_set=[(sparse_X_train, y_train), (sparse_X_valid, y_valid)],
@@ -148,13 +114,11 @@ def test_census():
         num_workers=0,
         weights=1,
         drop_last=False,
-        augmentations=aug,  # aug, None
+        augmentations=aug,
     )
-    # %%
-    # This illustrates the warm_start=False behaviour
+
     save_history = []
 
-    # Fitting the model without starting from a warm start nor computing the feature importance
     for _ in range(2):
         clf.fit(
             X_train=X_train, y_train=y_train,
@@ -166,16 +130,15 @@ def test_census():
             num_workers=0,
             weights=1,
             drop_last=False,
-            augmentations=aug,  # aug, None
+            augmentations=aug,
             compute_importance=False
         )
         save_history.append(clf.history["valid_auc"])
 
     assert (np.all(np.array(save_history[0] == np.array(save_history[1]))))
 
-    save_history = []  # Resetting the list to show that it also works when computing feature importance
+    save_history = []
 
-    # Fitting the model without starting from a warm start but with the computing of the feature importance activated
     for _ in range(2):
         clf.fit(
             X_train=X_train, y_train=y_train,
@@ -187,25 +150,18 @@ def test_census():
             num_workers=0,
             weights=1,
             drop_last=False,
-            augmentations=aug,  # aug, None
-            compute_importance=True  # True by default so not needed
+            augmentations=aug,
+            compute_importance=True
         )
         save_history.append(clf.history["valid_auc"])
 
     assert (np.all(np.array(save_history[0] == np.array(save_history[1]))))
-    # %%
-    # plot losses
+
     plt.plot(clf.history['loss'])
-    # %%
-    # plot auc
     plt.plot(clf.history['train_auc'])
     plt.plot(clf.history['valid_auc'])
-    # %%
-    # plot learning rates
     plt.plot(clf.history['lr'])
-    # %% md
-    # ## Predictions
-    # %%
+
     preds = clf.predict_proba(X_test)
     test_auc = roc_auc_score(y_score=preds[:, 1], y_true=y_test)
 
@@ -214,40 +170,30 @@ def test_census():
 
     print(f"BEST VALID SCORE FOR {dataset_name} : {clf.best_cost}")
     print(f"FINAL TEST SCORE FOR {dataset_name} : {test_auc}")
-    # %%
-    # check that best weights are used
+
     assert np.isclose(valid_auc, np.max(clf.history['valid_auc']), atol=1e-6)
-    # %%
+
     clf.predict(X_test)
-    # %% md
-    # # Save and load Model
-    # %%
-    # save tabnet model
+
     saving_path_name = "./tabnet_model_test_1"
     saved_filepath = clf.save_model(saving_path_name)
-    # %%
-    # define new model with basic parameters and load state dict weights
     loaded_clf = TabNetClassifier()
     loaded_clf.load_model(saved_filepath)
-    # %%
+
     loaded_preds = loaded_clf.predict_proba(X_test)
     loaded_test_auc = roc_auc_score(y_score=loaded_preds[:, 1], y_true=y_test)
 
     print(f"FINAL TEST SCORE FOR {dataset_name} : {loaded_test_auc}")
-    # %%
+
     assert test_auc > 0.88
     assert (test_auc == loaded_test_auc)
-    # %%
+
     loaded_clf.predict(X_test)
-    # %% md
-    # # Global explainability : feat importance summing to 1
-    # %%
+
     clf.feature_importances_
-    # %% md
-    # # Local explainability and masks
-    # %%
+
     explain_matrix, masks = clf.explain(X_test)
-    # %%
+
     fig, axs = plt.subplots(1, 3, figsize=(20, 20))
 
     for i in range(3):
