@@ -1,6 +1,8 @@
 import torch
 import pytest
-from sparsemax import Sparsemax, Entmax15, entmoid15
+
+from pytorch_tabnet.sparsemax import Sparsemax, entmoid15
+
 
 # Generate test cases for Sparsemax
 @pytest.mark.parametrize("dim", [-1, 0, 1])

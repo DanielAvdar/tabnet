@@ -4,7 +4,7 @@ from pytorch_tabnet.tab_network import (
     AttentiveTransformer,
     FeatTransformer,
     EmbeddingGenerator,
-    RandomObfuscator,
+    RandomObfuscator, TabNetPretraining,
 )
 
 
@@ -82,3 +82,23 @@ def test_random_obfuscator():
     assert masked_x.shape == x.shape
     assert obfuscated_groups.shape == (bs, group_matrix.shape[0])
     assert obfuscated_vars.shape == x.shape
+
+
+@pytest.mark.parametrize(
+    "input_dim, pretraining_ratio, n_steps, n_independent, n_shared, expected_error",
+    [
+        (10, 0.2, 0, 2, 2, "n_steps should be a positive integer."),
+        (10, 0.2, 3, 0, 0, "n_shared and n_independent can't be both zero."),
+    ],
+)
+def test_tabnet_pretraining_initialization_errors(
+    input_dim, pretraining_ratio, n_steps, n_independent, n_shared, expected_error
+):
+    with pytest.raises(ValueError, match=expected_error):
+        TabNetPretraining(
+            input_dim=input_dim,
+            pretraining_ratio=pretraining_ratio,
+            n_steps=n_steps,
+            n_independent=n_independent,
+            n_shared=n_shared,
+        )
