@@ -20,11 +20,72 @@ def embedding_generator():
     return EmbeddingGenerator(input_dim, cat_dims, cat_idxs, cat_emb_dims, group_matrix)
 
 
-# def test_embedding_generator_forward(embedding_generator):
-#     batch_size = 5
-#     input_data = torch.randint(0, 10, size=(batch_size, 10))
-#     output = embedding_generator(input_data)
-#     assert output.shape == (batch_size, embedding_generator.post_embed_dim)
+@pytest.fixture
+def input_data():
+    return {
+        "input_dim": 10,
+        "cat_dims": [5, 10],
+        "cat_idxs": [1, 3],
+        "cat_emb_dims": [3, 4],
+        "group_matrix": torch.rand(2, 10)
+    }
+
+
+@pytest.fixture
+def embedding_generator(input_data):
+    return EmbeddingGenerator(
+        input_data["input_dim"],
+        input_data["cat_dims"],
+        input_data["cat_idxs"],
+        input_data["cat_emb_dims"],
+        input_data["group_matrix"]
+    )
+
+
+def test_initialization_with_embeddings(embedding_generator, input_data):
+    assert embedding_generator.skip_embedding is False
+    assert embedding_generator.post_embed_dim == input_data["input_dim"] + sum(input_data["cat_emb_dims"]) - len(
+        input_data["cat_emb_dims"])
+    assert len(embedding_generator.embeddings) == len(input_data["cat_dims"])
+
+
+def test_initialization_without_embeddings():
+    input_dim = 5
+    group_matrix = torch.rand(2, 5)
+    generator = EmbeddingGenerator(input_dim, [], [], [], group_matrix)
+
+    assert generator.skip_embedding is True
+    assert generator.post_embed_dim == input_dim
+    assert generator.embedding_group_matrix.shape == group_matrix.shape
+
+
+def test_forward_with_embeddings(embedding_generator, input_data):
+    batch_size = 8
+    x = torch.randint(0, 5, (batch_size, input_data["input_dim"]))
+
+    output = embedding_generator(x)
+
+    assert output.shape == (batch_size, embedding_generator.post_embed_dim)
+
+
+def test_forward_without_embeddings():
+    input_dim = 5
+    group_matrix = torch.rand(2, 5)
+    generator = EmbeddingGenerator(input_dim, [], [], [], group_matrix)
+
+    batch_size = 8
+    x = torch.rand(batch_size, input_dim)
+
+    output = generator(x)
+
+    assert torch.allclose(output, x)
+
+
+def test_embedding_group_matrix_update(embedding_generator, input_data):
+    group_matrix = input_data["group_matrix"]
+    expected_shape = (group_matrix.shape[0], embedding_generator.post_embed_dim)
+
+    assert embedding_generator.embedding_group_matrix.shape == expected_shape
 
 
 @pytest.mark.parametrize("mask_type", ["sparsemax", "entmax"])

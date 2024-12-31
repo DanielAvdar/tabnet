@@ -1,7 +1,7 @@
 import torch
 import pytest
 
-from pytorch_tabnet.sparsemax import Sparsemax, entmoid15
+from pytorch_tabnet.sparsemax import Sparsemax, entmoid15, Entmax15
 
 
 # Generate test cases for Sparsemax
