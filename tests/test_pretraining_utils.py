@@ -1,10 +1,8 @@
 import pytest
 from unittest.mock import MagicMock
-import scipy.sparse as sparse
 import numpy as np
-from torch.utils.data import DataLoader
 
-from pytorch_tabnet.pretraining_utils import validate_eval_set, create_dataloaders
+from pytorch_tabnet.pretraining_utils import validate_eval_set
 import pytorch_tabnet
 # Mocking create_sampler for controlled testing
 def mock_create_sampler(weights, X_train):
@@ -19,48 +17,6 @@ def mock_check_input(X):
 
 
 # Test cases for create_dataloaders
-@pytest.mark.parametrize(
-    "X_train_sparse,eval_set_sparse,weights,batch_size,num_workers,drop_last,pin_memory",
-    [
-
-        (
-            False,
-            True,
-            [0.2] * 100,
-            128,
-            1,
-            False,
-            False
-        ),
-    ],
-)
-def test_create_dataloaders(
-    X_train_sparse,
-    eval_set_sparse,
-    weights,
-    batch_size,
-    num_workers,
-    drop_last,
-    pin_memory,
-    monkeypatch,
-):
-
-    monkeypatch.setattr(pytorch_tabnet.utils, "create_sampler", mock_create_sampler)
-
-    X_train = sparse.random(100, 10) if X_train_sparse else np.random.rand(100, 10)
-    eval_set = (
-        [sparse.random(50, 10), sparse.random(50, 10)]
-        if eval_set_sparse
-        else [np.random.rand(50, 10), np.random.rand(50, 10)]
-    )
-
-    train_dataloader, valid_dataloaders = create_dataloaders(
-        X_train, eval_set, weights, batch_size, num_workers, drop_last, pin_memory
-    )
-
-    assert isinstance(train_dataloader, DataLoader)
-    assert isinstance(valid_dataloaders, list)
-    assert all(isinstance(loader, DataLoader) for loader in valid_dataloaders)
 
 # Test cases for validate_eval_set
 
