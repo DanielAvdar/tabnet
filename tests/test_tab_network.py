@@ -9,7 +9,6 @@ from pytorch_tabnet.tab_network import (
 )
 
 
-
 @pytest.fixture
 def input_data():
     return {

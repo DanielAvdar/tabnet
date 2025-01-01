@@ -3,9 +3,7 @@ import numpy as np
 from sklearn.utils.multiclass import (
     unique_labels,
     type_of_target,
-    # infer_output_dim,
-    # check_output_dim,
-    # infer_multitask_output,
+
 )
 from scipy import sparse
 
@@ -15,6 +13,9 @@ from pytorch_tabnet.multiclass_utils import (
     infer_output_dim,
 )
 from pytorch_tabnet.multiclass_utils import assert_all_finite
+from scipy.sparse import csr_matrix, dok_matrix, lil_matrix
+
+from pytorch_tabnet.multiclass_utils import is_multilabel
 
 
 # Tests for unique_labels
@@ -119,3 +120,59 @@ def test_assert_all_finite(X, allow_nan, raises_error):
             assert_all_finite(X, allow_nan=allow_nan)
     else:
         assert_all_finite(X, allow_nan=allow_nan)
+
+
+@pytest.mark.parametrize(
+    "y, expected",
+    [
+        (np.array([0, 1, 0, 1]), False),
+        (np.array([[1], [0, 2], []], dtype=object), False),
+        (np.array([[1, 0], [0, 0]]), True),
+        (np.array([[1], [0], [0]]), False),
+        (np.array([[1, 0, 0]]), True),
+        (np.array([[1, 0], [1, 1]]), True),
+        (np.array([[1, 0], [0, 0], [0, 1]]), True),
+    ],
+)
+def test_is_multilabel_numpy_input(y, expected):
+    assert is_multilabel(y) == expected
+
+
+@pytest.mark.parametrize(
+    "y, expected",
+    [
+        (csr_matrix([[1, 0], [0, 0]]), True),
+        (csr_matrix([[1, 0, 0]]), True),
+        (csr_matrix([[1], [0], [0]]), False),
+        (csr_matrix([[1, 0]]), True),
+        (csr_matrix([[0, 0], [0, 0]]), True),
+    ],
+)
+def test_is_multilabel_sparse_matrix_csr(y, expected):
+    assert is_multilabel(y) == expected
+
+
+@pytest.mark.parametrize(
+    "y, expected",
+    [
+        (dok_matrix([[1, 0], [0, 0]]), True),
+        (lil_matrix([[1, 0, 0]]), True),
+    ],
+)
+def test_is_multilabel_sparse_matrix_dok_lil(y, expected):
+    assert is_multilabel(y) == expected
+
+
+@pytest.mark.parametrize(
+    "y",
+    [
+        42,
+        "string",
+        None,
+        np.array([]),
+        np.array([[]]),
+        [],
+    ],
+)
+def test_is_multilabel_invalid_inputs(y):
+    assert not is_multilabel(y)
