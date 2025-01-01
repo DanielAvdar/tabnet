@@ -67,3 +67,6 @@ source = "."
 [tool.hatch.build.targets.wheel]
 only-include = ["pytorch_tabnet", ]
 source = "."
+[tool.ruff]
+# In addition to the standard set of exclusions, omit all tests, plus a specific file.
+extend-exclude = ["tests/intg"]
