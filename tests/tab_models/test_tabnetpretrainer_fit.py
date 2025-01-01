@@ -20,7 +20,7 @@ from pytorch_tabnet.pretraining import TabNetPretrainer
         ),
         (
         dict(cat_idxs=[0, 1, 2, 3, 4], cat_dims=[5, 5, 5, 5, 5],cat_emb_dim=5),
-        dict(pretraining_ratio=0.8, max_epochs=1, batch_size=16, virtual_batch_size=32),
+        dict(pretraining_ratio=0.8, max_epochs=1, batch_size=16, virtual_batch_size=32,weights=np.ones(100)),
         np.random.rand(100, 10),
         np.random.rand(200, 10)
 )

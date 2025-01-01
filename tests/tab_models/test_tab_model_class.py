@@ -18,6 +18,16 @@ def classifier_instance():
     return TabNetClassifier()
 
 
+def test_class_fit(sample_data, classifier_instance):
+    X_train, y_train, eval_set = sample_data
+    weights = {0: 0.5, 1: 0.5}
+    classifier_instance.fit(X_train, y_train, eval_set, weights=weights)
+    assert classifier_instance.output_dim == 2
+    assert classifier_instance._default_metric == "auc"
+    assert classifier_instance.classes_ is not None
+    assert classifier_instance.updated_weights == {0: 0.5, 1: 0.5}
+
+
 def test_update_fit_params(sample_data, classifier_instance):
     X_train, y_train, eval_set = sample_data
     weights = {0: 0.5, 1: 0.5}
@@ -26,7 +36,6 @@ def test_update_fit_params(sample_data, classifier_instance):
     assert classifier_instance._default_metric == "auc"
     assert classifier_instance.classes_ is not None
     assert classifier_instance.updated_weights == {0: 0.5, 1: 0.5}
-
 
 def test_weight_updater(classifier_instance):
     weights = {0: 0.7, 1: 0.3}
