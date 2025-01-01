@@ -38,6 +38,8 @@ def test_class_fit(sample_data, classifier_instance):
     assert classifier_instance.updated_weights == {0: 0.5, 1: 0.5}
     proba_pred = classifier_instance.predict_proba(X_train)
     assert proba_pred.shape[0] == X_train.shape[0]
+    # assert not nan in proba_pred
+    assert not np.isnan(proba_pred).any()
 
 def test_update_fit_params(sample_data, classifier_instance):
     X_train, y_train, eval_set = sample_data

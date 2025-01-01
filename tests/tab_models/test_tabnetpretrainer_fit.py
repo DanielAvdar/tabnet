@@ -55,6 +55,7 @@ def test_pretrainer_fit(model_params,fit_params, X_train, X_valid,mask_type):
     unsupervised_model.load_model("test_model.zip")
     pred,_ = unsupervised_model.predict(X_valid)
     assert pred.shape[0] == X_valid.shape[0]
+    assert not np.isnan(pred).any()
     # if not sparse
     if not scipy.sparse.issparse(X_train):
         tab_class=TabNetClassifier()

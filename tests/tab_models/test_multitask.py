@@ -62,68 +62,6 @@ def test_compute_loss(sample_data, classifier):
     assert loss > 0
 
 
-# def test_class1(sample_data,classifier):
-#     X_train, y_train, X_test, y_test = sample_data
-#     classifier.fit(X_train, y_train,  max_epochs=1,eval_set=[(X_test, y_test)],batch_size=128, virtual_batch_size=128)
-#     y_true_list = [np.random.randint(0, 2, size=(20, 3))]
-#     y_pred_list = [np.random.rand(20, 3) for _ in range(3)]
-#     y_true, y_score = classifier.stack_batches(y_true_list, [y_pred_list])
-#
-#     assert y_true.shape[0] == 20
-#     assert len(y_score) == 3
-#     for score in y_score:
-#         assert np.allclose(np.sum(score, axis=1), 1)
-#     predictions = classifier.predict(X_test)
-#
-#     assert isinstance(predictions, list)
-#     assert len(predictions) == 3
-#     for task_prediction in predictions:
-#         assert task_prediction.shape[0] == X_test.shape[0]
-#
-#
-# def test_class2(sample_data, classifier):
-#     X_train, y_train, X_test, y_test = sample_data
-#     classifier.fit(X_train, y_train,  max_epochs=1,eval_set=[(X_test, y_test)])
-#     y_true_list = [np.random.randint(0, 2, size=(20, 3))]
-#     y_pred_list = [np.random.rand(20, 3) for _ in range(3)]
-#     y_true, y_score = classifier.stack_batches(y_true_list, [y_pred_list])
-#
-#     assert y_true.shape[0] == 20
-#     assert len(y_score) == 3
-#     for score in y_score:
-#         assert np.allclose(np.sum(score, axis=1), 1)
-#     predictions = classifier.predict(X_test)
-#
-#     assert isinstance(predictions, list)
-#     assert len(predictions) == 3
-#     for task_prediction in predictions:
-#         assert task_prediction.shape[0] == X_test.shape[0]
-
-
-# def test_class3(sample_data, classifier):
-#     X_train, y_train, X_test, y_test = sample_data
-#     classifier.fit(X_train, y_train,  max_epochs=1,eval_set=[(X_test, y_test)], weights=np.ones(1000))
-#     probabilities = classifier.predict_proba(X_test)
-#
-#     assert isinstance(probabilities, list)
-#     assert len(probabilities) == 3
-#     for task_proba in probabilities:
-#         assert task_proba.shape[0] == X_test.shape[0]
-#         assert np.allclose(np.sum(task_proba, axis=1), 1)
-#     y_true_list = [np.random.randint(0, 2, size=(20, 3))]
-#     y_pred_list = [np.random.rand(20, 3) for _ in range(3)]
-#     y_true, y_score = classifier.stack_batches(y_true_list, [y_pred_list])
-#
-#     assert y_true.shape[0] == 20
-#     assert len(y_score) == 3
-#     for score in y_score:
-#         assert np.allclose(np.sum(score, axis=1), 1)
-#     predictions = classifier.predict(X_test)
-#
-#     assert isinstance(predictions, list)
-#     assert len(predictions) == 3
-#     for task_prediction in predictions:
-#         assert task_prediction.shape[0] == X_test.shape[0]
 
 @pytest.mark.parametrize(
     "fit_params",
@@ -153,6 +91,9 @@ def test_class(sample_data, classifier,fit_params):
     for score in y_score:
         assert np.allclose(np.sum(score, axis=1), 1)
     predictions = classifier.predict(X_test)
+    # assert not np.isnan(predictions).any()
+
+    assert not all([np.isnan(p.astype(int)).any() for p in predictions])
 
     assert isinstance(predictions, list)
     assert len(predictions) == 3
