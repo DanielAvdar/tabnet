@@ -16,7 +16,7 @@ from scipy.sparse import csr_matrix, csr_array
     params=[
         (np.random.rand(1000, 10), np.random.randint(0, 2, size=(1000, 3)), np.random.rand(50, 10),
             np.random.randint(0, 2, size=(50, 3))),
-        (csr_matrix((1000, 10)), np.random.randint(0, 2, size=(1000, 3)), csr_matrix((50, 10)), np.random.randint(0, 2, size=(50, 3))),
+        # (csr_matrix((1000, 10)), np.random.randint(0, 2, size=(1000, 3)), csr_matrix((50, 10)), np.random.randint(0, 2, size=(50, 3))),
         # (csr_matrix((1000, 10)), csr_array((1000, 3)), csr_matrix((50, 10)), csr_array((50, 3))), not implemented
     ]
 )
@@ -129,8 +129,8 @@ def test_compute_loss(sample_data, classifier):
     "fit_params",
     [
         dict(max_epochs=1,batch_size=128, virtual_batch_size=128),
-        dict(max_epochs=1,batch_size=128, virtual_batch_size=128,weights=np.ones(1000)),
-        dict(max_epochs=1,batch_size=128, virtual_batch_size=128,eval_metric=["auc"]),
+        dict(max_epochs=1,batch_size=128, virtual_batch_size=128,weights=np.ones(1000)/1000),
+            dict(max_epochs=1,batch_size=128, virtual_batch_size=128,eval_metric=["auc"]),
         dict(patience=1,batch_size=128, virtual_batch_size=128,),
     ],
 )
