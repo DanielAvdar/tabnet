@@ -119,19 +119,19 @@ def create_sampler(weights, y_train):
         if weights == 0:
             need_shuffle = True
             sampler = None
-        # elif weights == 1:
-        #     need_shuffle = False
-        #     class_sample_count = np.array([
-        #         len(np.where(y_train == t)[0]) for t in np.unique(y_train)
-        #     ])
-        #
-        #     weights = 1.0 / class_sample_count
-        #
-        #     samples_weight = np.array([weights[t] for t in y_train])
-        #
-        #     samples_weight = torch.from_numpy(samples_weight)
-        #     samples_weight = samples_weight.double()
-        #     sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
+        elif weights == 1:
+            need_shuffle = False
+            class_sample_count = np.array([
+                len(np.where(y_train == t)[0]) for t in np.unique(y_train)
+            ])
+
+            weights = 1.0 / class_sample_count
+
+            samples_weight = np.array([weights[t] for t in y_train])
+
+            samples_weight = torch.from_numpy(samples_weight)
+            samples_weight = samples_weight.double()
+            sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
         else:
             raise ValueError("Weights should be either 0, 1, dictionnary or list.")
     elif isinstance(weights, dict):
