@@ -31,7 +31,7 @@ def classifier_instance():
 def test_class_fit(sample_data, classifier_instance):
     X_train, y_train, eval_set = sample_data
     weights = {0: 0.5, 1: 0.5}
-    classifier_instance.fit(X_train, y_train, eval_set, weights=weights)
+    classifier_instance.fit(X_train, y_train, eval_set, weights=weights,loss_fn="auc")
     assert classifier_instance.output_dim == 2 if isinstance(y_train, np.ndarray) else 1
     assert classifier_instance._default_metric == "auc"
     assert classifier_instance.classes_ is not None
