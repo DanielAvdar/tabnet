@@ -3,6 +3,7 @@ import numpy as np
 import scipy
 
 from pytorch_tabnet.pretraining import TabNetPretrainer
+from pytorch_tabnet.tab_model import TabNetClassifier
 
 
 @pytest.mark.parametrize(
@@ -54,3 +55,11 @@ def test_pretrainer_fit(model_params,fit_params, X_train, X_valid,mask_type):
     unsupervised_model.load_model("test_model.zip")
     pred,_ = unsupervised_model.predict(X_valid)
     assert pred.shape[0] == X_valid.shape[0]
+    # if not sparse
+    if not scipy.sparse.issparse(X_train):
+        tab_class=TabNetClassifier()
+        tab_class.fit(
+            X_train=X_train,
+            y_train=np.random.randint(0, 2, size=X_train.shape[0]),
+            from_unsupervised=unsupervised_model,
+        )
