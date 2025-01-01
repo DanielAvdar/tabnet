@@ -8,9 +8,11 @@ from pytorch_tabnet.abstract_model import TabModel
 # Define necessary functions and classes from the provided code
 # ... (copy the entire code provided in "Related information and code...")
 
+
 @dataclass  # Assuming TabModel is a dataclass
 class MockTabModel(TabModel):  # Create a Mock model for testing
     """Mock TabModel for testing."""
+
     _default_loss: torch.nn.Module = None
     _default_metric: str = None
     updated_weights: bool = False
@@ -19,7 +21,7 @@ class MockTabModel(TabModel):  # Create a Mock model for testing
     def update_fit_params(self, X_train, y_train, eval_set, weights):
         self.output_dim = y_train.shape[1] if len(y_train.shape) > 1 else 1
         self._default_loss = torch.nn.functional.mse_loss  # Example loss
-        self._default_metric = 'mse'  # Example metric
+        self._default_metric = "mse"  # Example metric
         self.updated_weights = weights
         self.preds_mapper = lambda x: x  # Identity mapper for simplicity
 
@@ -32,6 +34,7 @@ class MockTabModel(TabModel):  # Create a Mock model for testing
     def predict_func(self, res):
         return res
 
+
 # Start writing tests using pytest
 def test_fit_predict_simple():
     """Test fitting and predicting with simple data."""
@@ -42,6 +45,7 @@ def test_fit_predict_simple():
     predictions = model.predict(X_train)
     assert predictions.shape == y_train.shape
 
+
 def test_fit_predict_more_complex():
     """Test with slightly more complex data and parameters."""
     X_train = np.random.rand(10, 3)
@@ -51,11 +55,11 @@ def test_fit_predict_more_complex():
     predictions = model.predict(X_train)
     assert predictions.shape == y_train.shape
 
+
 def test_explain():
     """Test the explain method."""
     X_train = np.random.rand(5, 2)
     model = MockTabModel()
     model.fit(X_train, np.random.rand(5, 1), max_epochs=1)  # Fit is required
-    explain_matrix, masks = model.explain(X_train)
+    explain_matrix, _masks = model.explain(X_train)
     assert explain_matrix.shape == X_train.shape
-

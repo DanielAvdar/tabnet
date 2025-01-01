@@ -89,11 +89,11 @@ def test_customizing():
 
     from pytorch_tabnet.metrics import Metric
     class my_metric(Metric):
-    
+
         def __init__(self):
             self._name = "custom"
             self._maximize = True
-    
+
         def __call__(self, y_true, y_score):
             return 2 * roc_auc_score(y_true, y_score[:, 1])
 
@@ -146,4 +146,3 @@ def test_customizing():
     for i in range(3):
         axs[i].imshow(masks[i][:50])
         axs[i].set_title(f"mask {i}")
-

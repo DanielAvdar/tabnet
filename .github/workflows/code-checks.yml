@@ -1,0 +1,24 @@
+name: Code Quality
+
+on:
+  pull_request:
+    paths:
+      - 'pytorch_tabnet/**'
+      - 'tests/**'
+      - '.github/workflows/code-checks.yml'
+      - '.pre-commit-config.yaml'
+
+  workflow_dispatch:
+jobs:
+  lint:
+    name: Code Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+      - run: uv python install 3.11
+      - run: make
+      - run: make check

@@ -100,7 +100,6 @@ sparsemax = SparsemaxFunction.apply
 
 
 class Sparsemax(nn.Module):
-
     def __init__(self, dim=-1):
         self.dim = dim
         super(Sparsemax, self).__init__()
@@ -131,7 +130,7 @@ class Entmax15Function(Function):
 
     @staticmethod
     def backward(ctx, grad_output):
-        Y, = ctx.saved_tensors
+        (Y,) = ctx.saved_tensors
         gppr = Y.sqrt()  # = 1 / g'' (Y)
         dX = grad_output * gppr
         q = dX.sum(ctx.dim) / gppr.sum(ctx.dim)
@@ -145,8 +144,8 @@ class Entmax15Function(Function):
 
         rho = _make_ix_like(input, dim)
         mean = Xsrt.cumsum(dim) / rho
-        mean_sq = (Xsrt ** 2).cumsum(dim) / rho
-        ss = rho * (mean_sq - mean ** 2)
+        mean_sq = (Xsrt**2).cumsum(dim) / rho
+        ss = rho * (mean_sq - mean**2)
         delta = (1 - ss) / rho
 
         # NOTE this is not exactly the same as in reference algo
@@ -161,7 +160,7 @@ class Entmax15Function(Function):
 
 
 class Entmoid15(Function):
-    """ A highly optimized equivalent of lambda x: Entmax15([x, 0]) """
+    """A highly optimized equivalent of lambda x: Entmax15([x, 0])"""
 
     @staticmethod
     def forward(ctx, input):
@@ -172,7 +171,7 @@ class Entmoid15(Function):
     @staticmethod
     def _forward(input):
         input, is_pos = abs(input), input >= 0
-        tau = (input + torch.sqrt(F.relu(8 - input ** 2))) / 2
+        tau = (input + torch.sqrt(F.relu(8 - input**2))) / 2
         tau.masked_fill_(tau <= input, 2.0)
         y_neg = 0.25 * F.relu(tau - input, inplace=True) ** 2
         return torch.where(is_pos, 1 - y_neg, y_neg)
@@ -195,7 +194,6 @@ entmoid15 = Entmoid15.apply
 
 
 class Entmax15(nn.Module):
-
     def __init__(self, dim=-1):
         self.dim = dim
         super(Entmax15, self).__init__()

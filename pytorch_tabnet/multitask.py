@@ -11,9 +11,9 @@ import scipy
 class TabNetMultiTaskClassifier(TabModel):
     def __post_init__(self):
         super(TabNetMultiTaskClassifier, self).__post_init__()
-        self._task = 'classification'
+        self._task = "classification"
         self._default_loss = torch.nn.functional.cross_entropy
-        self._default_metric = 'logloss'
+        self._default_metric = "logloss"
 
     def prepare_target(self, y):
         y_mapped = y.copy()

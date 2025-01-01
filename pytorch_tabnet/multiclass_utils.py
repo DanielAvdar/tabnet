@@ -6,6 +6,7 @@ Multi-class / multi-label utility function
 ==========================================
 
 """
+
 from collections.abc import Sequence
 from itertools import chain
 
@@ -288,7 +289,7 @@ def type_of_target(y):
 
     if not valid:
         raise ValueError(
-            "Expected array-like (array or non-string sequence), " "got %r" % y
+            "Expected array-like (array or non-string sequence), got %r" % y
         )
 
     sparseseries = y.__class__.__name__ == "SparseSeries"

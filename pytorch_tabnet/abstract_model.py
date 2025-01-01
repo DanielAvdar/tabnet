@@ -17,7 +17,7 @@ from pytorch_tabnet.utils import (
     check_input,
     check_warm_start,
     create_group_matrix,
-    check_embedding_parameters
+    check_embedding_parameters,
 )
 from pytorch_tabnet.callbacks import (
     CallbackContainer,
@@ -41,7 +41,7 @@ import scipy
 
 @dataclass
 class TabModel(BaseEstimator):
-    """ Class for TabNet model."""
+    """Class for TabNet model."""
 
     n_d: int = 8
     n_a: int = 8
@@ -85,9 +85,9 @@ class TabModel(BaseEstimator):
         self.optimizer_fn = copy.deepcopy(self.optimizer_fn)
         self.scheduler_fn = copy.deepcopy(self.scheduler_fn)
 
-        updated_params = check_embedding_parameters(self.cat_dims,
-                                                    self.cat_idxs,
-                                                    self.cat_emb_dim)
+        updated_params = check_embedding_parameters(
+            self.cat_dims, self.cat_idxs, self.cat_emb_dim
+        )
         self.cat_dims, self.cat_idxs, self.cat_emb_dim = updated_params
 
     def __update__(self, **kwargs):
@@ -140,7 +140,7 @@ class TabModel(BaseEstimator):
         from_unsupervised=None,
         warm_start=False,
         augmentations=None,
-        compute_importance=True
+        compute_importance=True,
     ):
         """Train a neural network stored in self.network
         Using train_dataloader for training data and
@@ -251,7 +251,6 @@ class TabModel(BaseEstimator):
 
         # Training loop over epochs
         for epoch_idx in range(self.max_epochs):
-
             # Call method on_epoch_begin for all callbacks
             self._callback_container.on_epoch_begin(epoch_idx)
 
@@ -309,7 +308,7 @@ class TabModel(BaseEstimator):
         results = []
         for batch_nb, data in enumerate(dataloader):
             data = data.to(self.device).float()
-            output, M_loss = self.network(data)
+            output, _M_loss = self.network(data)
             predictions = output.cpu().detach().numpy()
             results.append(predictions)
         res = np.vstack(results)
@@ -358,8 +357,9 @@ class TabModel(BaseEstimator):
                 masks[key] = csc_matrix.dot(
                     value.cpu().detach().numpy(), self.reducing_matrix
                 )
-            original_feat_explain = csc_matrix.dot(M_explain.cpu().detach().numpy(),
-                                                   self.reducing_matrix)
+            original_feat_explain = csc_matrix.dot(
+                M_explain.cpu().detach().numpy(), self.reducing_matrix
+            )
             res_explain.append(original_feat_explain)
 
             if batch_nb == 0:
@@ -417,9 +417,7 @@ class TabModel(BaseEstimator):
                 init_params[key] = val
         saved_params["init_params"] = init_params
 
-        class_attrs = {
-            "preds_mapper": self.preds_mapper
-        }
+        class_attrs = {"preds_mapper": self.preds_mapper}
         saved_params["class_attrs"] = class_attrs
 
         # Create folder
@@ -645,9 +643,9 @@ class TabModel(BaseEstimator):
         # Set metric container for each sets
         self._metric_container_dict = {}
         for name in eval_names:
-            self._metric_container_dict.update(
-                {name: MetricContainer(metrics, prefix=f"{name}_")}
-            )
+            self._metric_container_dict.update({
+                name: MetricContainer(metrics, prefix=f"{name}_")
+            })
 
         self._metrics = []
         self._metrics_names = []

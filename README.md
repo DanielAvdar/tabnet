@@ -239,7 +239,7 @@ loaded_clf.load_model(saved_filepath)
 
 - `n_steps` : int (default=3)
 
-    Number of steps in the architecture (usually between 3 and 10)  
+    Number of steps in the architecture (usually between 3 and 10)
 
 - `gamma` : float  (default=1.3)
 
@@ -247,7 +247,7 @@ loaded_clf.load_model(saved_filepath)
     A value close to 1 will make mask selection least correlated between layers.
     Values range from 1.0 to 2.0.
 
-- `cat_idxs` : list of int (default=[] - Mandatory for embeddings) 
+- `cat_idxs` : list of int (default=[] - Mandatory for embeddings)
 
     List of categorical features indices.
 
@@ -285,7 +285,7 @@ loaded_clf.load_model(saved_filepath)
 - `clip_value` : float (default None)
 
     If a float is given this will clip the gradient at clip_value.
-    
+
 - `lambda_sparse` : float (default = 1e-3)
 
     This is the extra sparsity loss coefficient as proposed in the original paper. The bigger this coefficient is, the sparser your model will be in terms of feature selection. Depending on the difficulty of your problem, reducing this value could help.
@@ -324,7 +324,7 @@ loaded_clf.load_model(saved_filepath)
     This allows the model to share it's attention accross feature inside a same group.
     This can be especially useful when your preprocessing generates correlated or dependant features: like if you use a TF-IDF or a PCA on a text column.
     Note that feature importance will be exactly the same between features on a same group.
-    Please also note that embeddings generated for a categorical variable are always inside a same group. 
+    Please also note that embeddings generated for a categorical variable are always inside a same group.
 
 - `n_shared_decoder` : int (default=1)
 
@@ -344,22 +344,22 @@ loaded_clf.load_model(saved_filepath)
 
     Training targets
 
-- `eval_set`: list of tuple  
+- `eval_set`: list of tuple
 
-    List of eval tuple set (X, y).  
-    The last one is used for early stopping  
+    List of eval tuple set (X, y).
+    The last one is used for early stopping
 
-- `eval_name`: list of str  
-              List of eval set names.  
+- `eval_name`: list of str
+              List of eval set names.
 
-- `eval_metric` : list of str  
-              List of evaluation metrics.  
+- `eval_metric` : list of str
+              List of evaluation metrics.
               The last metric is used for early stopping.
 
 - `max_epochs` : int (default = 200)
 
     Maximum number of epochs for trainng.
-    
+
 - `patience` : int (default = 10)
 
     Number of consecutive epochs without improvement before performing early stopping.
@@ -399,7 +399,7 @@ loaded_clf.load_model(saved_filepath)
 
     Whether to drop last batch if not complete during training
 
-- `callbacks` : list of callback function  
+- `callbacks` : list of callback function
         List of custom callbacks
 
 - `pretraining_ratio` : float
