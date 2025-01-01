@@ -1,16 +1,26 @@
 import numpy as np
 import pytest
 import torch
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, csr_array
 from pytorch_tabnet.tab_model import TabNetClassifier
 
 
-@pytest.fixture
-def sample_data():
-    X_train = np.random.rand(100, 10)
-    y_train = np.random.randint(0, 2, size=100)
-    eval_set = [(np.random.rand(20, 10), np.random.randint(0, 2, size=20))]
-    return X_train, y_train, eval_set
+# @pytest.fixture
+# def sample_data():
+#     X_train = np.random.rand(100, 10)
+#     y_train = np.random.randint(0, 2, size=100)
+#     eval_set = [(np.random.rand(20, 10), np.random.randint(0, 2, size=20))]
+#     return X_train, y_train, eval_set
+
+@pytest.fixture(
+    params=[
+        (np.random.rand(100, 10), np.random.randint(0, 2, size=100), [(np.random.rand(20, 10), np.random.randint(0, 2, size=20))]),
+        (csr_matrix((100, 10)), np.random.randint(0, 2, size=100), [(csr_matrix((20, 10)), np.random.randint(0, 2, size=20))]),
+    ]
+)
+def sample_data(request):
+    return request.param
+
 
 
 @pytest.fixture
@@ -22,7 +32,7 @@ def test_class_fit(sample_data, classifier_instance):
     X_train, y_train, eval_set = sample_data
     weights = {0: 0.5, 1: 0.5}
     classifier_instance.fit(X_train, y_train, eval_set, weights=weights)
-    assert classifier_instance.output_dim == 2
+    assert classifier_instance.output_dim == 2 if isinstance(y_train, np.ndarray) else 1
     assert classifier_instance._default_metric == "auc"
     assert classifier_instance.classes_ is not None
     assert classifier_instance.updated_weights == {0: 0.5, 1: 0.5}

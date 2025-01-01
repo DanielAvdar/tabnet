@@ -2,14 +2,30 @@ import numpy as np
 import pytest
 import torch
 from pytorch_tabnet.tab_model import TabNetRegressor
+from scipy.sparse import csr_matrix, csr_array
 
 
-@pytest.fixture
-def sample_data_regressor():
-    X_train = np.random.rand(100, 10)
-    y_train = np.random.rand(100, 3)
-    eval_set = [(np.random.rand(20, 10), np.random.rand(20, 3))]
-    return X_train, y_train, eval_set
+# @pytest.fixture
+# def sample_data_regressor():
+#     X_train = np.random.rand(100, 10)
+#     y_train = np.random.rand(100, 3)
+#     eval_set = [(np.random.rand(20, 10), np.random.rand(20, 3))]
+#     return X_train, y_train, eval_set
+
+@pytest.fixture(
+    params=[
+        (
+            np.random.rand(100, 10),
+            np.random.rand(100, 3),
+            [(np.random.rand(20, 10), np.random.rand(20, 3))],
+        ),
+        (csr_matrix((100, 10)), np.random.rand(100, 3),
+         [(csr_matrix((20, 10)), np.random.rand(20, 3))]),
+
+    ]
+)
+def sample_data_regressor(request):
+    return request.param
 
 
 @pytest.fixture
