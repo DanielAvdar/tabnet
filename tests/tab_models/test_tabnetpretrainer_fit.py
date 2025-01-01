@@ -1,5 +1,7 @@
 import pytest
 import numpy as np
+import scipy
+
 from pytorch_tabnet.pretraining import TabNetPretrainer
 
 
@@ -19,20 +21,27 @@ from pytorch_tabnet.pretraining import TabNetPretrainer
                 np.random.rand(50, 10)
         ),
         (
-        dict(cat_idxs=[0, 1, 2, 3, 4], cat_dims=[5, 5, 5, 5, 5],cat_emb_dim=5),
-        dict(pretraining_ratio=0.8, max_epochs=1, batch_size=16, virtual_batch_size=32,weights=np.ones(100)),
-        np.random.rand(100, 10),
-        np.random.rand(200, 10)
-)
+                dict(cat_idxs=[0, 1, 2, 3, 4], cat_dims=[5, 5, 5, 5, 5], cat_emb_dim=5),
+                dict(pretraining_ratio=0.8, max_epochs=1, batch_size=16, virtual_batch_size=32, weights=np.ones(100)),
+                np.random.rand(100, 10),
+                np.random.rand(200, 10)
+        ),
+        (
+                dict(cat_idxs=[0, 1, 2, 3, 4], cat_dims=[5, 5, 5, 5, 5], ),
+                dict(pretraining_ratio=0.8, max_epochs=1, batch_size=16, virtual_batch_size=32, ),
+                scipy.sparse.csr_matrix((100, 10)),
+                scipy.sparse.csr_matrix((50, 10))
+        )
 
 ,
 
 
     ]
 )
-def test_pretrainer_fit(model_params,fit_params, X_train, X_valid):
+@pytest.mark.parametrize('mask_type', ['sparsemax', 'entmax'])
+def test_pretrainer_fit(model_params,fit_params, X_train, X_valid,mask_type):
     """Test TabNetPretrainer fit method."""
-    unsupervised_model = TabNetPretrainer(**model_params)
+    unsupervised_model = TabNetPretrainer(**model_params,mask_type=mask_type)
     unsupervised_model.fit(
         X_train=X_train,
         eval_set=[X_valid],

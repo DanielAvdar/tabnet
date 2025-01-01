@@ -22,6 +22,8 @@ def test_reg_fig(sample_data_regressor, regressor_instance):
     regressor_instance.fit(X_train, y_train, eval_set=eval_set)
     assert regressor_instance.output_dim == 3
     assert regressor_instance._default_metric == "mse"
+    pred = regressor_instance.predict(X_train)
+    assert pred.shape[0] == X_train.shape[0]
 
 
 def test_update_fit_params_regressor(sample_data_regressor, regressor_instance):
