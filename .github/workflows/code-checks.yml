@@ -1,0 +1,26 @@
+name: Code Quality
+
+on:
+  pull_request:
+    paths:
+      - 'pytorch_tabnet/**'
+      - 'tests/**'
+      - '.github/workflows/code-checks.yml'
+      - '.pre-commit-config.yaml'
+
+  workflow_dispatch:
+jobs:
+  lint:
+    name: Code Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - run: pipx install poetry
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: poetry
+
+      - run: make
+      - run: make check
