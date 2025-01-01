@@ -18,7 +18,7 @@ build:
 	uv build
 
 coverage:
-	uv run pytest --cov=pytorch_tabnet --cov-report=xml
+	uv run pytest --cov=pytorch_tabnet --cov-report=xml --junitxml=junit.xml -o junit_family=legacy
 
 clear:
 	uv venv --python 3.10
