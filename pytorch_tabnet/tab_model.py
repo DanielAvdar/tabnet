@@ -11,9 +11,9 @@ import scipy
 class TabNetClassifier(TabModel):
     def __post_init__(self):
         super(TabNetClassifier, self).__post_init__()
-        self._task = 'classification'
+        self._task = "classification"
         self._default_loss = torch.nn.functional.cross_entropy
-        self._default_metric = 'accuracy'
+        self._default_metric = "accuracy"
 
     def weight_updater(self, weights):
         """
@@ -54,7 +54,7 @@ class TabNetClassifier(TabModel):
         for X, y in eval_set:
             check_output_dim(train_labels, y)
         self.output_dim = output_dim
-        self._default_metric = ('auc' if self.output_dim == 2 else 'accuracy')
+        self._default_metric = "auc" if self.output_dim == 2 else "accuracy"
         self.classes_ = train_labels
         self.target_mapper = {
             class_label: index for index, class_label in enumerate(self.classes_)
@@ -107,7 +107,7 @@ class TabNetClassifier(TabModel):
         for batch_nb, data in enumerate(dataloader):
             data = data.to(self.device).float()
 
-            output, M_loss = self.network(data)
+            output, _M_loss = self.network(data)
             predictions = torch.nn.Softmax(dim=1)(output).cpu().detach().numpy()
             results.append(predictions)
         res = np.vstack(results)
@@ -117,9 +117,9 @@ class TabNetClassifier(TabModel):
 class TabNetRegressor(TabModel):
     def __post_init__(self):
         super(TabNetRegressor, self).__post_init__()
-        self._task = 'regression'
+        self._task = "regression"
         self._default_loss = torch.nn.functional.mse_loss
-        self._default_metric = 'mse'
+        self._default_metric = "mse"
 
     def prepare_target(self, y):
         return y
@@ -127,17 +127,13 @@ class TabNetRegressor(TabModel):
     def compute_loss(self, y_pred, y_true):
         return self.loss_fn(y_pred, y_true)
 
-    def update_fit_params(
-        self,
-        X_train,
-        y_train,
-        eval_set,
-        weights
-    ):
+    def update_fit_params(self, X_train, y_train, eval_set, weights):
         if len(y_train.shape) != 2:
-            msg = "Targets should be 2D : (n_samples, n_regression) " + \
-                  f"but y_train.shape={y_train.shape} given.\n" + \
-                  "Use reshape(-1, 1) for single regression."
+            msg = (
+                "Targets should be 2D : (n_samples, n_regression) "
+                + f"but y_train.shape={y_train.shape} given.\n"
+                + "Use reshape(-1, 1) for single regression."
+            )
             raise ValueError(msg)
         self.output_dim = y_train.shape[1]
         self.preds_mapper = None

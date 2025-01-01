@@ -10,55 +10,71 @@ from pytorch_tabnet.tab_model import TabNetClassifier
     "model_params, fit_params, X_train, X_valid",
     [
         (
-        dict(),
-        dict(pretraining_ratio=0.8, max_epochs=1, batch_size=32, virtual_batch_size=32),
-        np.random.rand(100, 10),
-        np.random.rand(50, 10)
+            dict(),
+            dict(
+                pretraining_ratio=0.8,
+                max_epochs=1,
+                batch_size=32,
+                virtual_batch_size=32,
+            ),
+            np.random.rand(100, 10),
+            np.random.rand(50, 10),
         ),
         (
-                dict(cat_idxs=[0, 1, 2, 3, 4], cat_dims=[5, 5, 5, 5, 5], ),
-                dict(pretraining_ratio=0.8, max_epochs=1, batch_size=32, virtual_batch_size=32),
-                np.random.rand(100, 10),
-                np.random.rand(50, 10)
+            dict(
+                cat_idxs=[0, 1, 2, 3, 4],
+                cat_dims=[5, 5, 5, 5, 5],
+            ),
+            dict(
+                pretraining_ratio=0.8,
+                max_epochs=1,
+                batch_size=32,
+                virtual_batch_size=32,
+            ),
+            np.random.rand(100, 10),
+            np.random.rand(50, 10),
         ),
         (
-                dict(cat_idxs=[0, 1, 2, 3, 4], cat_dims=[5, 5, 5, 5, 5], cat_emb_dim=5),
-                dict(pretraining_ratio=0.8, max_epochs=1, batch_size=16, virtual_batch_size=32, weights=np.ones(100)),
-                np.random.rand(100, 10),
-                np.random.rand(200, 10)
+            dict(cat_idxs=[0, 1, 2, 3, 4], cat_dims=[5, 5, 5, 5, 5], cat_emb_dim=5),
+            dict(
+                pretraining_ratio=0.8,
+                max_epochs=1,
+                batch_size=16,
+                virtual_batch_size=32,
+                weights=np.ones(100),
+            ),
+            np.random.rand(100, 10),
+            np.random.rand(200, 10),
         ),
         (
-                dict(cat_idxs=[0, 1, 2, 3, 4], cat_dims=[5, 5, 5, 5, 5], n_shared =1),
-                dict(pretraining_ratio=0.8, max_epochs=1, batch_size=16, virtual_batch_size=32, ),
-                scipy.sparse.csr_matrix((100, 10)),
-                scipy.sparse.csr_matrix((50, 10))
-        )
-
-,
-
-
-    ]
+            dict(cat_idxs=[0, 1, 2, 3, 4], cat_dims=[5, 5, 5, 5, 5], n_shared=1),
+            dict(
+                pretraining_ratio=0.8,
+                max_epochs=1,
+                batch_size=16,
+                virtual_batch_size=32,
+            ),
+            scipy.sparse.csr_matrix((100, 10)),
+            scipy.sparse.csr_matrix((50, 10)),
+        ),
+    ],
 )
-@pytest.mark.parametrize('mask_type', ['sparsemax', 'entmax'])
-def test_pretrainer_fit(model_params,fit_params, X_train, X_valid,mask_type):
+@pytest.mark.parametrize("mask_type", ["sparsemax", "entmax"])
+def test_pretrainer_fit(model_params, fit_params, X_train, X_valid, mask_type):
     """Test TabNetPretrainer fit method."""
-    unsupervised_model = TabNetPretrainer(**model_params,mask_type=mask_type)
-    unsupervised_model.fit(
-        X_train=X_train,
-        eval_set=[X_valid],
-        **fit_params
-    )
-    assert hasattr(unsupervised_model, 'network')
+    unsupervised_model = TabNetPretrainer(**model_params, mask_type=mask_type)
+    unsupervised_model.fit(X_train=X_train, eval_set=[X_valid], **fit_params)
+    assert hasattr(unsupervised_model, "network")
     assert unsupervised_model.network.pretraining_ratio == 0.8
     assert unsupervised_model.history.epoch_metrics
     unsupervised_model.save_model("test_model")
     unsupervised_model.load_model("test_model.zip")
-    pred,_ = unsupervised_model.predict(X_valid)
+    pred, _ = unsupervised_model.predict(X_valid)
     assert pred.shape[0] == X_valid.shape[0]
     assert not np.isnan(pred).any()
     # if not sparse
     if not scipy.sparse.issparse(X_train):
-        tab_class=TabNetClassifier()
+        tab_class = TabNetClassifier()
         tab_class.fit(
             X_train=X_train,
             y_train=np.random.randint(0, 2, size=X_train.shape[0]),

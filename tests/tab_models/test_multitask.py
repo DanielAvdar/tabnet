@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 import torch
 from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
-from scipy.sparse import csr_matrix, csr_array
 
 
 # @pytest.fixture
@@ -14,14 +13,20 @@ from scipy.sparse import csr_matrix, csr_array
 #     return X_train, y_train, X_test, y_test
 @pytest.fixture(
     params=[
-        (np.random.rand(1000, 10), np.random.randint(0, 2, size=(1000, 3)), np.random.rand(50, 10),
-            np.random.randint(0, 2, size=(50, 3))),
+        (
+            np.random.rand(1000, 10),
+            np.random.randint(0, 2, size=(1000, 3)),
+            np.random.rand(50, 10),
+            np.random.randint(0, 2, size=(50, 3)),
+        ),
         # (csr_matrix((1000, 10)), np.random.randint(0, 2, size=(1000, 3)), csr_matrix((50, 10)), np.random.randint(0, 2, size=(50, 3))),
         # (csr_matrix((1000, 10)), csr_array((1000, 3)), csr_matrix((50, 10)), csr_array((50, 3))), not implemented
     ]
 )
 def sample_data(request):
     return request.param
+
+
 @pytest.fixture
 def classifier():
     return TabNetMultiTaskClassifier()
@@ -62,19 +67,27 @@ def test_compute_loss(sample_data, classifier):
     assert loss > 0
 
 
-
 @pytest.mark.parametrize(
     "fit_params",
     [
-        dict(max_epochs=1,batch_size=128, virtual_batch_size=128),
-        dict(max_epochs=1,batch_size=128, virtual_batch_size=128,weights=np.ones(1000)/1000),
-            dict(max_epochs=1,batch_size=128, virtual_batch_size=128,eval_metric=["auc"]),
-        dict(patience=1,batch_size=128, virtual_batch_size=128,),
+        dict(max_epochs=1, batch_size=128, virtual_batch_size=128),
+        dict(
+            max_epochs=1,
+            batch_size=128,
+            virtual_batch_size=128,
+            weights=np.ones(1000) / 1000,
+        ),
+        dict(max_epochs=1, batch_size=128, virtual_batch_size=128, eval_metric=["auc"]),
+        dict(
+            patience=1,
+            batch_size=128,
+            virtual_batch_size=128,
+        ),
     ],
 )
-def test_class(sample_data, classifier,fit_params):
+def test_class(sample_data, classifier, fit_params):
     X_train, y_train, X_test, y_test = sample_data
-    classifier.fit(X_train, y_train ,eval_set=[(X_test, y_test)], **fit_params)
+    classifier.fit(X_train, y_train, eval_set=[(X_test, y_test)], **fit_params)
     probabilities = classifier.predict_proba(X_test)
 
     assert isinstance(probabilities, list)

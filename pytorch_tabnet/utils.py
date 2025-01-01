@@ -121,9 +121,9 @@ def create_sampler(weights, y_train):
             sampler = None
         elif weights == 1:
             need_shuffle = False
-            class_sample_count = np.array(
-                [len(np.where(y_train == t)[0]) for t in np.unique(y_train)]
-            )
+            class_sample_count = np.array([
+                len(np.where(y_train == t)[0]) for t in np.unique(y_train)
+            ])
 
             weights = 1.0 / class_sample_count
 
@@ -355,7 +355,9 @@ def check_list_groups(list_groups, input_dim):
         for group_pos, group in enumerate(list_groups):
             msg = f"Groups must be given as a list of list, but found {group} in position {group_pos}."  # noqa
             assert isinstance(group, list), msg
-            assert len(group) > 0, "Empty groups are forbidding please remove empty groups []"
+            assert len(group) > 0, (
+                "Empty groups are forbidding please remove empty groups []"
+            )
 
     n_elements_in_groups = np.sum([len(group) for group in list_groups])
     flat_list = []
@@ -363,11 +365,15 @@ def check_list_groups(list_groups, input_dim):
         flat_list.extend(group)
     unique_elements = np.unique(flat_list)
     n_unique_elements_in_groups = len(unique_elements)
-    msg = f"One feature can only appear in one group, please check your grouped_features."
+    msg = (
+        "One feature can only appear in one group, please check your grouped_features."
+    )
     assert n_unique_elements_in_groups == n_elements_in_groups, msg
 
     highest_feat = np.max(unique_elements)
-    assert highest_feat < input_dim, f"Number of features is {input_dim} but one group contains {highest_feat}."  # noqa
+    assert highest_feat < input_dim, (
+        f"Number of features is {input_dim} but one group contains {highest_feat}."
+    )  # noqa
     return
 
 
@@ -420,13 +426,13 @@ def validate_eval_set(eval_set, eval_name, X_train, y_train):
     """
     eval_name = eval_name or [f"val_{i}" for i in range(len(eval_set))]
 
-    assert len(eval_set) == len(
-        eval_name
-    ), "eval_set and eval_name have not the same length"
+    assert len(eval_set) == len(eval_name), (
+        "eval_set and eval_name have not the same length"
+    )
     if len(eval_set) > 0:
-        assert all(
-            len(elem) == 2 for elem in eval_set
-        ), "Each tuple of eval_set need to have two elements"
+        assert all(len(elem) == 2 for elem in eval_set), (
+            "Each tuple of eval_set need to have two elements"
+        )
     for name, (X, y) in zip(eval_name, eval_set):
         check_input(X)
         msg = (
@@ -502,7 +508,9 @@ def check_input(X):
     and check array according to scikit rules
     """
     if isinstance(X, (pd.DataFrame, pd.Series)):
-        err_message = "Pandas DataFrame are not supported: apply X.values when calling fit"
+        err_message = (
+            "Pandas DataFrame are not supported: apply X.values when calling fit"
+        )
         raise TypeError(err_message)
     check_array(X, accept_sparse=True)
 
@@ -513,7 +521,9 @@ def check_warm_start(warm_start, from_unsupervised):
     """
     if warm_start and from_unsupervised is not None:
         warn_msg = "warm_start=True and from_unsupervised != None: "
-        warn_msg = "warm_start will be ignore, training will start from unsupervised weights"
+        warn_msg = (
+            "warm_start will be ignore, training will start from unsupervised weights"
+        )
         warnings.warn(warn_msg)
     return
 

@@ -9,7 +9,11 @@ from sklearn.utils.multiclass import (
 )
 from scipy import sparse
 
-from pytorch_tabnet.multiclass_utils import infer_multitask_output, check_output_dim, infer_output_dim
+from pytorch_tabnet.multiclass_utils import (
+    infer_multitask_output,
+    check_output_dim,
+    infer_output_dim,
+)
 from pytorch_tabnet.multiclass_utils import assert_all_finite
 
 
@@ -49,12 +53,8 @@ def test_type_of_target_valid(y, expected):
     assert type_of_target(y) == expected
 
 
-
-
-
 # Tests for infer_output_dim
 def test_infer_output_dim_single_task():
-
     y = np.array([1, 0, 3, 3, 0, 1])
     output_dim, labels = infer_output_dim(y)
     assert output_dim == 3
@@ -76,7 +76,6 @@ def test_check_output_dim_invalid():
         check_output_dim(labels, y)
 
 
-
 # Tests for infer_multitask_output
 def test_infer_multitask_output_valid():
     y = np.array([[0, 1], [1, 2], [2, 0], [1, 1]])
@@ -88,13 +87,9 @@ def test_infer_multitask_output_valid():
 
 
 def test_infer_multitask_output_invalid_shape():
-
     y = np.array([0, 1, 2])
     with pytest.raises(ValueError):
         infer_multitask_output(y)
-
-
-
 
 
 @pytest.mark.parametrize(

@@ -4,7 +4,8 @@ from pytorch_tabnet.tab_network import (
     AttentiveTransformer,
     FeatTransformer,
     EmbeddingGenerator,
-    RandomObfuscator, TabNetPretraining,
+    RandomObfuscator,
+    TabNetPretraining,
 )
 
 
@@ -27,25 +28,15 @@ def input_data():
         "cat_dims": [5, 10],
         "cat_idxs": [1, 3],
         "cat_emb_dims": [3, 4],
-        "group_matrix": torch.rand(2, 10)
+        "group_matrix": torch.rand(2, 10),
     }
-
-
-@pytest.fixture
-def embedding_generator(input_data):
-    return EmbeddingGenerator(
-        input_data["input_dim"],
-        input_data["cat_dims"],
-        input_data["cat_idxs"],
-        input_data["cat_emb_dims"],
-        input_data["group_matrix"]
-    )
 
 
 def test_initialization_with_embeddings(embedding_generator, input_data):
     assert embedding_generator.skip_embedding is False
-    assert embedding_generator.post_embed_dim == input_data["input_dim"] + sum(input_data["cat_emb_dims"]) - len(
-        input_data["cat_emb_dims"])
+    assert embedding_generator.post_embed_dim == input_data["input_dim"] + sum(
+        input_data["cat_emb_dims"]
+    ) - len(input_data["cat_emb_dims"])
     assert len(embedding_generator.embeddings) == len(input_data["cat_dims"])
 
 

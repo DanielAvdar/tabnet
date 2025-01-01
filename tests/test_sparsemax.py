@@ -22,6 +22,7 @@ def test_sparsemax(input_shape, dim):
     # Check sparsity (some elements should be exactly zero)
     assert (output == 0).any()
 
+
 # Generate test cases for Entmax15
 @pytest.mark.parametrize("dim", [-1, 0, 1])
 @pytest.mark.parametrize("input_shape", [(5, 3), (2, 4, 6)])

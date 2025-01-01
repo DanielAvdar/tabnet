@@ -4,6 +4,11 @@ import numpy as np
 
 from pytorch_tabnet.pretraining_utils import validate_eval_set
 import pytorch_tabnet
+
+
+from pytorch_tabnet.utils import check_embedding_parameters
+
+
 # Mocking create_sampler for controlled testing
 def mock_create_sampler(weights, X_train):
     need_shuffle = weights is not None
@@ -62,15 +67,7 @@ def test_validate_eval_set_mismatched_columns(monkeypatch):
         validate_eval_set(eval_set, None, X_train)
 
 
-
-
-
-
-
 ####
-import pytest
-
-from pytorch_tabnet.utils import check_embedding_parameters
 
 
 @pytest.mark.parametrize(
@@ -78,25 +75,37 @@ from pytorch_tabnet.utils import check_embedding_parameters
     [
         ([10, 20], [0, 1], 5, ([10, 20], [0, 1], [5, 5])),
         ([30, 40], [1, 0], [4, 6], ([40, 30], [1, 0], [6, 4])),
-    ]
+    ],
 )
-def test_check_embedding_parameters_valid(cat_dims, cat_idxs, cat_emb_dim, expected_output):
-    assert check_embedding_parameters(cat_dims, cat_idxs, cat_emb_dim) == expected_output
+def test_check_embedding_parameters_valid(
+    cat_dims, cat_idxs, cat_emb_dim, expected_output
+):
+    assert (
+        check_embedding_parameters(cat_dims, cat_idxs, cat_emb_dim) == expected_output
+    )
 
 
 @pytest.mark.parametrize(
     "cat_dims, cat_idxs, cat_emb_dim, error_message",
     [
-        ([], [0, 1], 5, "If cat_idxs is non-empty, cat_dims must be defined as a list of same length."),
-        ([10, 20], [], 5, "If cat_dims is non-empty, cat_idxs must be defined as a list of same length."),
+        (
+            [],
+            [0, 1],
+            5,
+            "If cat_idxs is non-empty, cat_dims must be defined as a list of same length.",
+        ),
+        (
+            [10, 20],
+            [],
+            5,
+            "If cat_dims is non-empty, cat_idxs must be defined as a list of same length.",
+        ),
         ([10], [0, 1], 5, "The lists cat_dims and cat_idxs must have the same length."),
         # ([10, 20], [0, 1], [5], 'cat_emb_dim and cat_dims must be lists of same length, got 1 and 2'),
-    ]
+    ],
 )
-def test_check_embedding_parameters_invalid(cat_dims, cat_idxs, cat_emb_dim, error_message):
+def test_check_embedding_parameters_invalid(
+    cat_dims, cat_idxs, cat_emb_dim, error_message
+):
     with pytest.raises(ValueError, match=error_message):
         check_embedding_parameters(cat_dims, cat_idxs, cat_emb_dim)
-
-
-
-
