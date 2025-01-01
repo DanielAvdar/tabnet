@@ -14,7 +14,7 @@ from pytorch_tabnet.tab_model import TabNetClassifier
 
 @pytest.fixture(
     params=[
-        (np.random.rand(100, 10), np.random.randint(0, 2, size=100), [(np.random.rand(20, 10), np.random.randint(0, 2, size=20))]),
+        (np.random.rand(1000, 10), np.random.randint(0, 2, size=1000), [(np.random.rand(20, 10), np.random.randint(0, 2, size=20))]),
         (csr_matrix((100, 10)), np.random.randint(0, 2, size=100), [(csr_matrix((20, 10)), np.random.randint(0, 2, size=20))]),
     ]
 )

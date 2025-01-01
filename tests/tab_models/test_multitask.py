@@ -6,8 +6,8 @@ from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
 
 @pytest.fixture
 def sample_data():
-    X_train = np.random.rand(100, 10)
-    y_train = np.random.randint(0, 2, size=(100, 3))
+    X_train = np.random.rand(1000, 10)
+    y_train = np.random.randint(0, 2, size=(1000, 3))
     X_test = np.random.rand(50, 10)
     y_test = np.random.randint(0, 2, size=(50, 3))
     return X_train, y_train, X_test, y_test
@@ -44,7 +44,7 @@ def test_prepare_target(sample_data, classifier):
 def test_compute_loss(sample_data, classifier):
     _, y_train, _, _ = sample_data
     classifier.loss_fn = torch.nn.CrossEntropyLoss()
-    y_pred = [torch.rand(size=(100, 2)) for _ in range(3)]
+    y_pred = [torch.rand(size=(1000, 2)) for _ in range(3)]
     y_true = torch.tensor(y_train)
 
     loss = classifier.compute_loss(y_pred, y_true)
@@ -54,9 +54,8 @@ def test_compute_loss(sample_data, classifier):
 
 
 def test_stack_batches(sample_data,classifier):
-    classifier = TabNetMultiTaskClassifier()
     X_train, y_train, X_test, y_test = sample_data
-    classifier.fit(X_train, y_train,  max_epochs=1,eval_set=[(X_test, y_test)])
+    classifier.fit(X_train, y_train,  max_epochs=1,eval_set=[(X_test, y_test)],batch_size=128, virtual_batch_size=128)
     y_true_list = [np.random.randint(0, 2, size=(20, 3))]
     y_pred_list = [np.random.rand(20, 3) for _ in range(3)]
     y_true, y_score = classifier.stack_batches(y_true_list, [y_pred_list])
@@ -80,7 +79,7 @@ def test_predict(sample_data, classifier):
 
 def test_predict_proba(sample_data, classifier):
     X_train, y_train, X_test, y_test = sample_data
-    classifier.fit(X_train, y_train,  max_epochs=1,eval_set=[(X_test, y_test)], weights=np.ones(100))
+    classifier.fit(X_train, y_train,  max_epochs=1,eval_set=[(X_test, y_test)], weights=np.ones(1000))
     probabilities = classifier.predict_proba(X_test)
 
     assert isinstance(probabilities, list)
