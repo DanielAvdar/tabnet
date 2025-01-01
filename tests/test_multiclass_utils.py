@@ -7,8 +7,10 @@ from sklearn.utils.multiclass import (
     # check_output_dim,
     # infer_multitask_output,
 )
+from scipy import sparse
 
 from pytorch_tabnet.multiclass_utils import infer_multitask_output, check_output_dim, infer_output_dim
+from pytorch_tabnet.multiclass_utils import assert_all_finite
 
 
 # Tests for unique_labels
@@ -90,3 +92,35 @@ def test_infer_multitask_output_invalid_shape():
     y = np.array([0, 1, 2])
     with pytest.raises(ValueError):
         infer_multitask_output(y)
+
+
+
+
+
+@pytest.mark.parametrize(
+    "X, allow_nan, raises_error",
+    [
+        # Dense array with no NaN or Inf
+        (np.array([[1, 2], [3, 4]]), False, False),
+        # Dense array with NaN
+        (np.array([[1, np.nan], [3, 4]]), False, True),
+        # Dense array with Inf
+        (np.array([[1, np.inf], [3, 4]]), False, True),
+        # Dense array with NaN, but allow_nan=True
+        (np.array([[1, np.nan], [3, 4]]), True, False),
+        # Sparse matrix with no NaN or Inf
+        (sparse.csr_matrix([[1, 0], [0, 4]]), False, False),
+        # Sparse matrix with NaN
+        (sparse.csr_matrix([[1, np.nan], [0, 4]]), False, True),
+        # Sparse matrix with Inf
+        (sparse.csr_matrix([[1, np.inf], [0, 4]]), False, True),
+        # Sparse matrix with NaN, but allow_nan=True
+        (sparse.csr_matrix([[1, np.nan], [0, 4]]), True, False),
+    ],
+)
+def test_assert_all_finite(X, allow_nan, raises_error):
+    if raises_error:
+        with pytest.raises(ValueError):
+            assert_all_finite(X, allow_nan=allow_nan)
+    else:
+        assert_all_finite(X, allow_nan=allow_nan)
