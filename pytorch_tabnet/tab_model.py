@@ -62,7 +62,7 @@ class TabNetClassifier(TabModel):
             self.weight_updater(weights)
         )
 
-    def stack_batches(
+    def stack_batches(  # todo: switch to from numpy to torch
         self,
         list_y_true: List[np.ndarray],
         list_y_score: List[np.ndarray],
@@ -146,7 +146,7 @@ class TabNetRegressor(TabModel):
     def predict_func(self, outputs: np.ndarray) -> np.ndarray:
         return outputs
 
-    def stack_batches(
+    def stack_batches(  # todo: switch to from numpy to torch
         self,
         list_y_true: List[np.ndarray],
         list_y_score: List[np.ndarray],

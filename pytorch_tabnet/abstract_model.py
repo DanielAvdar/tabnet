@@ -575,7 +575,9 @@ class TabModel(BaseEstimator):
         self.history.epoch_metrics.update(metrics_logs)
         return
 
-    def _predict_batch(self, X: torch.Tensor) -> np.ndarray:
+    def _predict_batch(
+        self, X: torch.Tensor
+    ) -> np.ndarray:  # todo: switch to from numpy to torch
         """
         Predict one batch of data.
 
@@ -822,9 +824,7 @@ class TabModel(BaseEstimator):
         float
             Loss value
         """
-        raise NotImplementedError(
-            "users must define compute_loss to use this base class"
-        )
+        ...
 
     @abstractmethod
     def prepare_target(self, y: np.ndarray) -> torch.Tensor:
@@ -841,22 +841,14 @@ class TabModel(BaseEstimator):
         `torch.Tensor`
             Converted target matrix.
         """
-        raise NotImplementedError(
-            "users must define prepare_target to use this base class"
-        )
+        ...
 
     @abstractmethod
-    def predict_func(self, y_score: np.ndarray) -> np.ndarray:
-        raise NotImplementedError(
-            "users must define predict_func to use this base class"
-        )
+    def predict_func(self, y_score: np.ndarray) -> np.ndarray: ...
 
-    # _default_metric: str = "accuracy"
-    # _default_loss: Callable = torch.nn.functional.cross_entropy
 
-    # def stack_batches(
-    #     self, list_y_true: List[torch.Tensor], list_y_score: List[np.ndarray],*args, **kwargs
-    # ) -> Tuple[np.ndarray, np.ndarray]:
-    #     y_true = np.concatenate([x.cpu().detach().numpy() for x in list_y_true])
-    #     scores = np.concatenate(list_y_score)
-    #     return y_true, scores
+
+    def stack_batches(
+        self, *args: Any, **kwargs: Any
+    ) -> Tuple[np.ndarray, np.ndarray]:  # todo: switch to from numpy to torch
+        ...
