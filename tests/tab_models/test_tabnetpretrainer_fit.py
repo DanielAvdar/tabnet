@@ -96,6 +96,5 @@ def test_pretrainer_fit(model_params, fit_params, X_train, X_valid, mask_type):
         multi_tab_reg = TabNetRegressor()
         multi_tab_reg.fit(
             X_train=X_train,
-            y_train=np.random.rand(X_train.shape[0]*3).reshape(-1, 3),
+            y_train=np.random.rand(X_train.shape[0] * 3).reshape(-1, 3),
         )
-
