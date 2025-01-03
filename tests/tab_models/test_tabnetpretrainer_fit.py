@@ -16,9 +16,9 @@ from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
                 pretraining_ratio=0.8,
                 max_epochs=1,
                 batch_size=32,
-                virtual_batch_size=32,
+                virtual_batch_size=16,
             ),
-            np.random.rand(100, 10),
+            np.random.rand(1000, 10),
             np.random.rand(50, 10),
         ),
         (
@@ -32,7 +32,7 @@ from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
                 batch_size=32,
                 virtual_batch_size=32,
             ),
-            np.random.rand(100, 10),
+            np.random.rand(1000, 10),
             np.random.rand(50, 10),
         ),
         (
@@ -42,7 +42,9 @@ from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
                 max_epochs=1,
                 batch_size=16,
                 virtual_batch_size=32,
-                weights=np.ones(100),
+                weights=np.ones(
+                    100
+                ),  # todo fix bug in TabNetPretrainer for 1000 samples
             ),
             np.random.rand(100, 10),
             np.random.rand(200, 10),
@@ -52,10 +54,10 @@ from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
             dict(
                 pretraining_ratio=0.8,
                 max_epochs=1,
-                batch_size=16,
-                virtual_batch_size=32,
+                batch_size=32,
+                virtual_batch_size=16,
             ),
-            scipy.sparse.csr_matrix((100, 10)),
+            scipy.sparse.csr_matrix((1000, 10)),
             scipy.sparse.csr_matrix((50, 10)),
         ),
     ],
@@ -97,4 +99,5 @@ def test_pretrainer_fit(model_params, fit_params, X_train, X_valid, mask_type):
         multi_tab_reg.fit(
             X_train=X_train,
             y_train=np.random.rand(X_train.shape[0] * 3).reshape(-1, 3),
+            from_unsupervised=unsupervised_model,
         )
