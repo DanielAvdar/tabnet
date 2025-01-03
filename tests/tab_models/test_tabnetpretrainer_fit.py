@@ -2,8 +2,9 @@ import pytest
 import numpy as np
 import scipy
 
+from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
 from pytorch_tabnet.pretraining import TabNetPretrainer
-from pytorch_tabnet.tab_model import TabNetClassifier
+from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
 
 
 @pytest.mark.parametrize(
@@ -15,9 +16,9 @@ from pytorch_tabnet.tab_model import TabNetClassifier
                 pretraining_ratio=0.8,
                 max_epochs=1,
                 batch_size=32,
-                virtual_batch_size=32,
+                virtual_batch_size=16,
             ),
-            np.random.rand(100, 10),
+            np.random.rand(1000, 10),
             np.random.rand(50, 10),
         ),
         (
@@ -31,7 +32,7 @@ from pytorch_tabnet.tab_model import TabNetClassifier
                 batch_size=32,
                 virtual_batch_size=32,
             ),
-            np.random.rand(100, 10),
+            np.random.rand(1000, 10),
             np.random.rand(50, 10),
         ),
         (
@@ -41,7 +42,9 @@ from pytorch_tabnet.tab_model import TabNetClassifier
                 max_epochs=1,
                 batch_size=16,
                 virtual_batch_size=32,
-                weights=np.ones(100),
+                weights=np.ones(
+                    100
+                ),  # todo fix bug in TabNetPretrainer for 1000 samples
             ),
             np.random.rand(100, 10),
             np.random.rand(200, 10),
@@ -51,10 +54,10 @@ from pytorch_tabnet.tab_model import TabNetClassifier
             dict(
                 pretraining_ratio=0.8,
                 max_epochs=1,
-                batch_size=16,
-                virtual_batch_size=32,
+                batch_size=32,
+                virtual_batch_size=16,
             ),
-            scipy.sparse.csr_matrix((100, 10)),
+            scipy.sparse.csr_matrix((1000, 10)),
             scipy.sparse.csr_matrix((50, 10)),
         ),
     ],
@@ -78,5 +81,23 @@ def test_pretrainer_fit(model_params, fit_params, X_train, X_valid, mask_type):
         tab_class.fit(
             X_train=X_train,
             y_train=np.random.randint(0, 2, size=X_train.shape[0]),
+            from_unsupervised=unsupervised_model,
+        )
+        multi_tab_class = TabNetMultiTaskClassifier()
+        multi_tab_class.fit(
+            X_train=X_train,
+            y_train=np.random.randint(0, 2, size=(X_train.shape[0], 2)),
+            from_unsupervised=unsupervised_model,
+        )
+        tab_reg = TabNetRegressor()
+        tab_reg.fit(
+            X_train=X_train,
+            y_train=np.random.rand(X_train.shape[0]).reshape(-1, 1),
+            from_unsupervised=unsupervised_model,
+        )
+        multi_tab_reg = TabNetRegressor()
+        multi_tab_reg.fit(
+            X_train=X_train,
+            y_train=np.random.rand(X_train.shape[0] * 3).reshape(-1, 3),
             from_unsupervised=unsupervised_model,
         )

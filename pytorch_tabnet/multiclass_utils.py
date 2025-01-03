@@ -1,6 +1,3 @@
-# Author: Arnaud Joly, Joel Nothman, Hamzeh Alsalhi
-#
-# License: BSD 3 clause
 """
 Multi-class / multi-label utility function
 ==========================================
@@ -9,6 +6,7 @@ Multi-class / multi-label utility function
 
 from collections.abc import Sequence
 from itertools import chain
+from typing import Union, List
 
 from scipy.sparse import issparse
 from scipy.sparse.base import spmatrix
@@ -20,7 +18,7 @@ import numpy as np
 import pandas as pd
 
 
-def _assert_all_finite(X, allow_nan=False):
+def _assert_all_finite(X: np.ndarray, allow_nan: bool = False) -> None:
     """Like assert_all_finite, but only for ndarray."""
 
     X = np.asanyarray(X)
@@ -47,7 +45,7 @@ def _assert_all_finite(X, allow_nan=False):
             raise ValueError("Input contains NaN")
 
 
-def assert_all_finite(X, allow_nan=False):
+def assert_all_finite(X: Union[np.ndarray, spmatrix], allow_nan: bool = False) -> None:
     """Throw a ValueError if X contains NaN or infinity.
 
     Parameters
@@ -58,14 +56,14 @@ def assert_all_finite(X, allow_nan=False):
     _assert_all_finite(X.data if sp.issparse(X) else X, allow_nan)
 
 
-def _unique_multiclass(y):
+def _unique_multiclass(y: np.ndarray) -> np.ndarray:
     if hasattr(y, "__array__"):
         return np.unique(np.asarray(y))
     else:
-        return set(y)
+        return np.array(list(set(y)))
 
 
-def _unique_indicator(y):
+def _unique_indicator(y: np.ndarray) -> np.ndarray:
     """
     Not implemented
     """
@@ -83,7 +81,7 @@ _FN_UNIQUE_LABELS = {
 }
 
 
-def unique_labels(*ys):
+def unique_labels(*ys: List[np.ndarray]) -> np.ndarray:
     """Extract an ordered array of unique labels
 
     We don't allow:
@@ -141,11 +139,11 @@ def unique_labels(*ys):
     return np.array(sorted(ys_labels))
 
 
-def _is_integral_float(y):
+def _is_integral_float(y: np.ndarray) -> bool:
     return y.dtype.kind == "f" and np.all(y.astype(int) == y)
 
 
-def is_multilabel(y):
+def is_multilabel(y: Union[np.ndarray, spmatrix]) -> bool:
     """Check if ``y`` is in a multilabel format.
 
     Parameters
@@ -197,7 +195,7 @@ def is_multilabel(y):
         )
 
 
-def check_classification_targets(y):
+def check_classification_targets(y: np.ndarray) -> None:
     """Ensure that target y is of a non-regression type.
 
     Only the following target types (as defined in type_of_target) are allowed:
@@ -219,7 +217,7 @@ def check_classification_targets(y):
         raise ValueError("Unknown label type: %r" % y_type)
 
 
-def type_of_target(y):
+def type_of_target(y: Union[np.ndarray, spmatrix]) -> str:
     """Determine the type of data indicated by the target.
 
     Note that this type is the most specific type that can be inferred.
@@ -346,7 +344,7 @@ def type_of_target(y):
         return "binary"  # [1, 2] or [["a"], ["b"]]
 
 
-def check_unique_type(y):
+def check_unique_type(y: np.ndarray) -> None:
     target_types = pd.Series(y).map(type).unique()
     if len(target_types) != 1:
         raise TypeError(
@@ -354,7 +352,7 @@ def check_unique_type(y):
         )
 
 
-def infer_output_dim(y_train):
+def infer_output_dim(y_train: np.ndarray) -> tuple[int, np.ndarray]:
     """
     Infer output_dim from targets
 
@@ -377,7 +375,7 @@ def infer_output_dim(y_train):
     return output_dim, train_labels
 
 
-def check_output_dim(labels, y):
+def check_output_dim(labels: np.ndarray, y: np.ndarray) -> None:
     if y is not None:
         check_unique_type(y)
         valid_labels = unique_labels(y)
@@ -390,7 +388,7 @@ def check_output_dim(labels, y):
     return
 
 
-def infer_multitask_output(y_train):
+def infer_multitask_output(y_train: np.ndarray) -> tuple[List[int], List[np.ndarray]]:
     """
     Infer output_dim from targets
     This is for multiple tasks.

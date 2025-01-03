@@ -1,7 +1,6 @@
 from torch import nn
 from torch.autograd import Function
 import torch.nn.functional as F
-
 import torch
 
 """
@@ -13,7 +12,7 @@ https://github.com/vene/sparse-structured-attention/blob/master/pytorch/torchspa
 
 
 # credits to Yandex https://github.com/Qwicen/node/blob/master/lib/nn_utils.py
-def _make_ix_like(input, dim=0):
+def _make_ix_like(input: torch.Tensor, dim: int = 0) -> torch.Tensor:
     d = input.size(dim)
     rho = torch.arange(1, d + 1, device=input.device, dtype=input.dtype)
     view = [1] * input.dim()
@@ -29,7 +28,7 @@ class SparsemaxFunction(Function):
     """
 
     @staticmethod
-    def forward(ctx, input, dim=-1):
+    def forward(ctx: torch.Tensor, input: torch.Tensor, dim: int = -1) -> torch.Tensor:
         """sparsemax: normalizing sparse transform (a la softmax)
 
         Parameters
@@ -55,7 +54,9 @@ class SparsemaxFunction(Function):
         return output
 
     @staticmethod
-    def backward(ctx, grad_output):
+    def backward(
+        ctx: torch.Tensor, grad_output: torch.Tensor
+    ) -> tuple[torch.Tensor, None]:
         supp_size, output = ctx.saved_tensors
         dim = ctx.dim
         grad_input = grad_output.clone()
@@ -67,7 +68,9 @@ class SparsemaxFunction(Function):
         return grad_input, None
 
     @staticmethod
-    def _threshold_and_support(input, dim=-1):
+    def _threshold_and_support(
+        input: torch.Tensor, dim: int = -1
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Sparsemax building block: compute the threshold
 
         Parameters
@@ -100,11 +103,11 @@ sparsemax = SparsemaxFunction.apply
 
 
 class Sparsemax(nn.Module):
-    def __init__(self, dim=-1):
+    def __init__(self, dim: int = -1):
         self.dim = dim
         super(Sparsemax, self).__init__()
 
-    def forward(self, input):
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
         return sparsemax(input, self.dim)
 
 
@@ -116,7 +119,7 @@ class Entmax15Function(Function):
     """
 
     @staticmethod
-    def forward(ctx, input, dim=-1):
+    def forward(ctx: torch.Tensor, input: torch.Tensor, dim: int = -1) -> torch.Tensor:
         ctx.dim = dim
 
         max_val, _ = input.max(dim=dim, keepdim=True)
@@ -129,7 +132,9 @@ class Entmax15Function(Function):
         return output
 
     @staticmethod
-    def backward(ctx, grad_output):
+    def backward(
+        ctx: torch.Tensor, grad_output: torch.Tensor
+    ) -> tuple[torch.Tensor, None]:
         (Y,) = ctx.saved_tensors
         gppr = Y.sqrt()  # = 1 / g'' (Y)
         dX = grad_output * gppr
@@ -139,7 +144,9 @@ class Entmax15Function(Function):
         return dX, None
 
     @staticmethod
-    def _threshold_and_support(input, dim=-1):
+    def _threshold_and_support(
+        input: torch.Tensor, dim: int = -1
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         Xsrt, _ = torch.sort(input, descending=True, dim=dim)
 
         rho = _make_ix_like(input, dim)
@@ -163,13 +170,13 @@ class Entmoid15(Function):
     """A highly optimized equivalent of lambda x: Entmax15([x, 0])"""
 
     @staticmethod
-    def forward(ctx, input):
+    def forward(ctx: torch.Tensor, input: torch.Tensor) -> torch.Tensor:
         output = Entmoid15._forward(input)
         ctx.save_for_backward(output)
         return output
 
     @staticmethod
-    def _forward(input):
+    def _forward(input: torch.Tensor) -> torch.Tensor:
         input, is_pos = abs(input), input >= 0
         tau = (input + torch.sqrt(F.relu(8 - input**2))) / 2
         tau.masked_fill_(tau <= input, 2.0)
@@ -177,11 +184,11 @@ class Entmoid15(Function):
         return torch.where(is_pos, 1 - y_neg, y_neg)
 
     @staticmethod
-    def backward(ctx, grad_output):
+    def backward(ctx: torch.Tensor, grad_output: torch.Tensor) -> torch.Tensor:
         return Entmoid15._backward(ctx.saved_tensors[0], grad_output)
 
     @staticmethod
-    def _backward(output, grad_output):
+    def _backward(output: torch.Tensor, grad_output: torch.Tensor) -> torch.Tensor:
         gppr0, gppr1 = output.sqrt(), (1 - output).sqrt()
         grad_input = grad_output * gppr0
         q = grad_input / (gppr0 + gppr1)
@@ -194,83 +201,9 @@ entmoid15 = Entmoid15.apply
 
 
 class Entmax15(nn.Module):
-    def __init__(self, dim=-1):
+    def __init__(self, dim: int = -1):
         self.dim = dim
         super(Entmax15, self).__init__()
 
-    def forward(self, input):
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
         return entmax15(input, self.dim)
-
-
-# Credits were lost...
-# def _make_ix_like(input, dim=0):
-#     d = input.size(dim)
-#     rho = torch.arange(1, d + 1, device=input.device, dtype=input.dtype)
-#     view = [1] * input.dim()
-#     view[0] = -1
-#     return rho.view(view).transpose(0, dim)
-#
-#
-# def _threshold_and_support(input, dim=0):
-#     """Sparsemax building block: compute the threshold
-#     Args:
-#         input: any dimension
-#         dim: dimension along which to apply the sparsemax
-#     Returns:
-#         the threshold value
-#     """
-#
-#     input_srt, _ = torch.sort(input, descending=True, dim=dim)
-#     input_cumsum = input_srt.cumsum(dim) - 1
-#     rhos = _make_ix_like(input, dim)
-#     support = rhos * input_srt > input_cumsum
-#
-#     support_size = support.sum(dim=dim).unsqueeze(dim)
-#     tau = input_cumsum.gather(dim, support_size - 1)
-#     tau /= support_size.to(input.dtype)
-#     return tau, support_size
-#
-#
-# class SparsemaxFunction(Function):
-#
-#     @staticmethod
-#     def forward(ctx, input, dim=0):
-#         """sparsemax: normalizing sparse transform (a la softmax)
-#         Parameters:
-#             input (Tensor): any shape
-#             dim: dimension along which to apply sparsemax
-#         Returns:
-#             output (Tensor): same shape as input
-#         """
-#         ctx.dim = dim
-#         max_val, _ = input.max(dim=dim, keepdim=True)
-#         input -= max_val  # same numerical stability trick as for softmax
-#         tau, supp_size = _threshold_and_support(input, dim=dim)
-#         output = torch.clamp(input - tau, min=0)
-#         ctx.save_for_backward(supp_size, output)
-#         return output
-#
-#     @staticmethod
-#     def backward(ctx, grad_output):
-#         supp_size, output = ctx.saved_tensors
-#         dim = ctx.dim
-#         grad_input = grad_output.clone()
-#         grad_input[output == 0] = 0
-#
-#         v_hat = grad_input.sum(dim=dim) / supp_size.to(output.dtype).squeeze()
-#         v_hat = v_hat.unsqueeze(dim)
-#         grad_input = torch.where(output != 0, grad_input - v_hat, grad_input)
-#         return grad_input, None
-#
-#
-# sparsemax = SparsemaxFunction.apply
-#
-#
-# class Sparsemax(nn.Module):
-#
-#     def __init__(self, dim=0):
-#         self.dim = dim
-#         super(Sparsemax, self).__init__()
-#
-#     def forward(self, input):
-#         return sparsemax(input, self.dim)

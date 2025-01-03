@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Union, Any
 import numpy as np
 from sklearn.metrics import (
     roc_auc_score,
@@ -13,7 +13,12 @@ from sklearn.metrics import (
 import torch
 
 
-def UnsupervisedLoss(y_pred, embedded_x, obf_vars, eps=1e-9):
+def UnsupervisedLoss(
+    y_pred: torch.Tensor,
+    embedded_x: torch.Tensor,
+    obf_vars: torch.Tensor,
+    eps: float = 1e-9,
+) -> torch.Tensor:
     """
     Implements unsupervised loss function.
     This differs from orginal paper as it's scaled to be batch size independent
@@ -54,7 +59,9 @@ def UnsupervisedLoss(y_pred, embedded_x, obf_vars, eps=1e-9):
     return loss
 
 
-def UnsupervisedLossNumpy(y_pred, embedded_x, obf_vars, eps=1e-9):
+def UnsupervisedLossNumpy(
+    y_pred: np.ndarray, embedded_x: np.ndarray, obf_vars: np.ndarray, eps: float = 1e-9
+) -> np.ndarray:
     errors = y_pred - embedded_x
     reconstruction_errors = np.multiply(errors, obf_vars) ** 2
     batch_means = np.mean(embedded_x, axis=0)
@@ -91,11 +98,16 @@ class UnsupMetricContainer:
     metric_names: List[str]
     prefix: str = ""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.metrics = Metric.get_metrics_by_names(self.metric_names)
         self.names = [self.prefix + name for name in self.metric_names]
 
-    def __call__(self, y_pred, embedded_x, obf_vars):
+    def __call__(
+        self,
+        y_pred: Union[np.ndarray, torch.Tensor],
+        embedded_x: Union[np.ndarray, torch.Tensor],
+        obf_vars: Union[np.ndarray, torch.Tensor],
+    ) -> dict:
         """Compute all metrics and store into a dict.
 
         Parameters
@@ -134,11 +146,11 @@ class MetricContainer:
     metric_names: List[str]
     prefix: str = ""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.metrics = Metric.get_metrics_by_names(self.metric_names)
         self.names = [self.prefix + name for name in self.metric_names]
 
-    def __call__(self, y_true, y_pred):
+    def __call__(self, y_true: np.ndarray, y_pred: np.ndarray) -> dict:
         """Compute all metrics and store into a dict.
 
         Parameters
@@ -167,11 +179,14 @@ class MetricContainer:
 
 
 class Metric:
-    def __call__(self, y_true, y_pred):
+    _name: str
+    _maximize: bool
+
+    def __call__(self, y_true: np.ndarray, y_pred: np.ndarray) -> float:
         raise NotImplementedError("Custom Metrics must implement this function")
 
     @classmethod
-    def get_metrics_by_names(cls, names):
+    def get_metrics_by_names(cls, names: List[str]) -> List:
         """Get list of metric classes.
 
         Parameters
@@ -205,11 +220,10 @@ class AUC(Metric):
     AUC.
     """
 
-    def __init__(self):
-        self._name = "auc"
-        self._maximize = True
+    _name: str = "auc"
+    _maximize: bool = True
 
-    def __call__(self, y_true, y_score):
+    def __call__(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         """
         Compute AUC of predictions.
 
@@ -233,11 +247,10 @@ class Accuracy(Metric):
     Accuracy.
     """
 
-    def __init__(self):
-        self._name = "accuracy"
-        self._maximize = True
+    _name: str = "accuracy"
+    _maximize: bool = True
 
-    def __call__(self, y_true, y_score):
+    def __call__(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         """
         Compute Accuracy of predictions.
 
@@ -262,11 +275,10 @@ class BalancedAccuracy(Metric):
     Balanced Accuracy.
     """
 
-    def __init__(self):
-        self._name = "balanced_accuracy"
-        self._maximize = True
+    _name: str = "balanced_accuracy"
+    _maximize: bool = True
 
-    def __call__(self, y_true, y_score):
+    def __call__(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         """
         Compute Accuracy of predictions.
 
@@ -291,11 +303,10 @@ class LogLoss(Metric):
     LogLoss.
     """
 
-    def __init__(self):
-        self._name = "logloss"
-        self._maximize = False
+    _name: str = "logloss"
+    _maximize: bool = False
 
-    def __call__(self, y_true, y_score):
+    def __call__(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         """
         Compute LogLoss of predictions.
 
@@ -319,11 +330,10 @@ class MAE(Metric):
     Mean Absolute Error.
     """
 
-    def __init__(self):
-        self._name = "mae"
-        self._maximize = False
+    _name: str = "mae"
+    _maximize: bool = False
 
-    def __call__(self, y_true, y_score):
+    def __call__(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         """
         Compute MAE (Mean Absolute Error) of predictions.
 
@@ -347,11 +357,10 @@ class MSE(Metric):
     Mean Squared Error.
     """
 
-    def __init__(self):
-        self._name = "mse"
-        self._maximize = False
+    _name: str = "mse"
+    _maximize: bool = False
 
-    def __call__(self, y_true, y_score):
+    def __call__(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         """
         Compute MSE (Mean Squared Error) of predictions.
 
@@ -379,11 +388,10 @@ class RMSLE(Metric):
     This means that you should clip negative predictions manually after calling predict.
     """
 
-    def __init__(self):
-        self._name = "rmsle"
-        self._maximize = False
+    _name: str = "rmsle"
+    _maximize: bool = False
 
-    def __call__(self, y_true, y_score):
+    def __call__(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         """
         Compute RMSLE of predictions.
 
@@ -408,11 +416,15 @@ class UnsupervisedMetric(Metric):
     Unsupervised metric
     """
 
-    def __init__(self):
-        self._name = "unsup_loss"
-        self._maximize = False
+    _name: str = "unsup_loss"
+    _maximize: bool = False
 
-    def __call__(self, y_pred, embedded_x, obf_vars):
+    def __call__(  # type: ignore[override]
+        self,
+        y_pred: Union[np.ndarray, torch.Tensor],
+        embedded_x: Union[np.ndarray, torch.Tensor],
+        obf_vars: Union[np.ndarray, torch.Tensor],
+    ) -> float:
         """
         Compute MSE (Mean Squared Error) of predictions.
 
@@ -440,11 +452,12 @@ class UnsupervisedNumpyMetric(Metric):
     Unsupervised metric
     """
 
-    def __init__(self):
-        self._name = "unsup_loss_numpy"
-        self._maximize = False
+    _name: str = "unsup_loss_numpy"
+    _maximize: bool = False
 
-    def __call__(self, y_pred, embedded_x, obf_vars):
+    def __call__(  # type: ignore[override]
+        self, y_pred: np.ndarray, embedded_x: np.ndarray, obf_vars: np.ndarray
+    ) -> float:
         """
         Compute MSE (Mean Squared Error) of predictions.
 
@@ -471,11 +484,10 @@ class RMSE(Metric):
     Root Mean Squared Error.
     """
 
-    def __init__(self):
-        self._name = "rmse"
-        self._maximize = False
+    _name: str = "rmse"
+    _maximize: bool = False
 
-    def __call__(self, y_true, y_score):
+    def __call__(self, y_true: np.ndarray, y_score: np.ndarray) -> float:
         """
         Compute RMSE (Root Mean Squared Error) of predictions.
 
@@ -494,7 +506,7 @@ class RMSE(Metric):
         return np.sqrt(mean_squared_error(y_true, y_score))
 
 
-def check_metrics(metrics):
+def check_metrics(metrics: List[Union[str, Any]]) -> List[str]:
     """Check if custom metrics are provided.
 
     Parameters

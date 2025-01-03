@@ -6,11 +6,19 @@ from pytorch_tabnet.utils import (
     check_input,
 )
 import scipy
+from typing import Union, List, Tuple, Dict, Any, Iterable
+import numpy as np
 
 
 def create_dataloaders(
-    X_train, eval_set, weights, batch_size, num_workers, drop_last, pin_memory
-):
+    X_train: Union[scipy.sparse.csr_matrix, np.ndarray],
+    eval_set: List[Union[scipy.sparse.csr_matrix, np.ndarray]],
+    weights: Union[int, Dict[Any, Any], Iterable[Any]],
+    batch_size: int,
+    num_workers: int,
+    drop_last: bool,
+    pin_memory: bool,
+) -> Tuple[DataLoader, List[DataLoader]]:
     """
     Create dataloaders with or without subsampling depending on weights and balanced.
 
@@ -96,7 +104,9 @@ def create_dataloaders(
     return train_dataloader, valid_dataloaders
 
 
-def validate_eval_set(eval_set, eval_name, X_train):
+def validate_eval_set(
+    eval_set: List[np.ndarray], eval_name: List[str], X_train: np.ndarray
+) -> List[str]:
     """Check if the shapes of eval_set are compatible with X_train.
 
     Parameters
@@ -104,6 +114,8 @@ def validate_eval_set(eval_set, eval_name, X_train):
     eval_set : List of numpy array
         The list evaluation set.
         The last one is used for early stopping
+    eval_name : List[str]
+        Names for eval sets.
     X_train : np.ndarray
         Train owned products
 
