@@ -1,6 +1,7 @@
 import torch
 from pytorch_tabnet.utils import define_device
 import numpy as np
+from typing import Tuple
 
 
 class RegressionSMOTE:
@@ -12,7 +13,14 @@ class RegressionSMOTE:
     and certain loss), following a beta distribution.
     """
 
-    def __init__(self, device_name="auto", p=0.8, alpha=0.5, beta=0.5, seed=0):
+    def __init__(
+        self,
+        device_name: str = "auto",
+        p: float = 0.8,
+        alpha: float = 0.5,
+        beta: float = 0.5,
+        seed: int = 0,
+    ):
         ""
         self.seed = seed
         self._set_seed()
@@ -23,12 +31,14 @@ class RegressionSMOTE:
         if (p < 0.0) or (p > 1.0):
             raise ValueError("Value of p should be between 0. and 1.")
 
-    def _set_seed(self):
+    def _set_seed(self) -> None:
         torch.manual_seed(self.seed)
         np.random.seed(self.seed)
         return
 
-    def __call__(self, X, y):
+    def __call__(
+        self, X: torch.Tensor, y: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         batch_size = X.shape[0]
         random_values = torch.rand(batch_size, device=self.device)
         idx_to_change = random_values < self.p
@@ -59,7 +69,14 @@ class ClassificationSMOTE:
     The target will stay unchanged and keep the value of the most important row in the mix.
     """
 
-    def __init__(self, device_name="auto", p=0.8, alpha=0.5, beta=0.5, seed=0):
+    def __init__(
+        self,
+        device_name: str = "auto",
+        p: float = 0.8,
+        alpha: float = 0.5,
+        beta: float = 0.5,
+        seed: int = 0,
+    ):
         ""
         self.seed = seed
         self._set_seed()
@@ -70,12 +87,14 @@ class ClassificationSMOTE:
         if (p < 0.0) or (p > 1.0):
             raise ValueError("Value of p should be between 0. and 1.")
 
-    def _set_seed(self):
+    def _set_seed(self) -> None:
         torch.manual_seed(self.seed)
         np.random.seed(self.seed)
         return
 
-    def __call__(self, X, y):
+    def __call__(
+        self, X: torch.Tensor, y: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         batch_size = X.shape[0]
         random_values = torch.rand(batch_size, device=self.device)
         idx_to_change = random_values < self.p

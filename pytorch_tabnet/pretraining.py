@@ -22,6 +22,7 @@ from pytorch_tabnet.metrics import (
 )
 from pytorch_tabnet.abstract_model import TabModel
 import scipy
+from typing import List, Union, Optional, Callable
 
 
 class TabNetPretrainer(TabModel):
@@ -31,15 +32,17 @@ class TabNetPretrainer(TabModel):
         self._default_loss = UnsupervisedLoss
         self._default_metric = "unsup_loss_numpy"
 
-    def prepare_target(self, y):
+    def prepare_target(self, y: np.ndarray) -> np.ndarray:
         return y
 
-    def compute_loss(self, output, embedded_x, obf_vars):
+    def compute_loss(
+        self, output: torch.Tensor, embedded_x: torch.Tensor, obf_vars: torch.Tensor
+    ) -> torch.Tensor:
         return self.loss_fn(output, embedded_x, obf_vars)
 
     def update_fit_params(
         self,
-        weights,
+        weights: np.ndarray,
     ):
         self.updated_weights = weights
         filter_weights(self.updated_weights)
@@ -47,21 +50,21 @@ class TabNetPretrainer(TabModel):
 
     def fit(
         self,
-        X_train,
-        eval_set=None,
-        eval_name=None,
-        loss_fn=None,
-        pretraining_ratio=0.5,
-        weights=0,
-        max_epochs=100,
-        patience=10,
-        batch_size=1024,
-        virtual_batch_size=128,
-        num_workers=0,
-        drop_last=True,
-        callbacks=None,
-        pin_memory=True,
-        warm_start=False,
+        X_train: np.ndarray,
+        eval_set: Optional[List[Union[np.ndarray, List[np.ndarray]]]] = None,
+        eval_name: Optional[List[str]] = None,
+        loss_fn: Optional[Callable] = None,
+        pretraining_ratio: float = 0.5,
+        weights: Union[int, np.ndarray] = 0,
+        max_epochs: int = 100,
+        patience: int = 10,
+        batch_size: int = 1024,
+        virtual_batch_size: int = 128,
+        num_workers: int = 0,
+        drop_last: bool = True,
+        callbacks: Optional[List[Callable]] = None,
+        pin_memory: bool = True,
+        warm_start: bool = False,
     ):
         """Train a neural network stored in self.network
         Using train_dataloader for training data and
@@ -207,7 +210,7 @@ class TabNetPretrainer(TabModel):
         self.network.virtual_batch_size = self.virtual_batch_size
         self.network.pretraining_ratio = self.pretraining_ratio
 
-    def _set_metrics(self, eval_names):
+    def _set_metrics(self, eval_names: List[str]):
         """Set attributes relative to the metrics.
 
         Parameters
@@ -239,7 +242,9 @@ class TabNetPretrainer(TabModel):
             self._metrics_names[-1] if len(self._metrics_names) > 0 else None
         )
 
-    def _construct_loaders(self, X_train, eval_set):
+    def _construct_loaders(
+        self, X_train: np.ndarray, eval_set: List[Union[np.ndarray, List[np.ndarray]]]
+    ) -> tuple[DataLoader, List[DataLoader]]:
         """Generate dataloaders for unsupervised train and eval set.
 
         Parameters
@@ -268,7 +273,7 @@ class TabNetPretrainer(TabModel):
         )
         return train_dataloader, valid_dataloaders
 
-    def _train_epoch(self, train_loader):
+    def _train_epoch(self, train_loader: DataLoader):
         """
         Trains one epoch of the network in self.network
 
@@ -291,7 +296,7 @@ class TabNetPretrainer(TabModel):
 
         return
 
-    def _train_batch(self, X):
+    def _train_batch(self, X: torch.Tensor) -> dict:
         """
         Trains one batch of data
 
@@ -327,7 +332,7 @@ class TabNetPretrainer(TabModel):
 
         return batch_logs
 
-    def _predict_epoch(self, name, loader):
+    def _predict_epoch(self, name: str, loader: DataLoader):
         """
         Predict an epoch and update metrics.
 
@@ -360,7 +365,9 @@ class TabNetPretrainer(TabModel):
         self.history.epoch_metrics.update(metrics_logs)
         return
 
-    def _predict_batch(self, X):
+    def _predict_batch(
+        self, X: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Predict one batch of data.
 
@@ -377,13 +384,20 @@ class TabNetPretrainer(TabModel):
         X = X.to(self.device).float()
         return self.network(X)
 
-    def stack_batches(self, list_output, list_embedded_x, list_obfuscation):
+    def stack_batches(
+        self,
+        list_output: List[np.ndarray],
+        list_embedded_x: List[np.ndarray],
+        list_obfuscation: List[np.ndarray],
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         output = np.vstack(list_output)
         embedded_x = np.vstack(list_embedded_x)
         obf_vars = np.vstack(list_obfuscation)
         return output, embedded_x, obf_vars
 
-    def predict(self, X):
+    def predict(
+        self, X: Union[np.ndarray, scipy.sparse.csr_matrix]
+    ) -> tuple[np.ndarray, np.ndarray]:
         """
         Make predictions on a batch (valid)
 

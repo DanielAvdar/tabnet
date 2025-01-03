@@ -31,4 +31,4 @@ update:
 
 
 mypy:
-	uv tool run mypy . --config-file pyproject.toml
+	uv tool run mypy pytorch_tabnet --config-file pyproject.toml

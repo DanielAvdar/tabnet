@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Tuple, Union, Callable
 import torch
 from torch.nn.utils import clip_grad_norm_
 import numpy as np
@@ -27,7 +27,6 @@ from pytorch_tabnet.callbacks import (
 )
 from pytorch_tabnet.metrics import MetricContainer, check_metrics
 from sklearn.base import BaseEstimator
-
 from torch.utils.data import DataLoader
 import io
 import json
@@ -72,8 +71,8 @@ class TabModel(BaseEstimator):
 
     def __post_init__(self):
         # These are default values needed for saving model
-        self.batch_size = 1024
-        self.virtual_batch_size = 128
+        self.batch_size: int = 1024
+        self.virtual_batch_size: int = 128
 
         torch.manual_seed(self.seed)
         # Defining device
@@ -122,25 +121,25 @@ class TabModel(BaseEstimator):
 
     def fit(
         self,
-        X_train,
-        y_train,
-        eval_set=None,
-        eval_name=None,
-        eval_metric=None,
-        loss_fn=None,
-        weights=0,
-        max_epochs=100,
-        patience=10,
-        batch_size=1024,
-        virtual_batch_size=128,
-        num_workers=0,
-        drop_last=True,
-        callbacks=None,
-        pin_memory=True,
-        from_unsupervised=None,
-        warm_start=False,
-        augmentations=None,
-        compute_importance=True,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        eval_set: Union[None, List[Tuple[np.ndarray, np.ndarray]]] = None,
+        eval_name: Union[None, List[str]] = None,
+        eval_metric: Union[None, List[str]] = None,
+        loss_fn: Union[None, Callable] = None,
+        weights: Union[int, Dict] = 0,
+        max_epochs: int = 100,
+        patience: int = 10,
+        batch_size: int = 1024,
+        virtual_batch_size: int = 128,
+        num_workers: int = 0,
+        drop_last: bool = True,
+        callbacks: Union[None, List] = None,
+        pin_memory: bool = True,
+        from_unsupervised: Union[None, "TabModel"] = None,
+        warm_start: bool = False,
+        augmentations: Union[None, Any] = None,
+        compute_importance: bool = True,
     ):
         """Train a neural network stored in self.network
         Using train_dataloader for training data and
@@ -191,17 +190,17 @@ class TabModel(BaseEstimator):
         """
         # update model name
 
-        self.max_epochs = max_epochs
-        self.patience = patience
-        self.batch_size = batch_size
-        self.virtual_batch_size = virtual_batch_size
-        self.num_workers = num_workers
-        self.drop_last = drop_last
-        self.input_dim = X_train.shape[1]
-        self._stop_training = False
-        self.pin_memory = pin_memory and (self.device.type != "cpu")
+        self.max_epochs: int = max_epochs
+        self.patience: int = patience
+        self.batch_size: int = batch_size
+        self.virtual_batch_size: int = virtual_batch_size
+        self.num_workers: int = num_workers
+        self.drop_last: bool = drop_last
+        self.input_dim: int = X_train.shape[1]
+        self._stop_training: bool = False
+        self.pin_memory: bool = pin_memory and (self.device.type != "cpu")
         self.augmentations = augmentations
-        self.compute_importance = compute_importance
+        self.compute_importance: bool = compute_importance
 
         if self.augmentations is not None:
             # This ensure reproducibility
@@ -276,7 +275,7 @@ class TabModel(BaseEstimator):
             # compute feature importance once the best model is defined
             self.feature_importances_ = self._compute_feature_importances(X_train)
 
-    def predict(self, X):
+    def predict(self, X: np.ndarray) -> np.ndarray:
         """
         Make predictions on a batch (valid)
 
@@ -314,7 +313,9 @@ class TabModel(BaseEstimator):
         res = np.vstack(results)
         return self.predict_func(res)
 
-    def explain(self, X, normalize=False):
+    def explain(
+        self, X: np.ndarray, normalize: bool = False
+    ) -> Tuple[np.ndarray, Dict]:
         """
         Return local explanation
 
@@ -375,7 +376,7 @@ class TabModel(BaseEstimator):
 
         return res_explain, res_masks
 
-    def load_weights_from_unsupervised(self, unsupervised_model):
+    def load_weights_from_unsupervised(self, unsupervised_model: "TabModel"):
         update_state_dict = copy.deepcopy(self.network.state_dict())
         for param, weights in unsupervised_model.network.state_dict().items():
             if param.startswith("encoder"):
@@ -389,11 +390,11 @@ class TabModel(BaseEstimator):
 
         self.network.load_state_dict(update_state_dict)
 
-    def load_class_attrs(self, class_attrs):
+    def load_class_attrs(self, class_attrs: Dict):
         for attr_name, attr_value in class_attrs.items():
             setattr(self, attr_name, attr_value)
 
-    def save_model(self, path):
+    def save_model(self, path: str) -> str:
         """Saving TabNet model in two distinct files.
 
         Parameters
@@ -434,7 +435,7 @@ class TabModel(BaseEstimator):
         print(f"Successfully saved model at {path}.zip")
         return f"{path}.zip"
 
-    def load_model(self, filepath):
+    def load_model(self, filepath: str):
         """Load TabNet model.
 
         Parameters
@@ -470,7 +471,7 @@ class TabModel(BaseEstimator):
 
         return
 
-    def _train_epoch(self, train_loader):
+    def _train_epoch(self, train_loader: DataLoader):
         """
         Trains one epoch of the network in self.network
 
@@ -493,7 +494,7 @@ class TabModel(BaseEstimator):
 
         return
 
-    def _train_batch(self, X, y):
+    def _train_batch(self, X: torch.Tensor, y: torch.Tensor) -> Dict:
         """
         Trains one batch of data
 
@@ -538,7 +539,7 @@ class TabModel(BaseEstimator):
 
         return batch_logs
 
-    def _predict_epoch(self, name, loader):
+    def _predict_epoch(self, name: str, loader: DataLoader):
         """
         Predict an epoch and update metrics.
 
@@ -568,7 +569,7 @@ class TabModel(BaseEstimator):
         self.history.epoch_metrics.update(metrics_logs)
         return
 
-    def _predict_batch(self, X):
+    def _predict_batch(self, X: torch.Tensor) -> np.ndarray:
         """
         Predict one batch of data.
 
@@ -626,7 +627,7 @@ class TabModel(BaseEstimator):
             self.network.post_embed_dim,
         )
 
-    def _set_metrics(self, metrics, eval_names):
+    def _set_metrics(self, metrics: Union[None, List[str]], eval_names: List[str]):
         """Set attributes relative to the metrics.
 
         Parameters
@@ -641,24 +642,24 @@ class TabModel(BaseEstimator):
 
         metrics = check_metrics(metrics)
         # Set metric container for each sets
-        self._metric_container_dict = {}
+        self._metric_container_dict: Dict[str, MetricContainer] = {}
         for name in eval_names:
             self._metric_container_dict.update({
                 name: MetricContainer(metrics, prefix=f"{name}_")
             })
 
-        self._metrics = []
-        self._metrics_names = []
+        self._metrics: List = []
+        self._metrics_names: List[str] = []
         for _, metric_container in self._metric_container_dict.items():
             self._metrics.extend(metric_container.metrics)
             self._metrics_names.extend(metric_container.names)
 
         # Early stopping metric is the last eval metric
-        self.early_stopping_metric = (
+        self.early_stopping_metric: Union[None, str] = (
             self._metrics_names[-1] if len(self._metrics_names) > 0 else None
         )
 
-    def _set_callbacks(self, custom_callbacks):
+    def _set_callbacks(self, custom_callbacks: Union[None, List]):
         """Setup the callbacks functions.
 
         Parameters
@@ -707,7 +708,12 @@ class TabModel(BaseEstimator):
             self.network.parameters(), **self.optimizer_params
         )
 
-    def _construct_loaders(self, X_train, y_train, eval_set):
+    def _construct_loaders(
+        self,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        eval_set: List[Tuple[np.ndarray, np.ndarray]],
+    ) -> Tuple[DataLoader, List[DataLoader]]:
         """Generate dataloaders for train and eval set.
 
         Parameters
@@ -745,7 +751,7 @@ class TabModel(BaseEstimator):
         )
         return train_dataloader, valid_dataloaders
 
-    def _compute_feature_importances(self, X):
+    def _compute_feature_importances(self, X: np.ndarray) -> np.ndarray:
         """Compute global feature importance.
 
         Parameters
@@ -763,7 +769,13 @@ class TabModel(BaseEstimator):
         self.network.virtual_batch_size = self.virtual_batch_size
 
     @abstractmethod
-    def update_fit_params(self, X_train, y_train, eval_set, weights):
+    def update_fit_params(
+        self,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        eval_set: List[Tuple[np.ndarray, np.ndarray]],
+        weights: Union[int, Dict],
+    ):
         """
         Set attributes relative to fit function.
 
@@ -784,7 +796,7 @@ class TabModel(BaseEstimator):
         )
 
     @abstractmethod
-    def compute_loss(self, y_score, y_true):
+    def compute_loss(self, y_score: torch.Tensor, y_true: torch.Tensor) -> torch.Tensor:
         """
         Compute the loss.
 
@@ -805,7 +817,7 @@ class TabModel(BaseEstimator):
         )
 
     @abstractmethod
-    def prepare_target(self, y):
+    def prepare_target(self, y: np.ndarray) -> torch.Tensor:
         """
         Prepare target before training.
 
@@ -822,3 +834,17 @@ class TabModel(BaseEstimator):
         raise NotImplementedError(
             "users must define prepare_target to use this base class"
         )
+
+    @abstractmethod
+    def predict_func(self, y_score: np.ndarray) -> np.ndarray:
+        raise NotImplementedError(
+            "users must define predict_func to use this base class"
+        )
+
+    # _default_metric: str = "accuracy"
+    # _default_loss: Callable = torch.nn.functional.cross_entropy
+
+    # def stack_batches(self, list_y_true: List[torch.Tensor], list_y_score: List[np.ndarray]) -> Tuple[np.ndarray, np.ndarray]:
+    #     y_true = np.concatenate([x.cpu().detach().numpy() for x in list_y_true])
+    #     scores = np.concatenate(list_y_score)
+    #     return y_true, scores

@@ -6,6 +6,7 @@ from pytorch_tabnet.abstract_model import TabModel
 from pytorch_tabnet.multiclass_utils import infer_multitask_output, check_output_dim
 from torch.utils.data import DataLoader
 import scipy
+from typing import List, Tuple, Union
 
 
 class TabNetMultiTaskClassifier(TabModel):
@@ -15,14 +16,16 @@ class TabNetMultiTaskClassifier(TabModel):
         self._default_loss = torch.nn.functional.cross_entropy
         self._default_metric = "logloss"
 
-    def prepare_target(self, y):
+    def prepare_target(self, y: np.ndarray) -> np.ndarray:
         y_mapped = y.copy()
         for task_idx in range(y.shape[1]):
             task_mapper = self.target_mapper[task_idx]
             y_mapped[:, task_idx] = np.vectorize(task_mapper.get)(y[:, task_idx])
         return y_mapped
 
-    def compute_loss(self, y_pred, y_true):
+    def compute_loss(
+        self, y_pred: List[torch.Tensor], y_true: torch.Tensor
+    ) -> torch.Tensor:
         """
         Computes the loss according to network output and targets
 
@@ -55,7 +58,9 @@ class TabNetMultiTaskClassifier(TabModel):
         loss /= len(y_pred)
         return loss
 
-    def stack_batches(self, list_y_true, list_y_score):
+    def stack_batches(
+        self, list_y_true: List[np.ndarray], list_y_score: List[List[np.ndarray]]
+    ) -> Tuple[np.ndarray, List[np.ndarray]]:
         y_true = np.vstack(list_y_true)
         y_score = []
         for i in range(len(self.output_dim)):
@@ -64,7 +69,13 @@ class TabNetMultiTaskClassifier(TabModel):
             y_score.append(score)
         return y_true, y_score
 
-    def update_fit_params(self, X_train, y_train, eval_set, weights):
+    def update_fit_params(
+        self,
+        X_train: Union[np.ndarray, scipy.sparse.csr_matrix],
+        y_train: np.ndarray,
+        eval_set: List[Tuple[Union[np.ndarray, scipy.sparse.csr_matrix], np.ndarray]],
+        weights: Union[np.ndarray, None],
+    ) -> None:
         output_dim, train_labels = infer_multitask_output(y_train)
         for _, y in eval_set:
             for task_idx in range(y.shape[1]):
@@ -82,7 +93,9 @@ class TabNetMultiTaskClassifier(TabModel):
         self.updated_weights = weights
         filter_weights(self.updated_weights)
 
-    def predict(self, X):
+    def predict(
+        self, X: Union[torch.Tensor, np.ndarray, scipy.sparse.csr_matrix]
+    ) -> List[np.ndarray]:
         """
         Make predictions on a batch (valid)
 
@@ -135,7 +148,9 @@ class TabNetMultiTaskClassifier(TabModel):
         ]
         return results
 
-    def predict_proba(self, X):
+    def predict_proba(
+        self, X: Union[torch.Tensor, np.ndarray, scipy.sparse.csr_matrix]
+    ) -> List[np.ndarray]:
         """
         Make predictions for classification on a batch (valid)
 

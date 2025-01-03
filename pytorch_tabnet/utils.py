@@ -1,5 +1,4 @@
-from torch.utils.data import Dataset
-from torch.utils.data import DataLoader, WeightedRandomSampler
+from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 import torch
 import numpy as np
 import scipy
@@ -7,6 +6,7 @@ import json
 from sklearn.utils import check_array
 import pandas as pd
 import warnings
+from typing import Union, List, Tuple, Dict, Iterable, Optional
 
 
 class TorchDataset(Dataset):
@@ -21,14 +21,14 @@ class TorchDataset(Dataset):
         The one-hot encoded target
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x: np.ndarray, y: np.ndarray):
         self.x = x
         self.y = y
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.x)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
         x, y = self.x[index], self.y[index]
         return x, y
 
@@ -45,14 +45,14 @@ class SparseTorchDataset(Dataset):
         The one-hot encoded target
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x: scipy.sparse.csr_matrix, y: np.ndarray):
         self.x = x
         self.y = y
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.x.shape[0]
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> Tuple[torch.Tensor, np.ndarray]:
         x = torch.from_numpy(self.x[index].toarray()[0]).float()
         y = self.y[index]
         return x, y
@@ -68,13 +68,13 @@ class PredictDataset(Dataset):
         The input matrix
     """
 
-    def __init__(self, x):
+    def __init__(self, x: np.ndarray):
         self.x = x
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.x)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> np.ndarray:
         x = self.x[index]
         return x
 
@@ -89,18 +89,20 @@ class SparsePredictDataset(Dataset):
         The input matrix
     """
 
-    def __init__(self, x):
+    def __init__(self, x: scipy.sparse.csr_matrix):
         self.x = x
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.x.shape[0]
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> torch.Tensor:
         x = torch.from_numpy(self.x[index].toarray()[0]).float()
         return x
 
 
-def create_sampler(weights, y_train):
+def create_sampler(
+    weights: Union[int, Dict, Iterable], y_train: np.ndarray
+) -> Tuple[bool, Optional[WeightedRandomSampler]]:
     """
     This creates a sampler from the given weights
 
@@ -150,8 +152,15 @@ def create_sampler(weights, y_train):
 
 
 def create_dataloaders(
-    X_train, y_train, eval_set, weights, batch_size, num_workers, drop_last, pin_memory
-):
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    eval_set: List[Tuple[np.ndarray, np.ndarray]],
+    weights: Union[int, Dict, Iterable],
+    batch_size: int,
+    num_workers: int,
+    drop_last: bool,
+    pin_memory: bool,
+) -> Tuple[DataLoader, List[DataLoader]]:
     """
     Create dataloaders with or without subsampling depending on weights and balanced.
 
@@ -235,7 +244,12 @@ def create_dataloaders(
     return train_dataloader, valid_dataloaders
 
 
-def create_explain_matrix(input_dim, cat_emb_dim, cat_idxs, post_embed_dim):
+def create_explain_matrix(
+    input_dim: int,
+    cat_emb_dim: Union[int, List[int]],
+    cat_idxs: List[int],
+    post_embed_dim: int,
+) -> scipy.sparse.csc_matrix:
     """
     This is a computational trick.
     In order to rapidly sum importances from same embeddings
@@ -284,7 +298,7 @@ def create_explain_matrix(input_dim, cat_emb_dim, cat_idxs, post_embed_dim):
     return scipy.sparse.csc_matrix(reducing_matrix)
 
 
-def create_group_matrix(list_groups, input_dim):
+def create_group_matrix(list_groups: List[List[int]], input_dim: int) -> torch.Tensor:
     """
     Create the group matrix corresponding to the given list_groups
 
@@ -332,7 +346,7 @@ def create_group_matrix(list_groups, input_dim):
         return group_matrix
 
 
-def check_list_groups(list_groups, input_dim):
+def check_list_groups(list_groups: List[List[int]], input_dim: int) -> None:
     """
     Check that list groups:
         - is a list of list
@@ -377,7 +391,7 @@ def check_list_groups(list_groups, input_dim):
     return
 
 
-def filter_weights(weights):
+def filter_weights(weights: Union[int, List, np.ndarray]) -> None:
     """
     This function makes sure that weights are in correct format for
     regression and multitask TabNet
@@ -401,7 +415,12 @@ def filter_weights(weights):
     return
 
 
-def validate_eval_set(eval_set, eval_name, X_train, y_train):
+def validate_eval_set(
+    eval_set: List[Tuple[np.ndarray, np.ndarray]],
+    eval_name: Optional[List[str]],
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+) -> Tuple[List[str], List[Tuple[np.ndarray, np.ndarray]]]:
     """Check if the shapes of eval_set are compatible with (X_train, y_train).
 
     Parameters
@@ -468,7 +487,7 @@ def validate_eval_set(eval_set, eval_name, X_train, y_train):
     return eval_name, eval_set
 
 
-def define_device(device_name):
+def define_device(device_name: str) -> str:
     """
     Define the device to use during training and inference.
     If auto it will detect automatically whether to use cuda or cpu
@@ -495,14 +514,14 @@ def define_device(device_name):
 
 
 class ComplexEncoder(json.JSONEncoder):
-    def default(self, obj):
+    def default(self, obj: object) -> object:
         if isinstance(obj, (np.generic, np.ndarray)):
             return obj.tolist()
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
 
 
-def check_input(X):
+def check_input(X: np.ndarray) -> None:
     """
     Raise a clear error if X is a pandas dataframe
     and check array according to scikit rules
@@ -515,7 +534,7 @@ def check_input(X):
     check_array(X, accept_sparse=True)
 
 
-def check_warm_start(warm_start, from_unsupervised):
+def check_warm_start(warm_start: bool, from_unsupervised: Optional[bool]) -> None:
     """
     Gives a warning about ambiguous usage of the two parameters.
     """
@@ -528,7 +547,9 @@ def check_warm_start(warm_start, from_unsupervised):
     return
 
 
-def check_embedding_parameters(cat_dims, cat_idxs, cat_emb_dim):
+def check_embedding_parameters(
+    cat_dims: List[int], cat_idxs: List[int], cat_emb_dim: Union[int, List[int]]
+) -> Tuple[List[int], List[int], List[int]]:
     """
     Check parameters related to embeddings and rearrange them in a unique manner.
     """
