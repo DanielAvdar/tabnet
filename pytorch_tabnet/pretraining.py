@@ -357,9 +357,15 @@ class TabNetPretrainer(TabModel):
         # Main loop
         for batch_idx, X in enumerate(loader):
             output, embedded_x, obf_vars = self._predict_batch(X)
-            list_output.append(output.cpu().detach().numpy())
-            list_embedded_x.append(embedded_x.cpu().detach().numpy())
-            list_obfuscation.append(obf_vars.cpu().detach().numpy())
+            list_output.append(
+                output.cpu().detach().numpy()
+            )  # todo: switch to from numpy to torch
+            list_embedded_x.append(
+                embedded_x.cpu().detach().numpy()
+            )  # todo: switch to from numpy to torch
+            list_obfuscation.append(
+                obf_vars.cpu().detach().numpy()
+            )  # todo: switch to from numpy to torch
 
         output, embedded_x, obf_vars = self.stack_batches(
             list_output, list_embedded_x, list_obfuscation
@@ -389,7 +395,7 @@ class TabNetPretrainer(TabModel):
         X = X.to(self.device).float()
         return self.network(X)
 
-    def stack_batches(
+    def stack_batches(  # todo: switch to from numpy to torch
         self,
         list_output: List[np.ndarray],
         list_embedded_x: List[np.ndarray],
