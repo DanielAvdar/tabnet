@@ -172,7 +172,7 @@ class TabNetEncoder(torch.nn.Module):
         if prior is None:
             prior = torch.ones((bs, self.attention_dim)).to(x.device)
 
-        M_loss = 0
+        M_loss = torch.tensor(0.0).to(x.device)
         att = self.initial_splitter(x)[:, self.n_d :]
         steps_output = []
         for step in range(self.n_steps):
@@ -486,14 +486,16 @@ class TabNetNoEmbeddings(torch.nn.Module):
         )
 
         if self.is_multi_task:
+            # output_dim is a list
+
             self.multi_task_mappings = torch.nn.ModuleList()
-            for task_dim in output_dim:
+            for task_dim in output_dim:  # type: ignore
                 task_mapping = Linear(n_d, task_dim, bias=False)
                 initialize_non_glu(task_mapping, n_d, task_dim)
                 self.multi_task_mappings.append(task_mapping)
         else:
             self.final_mapping = Linear(n_d, output_dim, bias=False)
-            initialize_non_glu(self.final_mapping, n_d, output_dim)
+            initialize_non_glu(self.final_mapping, n_d, output_dim)  # type: ignore
 
     def forward(
         self, x: torch.Tensor
@@ -742,7 +744,10 @@ class FeatTransformer(torch.nn.Module):
         else:
             spec_input_dim = input_dim if is_first else output_dim
             self.specifics = GLU_Block(
-                spec_input_dim, output_dim, first=is_first, **params
+                spec_input_dim,
+                output_dim,
+                first=is_first,
+                **params,  # type: ignore
             )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -775,10 +780,10 @@ class GLU_Block(torch.nn.Module):
         params = {"virtual_batch_size": virtual_batch_size, "momentum": momentum}
 
         fc = shared_layers[0] if shared_layers else None
-        self.glu_layers.append(GLU_Layer(input_dim, output_dim, fc=fc, **params))
+        self.glu_layers.append(GLU_Layer(input_dim, output_dim, fc=fc, **params))  # type: ignore
         for glu_id in range(1, self.n_glu):
             fc = shared_layers[glu_id] if shared_layers else None
-            self.glu_layers.append(GLU_Layer(output_dim, output_dim, fc=fc, **params))
+            self.glu_layers.append(GLU_Layer(output_dim, output_dim, fc=fc, **params))  # type: ignore
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         scale = torch.sqrt(torch.FloatTensor([0.5]).to(x.device))
@@ -816,7 +821,7 @@ class GLU_Layer(torch.nn.Module):
             2 * output_dim, virtual_batch_size=virtual_batch_size, momentum=momentum
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.fc(x)
         x = self.bn(x)
         out = torch.mul(x[:, : self.output_dim], torch.sigmoid(x[:, self.output_dim :]))

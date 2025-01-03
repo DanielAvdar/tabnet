@@ -12,31 +12,31 @@ class Callback:
     Abstract base class used to build new callbacks.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def set_params(self, params: Dict[str, Any]):
+    def set_params(self, params: Dict[str, Any]) -> None:
         self.params = params
 
-    def set_trainer(self, model: Any):
+    def set_trainer(self, model: Any) -> None:
         self.trainer = model
 
-    def on_epoch_begin(self, epoch: int, logs: Optional[Dict[str, Any]] = None):
+    def on_epoch_begin(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
         pass
 
-    def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None):
+    def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
         pass
 
-    def on_batch_begin(self, batch: int, logs: Optional[Dict[str, Any]] = None):
+    def on_batch_begin(self, batch: int, logs: Optional[Dict[str, Any]] = None) -> None:
         pass
 
-    def on_batch_end(self, batch: int, logs: Optional[Dict[str, Any]] = None):
+    def on_batch_end(self, batch: int, logs: Optional[Dict[str, Any]] = None) -> None:
         pass
 
-    def on_train_begin(self, logs: Optional[Dict[str, Any]] = None):
+    def on_train_begin(self, logs: Optional[Dict[str, Any]] = None) -> None:
         pass
 
-    def on_train_end(self, logs: Optional[Dict[str, Any]] = None):
+    def on_train_end(self, logs: Optional[Dict[str, Any]] = None) -> None:
         pass
 
 
@@ -48,45 +48,45 @@ class CallbackContainer:
 
     callbacks: List[Callback] = field(default_factory=list)
 
-    def append(self, callback: Callback):
+    def append(self, callback: Callback) -> None:
         self.callbacks.append(callback)
 
-    def set_params(self, params: Dict[str, Any]):
+    def set_params(self, params: Dict[str, Any]) -> None:
         for callback in self.callbacks:
             callback.set_params(params)
 
-    def set_trainer(self, trainer: Any):
+    def set_trainer(self, trainer: Any) -> None:
         self.trainer = trainer
         for callback in self.callbacks:
             callback.set_trainer(trainer)
 
-    def on_epoch_begin(self, epoch: int, logs: Optional[Dict[str, Any]] = None):
+    def on_epoch_begin(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
         logs = logs or {}
         for callback in self.callbacks:
             callback.on_epoch_begin(epoch, logs)
 
-    def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None):
+    def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
         logs = logs or {}
         for callback in self.callbacks:
             callback.on_epoch_end(epoch, logs)
 
-    def on_batch_begin(self, batch: int, logs: Optional[Dict[str, Any]] = None):
+    def on_batch_begin(self, batch: int, logs: Optional[Dict[str, Any]] = None) -> None:
         logs = logs or {}
         for callback in self.callbacks:
             callback.on_batch_begin(batch, logs)
 
-    def on_batch_end(self, batch: int, logs: Optional[Dict[str, Any]] = None):
+    def on_batch_end(self, batch: int, logs: Optional[Dict[str, Any]] = None) -> None:
         logs = logs or {}
         for callback in self.callbacks:
             callback.on_batch_end(batch, logs)
 
-    def on_train_begin(self, logs: Optional[Dict[str, Any]] = None):
+    def on_train_begin(self, logs: Optional[Dict[str, Any]] = None) -> None:
         logs = logs or {}
         logs["start_time"] = time.time()
         for callback in self.callbacks:
             callback.on_train_begin(logs)
 
-    def on_train_end(self, logs: Optional[Dict[str, Any]] = None):
+    def on_train_end(self, logs: Optional[Dict[str, Any]] = None) -> None:
         logs = logs or {}
         for callback in self.callbacks:
             callback.on_train_end(logs)
@@ -118,7 +118,7 @@ class EarlyStopping(Callback):
     tol: float = 0.0
     patience: int = 5
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.best_epoch: int = 0
         self.stopped_epoch: int = 0
         self.wait: int = 0
@@ -128,7 +128,7 @@ class EarlyStopping(Callback):
             self.best_loss = -self.best_loss
         super().__init__()
 
-    def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None):
+    def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
         current_loss = logs.get(self.early_stopping_metric)
         if current_loss is None:
             return
@@ -147,7 +147,7 @@ class EarlyStopping(Callback):
                 self.trainer._stop_training = True
             self.wait += 1
 
-    def on_train_end(self, logs: Optional[Dict[str, Any]] = None):
+    def on_train_end(self, logs: Optional[Dict[str, Any]] = None) -> None:
         self.trainer.best_epoch = self.best_epoch
         self.trainer.best_cost = self.best_loss
 
@@ -190,23 +190,23 @@ class History(Callback):
     trainer: Any
     verbose: int = 1
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         super().__init__()
         self.samples_seen: float = 0.0
         self.total_time: float = 0.0
 
-    def on_train_begin(self, logs: Optional[Dict[str, Any]] = None):
+    def on_train_begin(self, logs: Optional[Dict[str, Any]] = None) -> None:
         self.history: Dict[str, List[float]] = {"loss": []}
         self.history.update({"lr": []})
         self.history.update({name: [] for name in self.trainer._metrics_names})
         self.start_time: float = logs["start_time"]
         self.epoch_loss: float = 0.0
 
-    def on_epoch_begin(self, epoch: int, logs: Optional[Dict[str, Any]] = None):
+    def on_epoch_begin(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
         self.epoch_metrics: Dict[str, float] = {"loss": 0.0}
-        self.samples_seen: float = 0.0
+        self.samples_seen = 0.0
 
-    def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None):
+    def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
         self.epoch_metrics["loss"] = self.epoch_loss
         for metric_name, metric_value in self.epoch_metrics.items():
             self.history[metric_name].append(metric_value)
@@ -222,7 +222,7 @@ class History(Callback):
         msg += f"|  {str(datetime.timedelta(seconds=self.total_time)) + 's':<6}"
         print(msg)
 
-    def on_batch_end(self, batch: int, logs: Optional[Dict[str, Any]] = None):
+    def on_batch_end(self, batch: int, logs: Optional[Dict[str, Any]] = None) -> None:
         batch_size: int = logs["batch_size"]
         self.epoch_loss = (
             self.samples_seen * self.epoch_loss + batch_size * logs["loss"]
@@ -267,18 +267,18 @@ class LRSchedulerCallback(Callback):
 
     def __post_init__(
         self,
-    ):
+    ) -> None:
         self.is_metric_related: bool = hasattr(self.scheduler_fn, "is_better")
         self.scheduler: Any = self.scheduler_fn(self.optimizer, **self.scheduler_params)
         super().__init__()
 
-    def on_batch_end(self, batch: int, logs: Optional[Dict[str, Any]] = None):
+    def on_batch_end(self, batch: int, logs: Optional[Dict[str, Any]] = None) -> None:
         if self.is_batch_level:
             self.scheduler.step()
         else:
             pass
 
-    def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None):
+    def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
         current_loss = logs.get(self.early_stopping_metric)
         if current_loss is None:
             return

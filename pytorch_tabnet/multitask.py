@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import torch
 import numpy as np
 from scipy.special import softmax
@@ -9,8 +11,11 @@ import scipy
 from typing import List, Tuple, Union
 
 
+@dataclass
 class TabNetMultiTaskClassifier(TabModel):
-    def __post_init__(self):
+    output_dim: List[int] = None
+
+    def __post_init__(self) -> None:
         super(TabNetMultiTaskClassifier, self).__post_init__()
         self._task = "classification"
         self._default_loss = torch.nn.functional.cross_entropy
@@ -42,7 +47,7 @@ class TabNetMultiTaskClassifier(TabModel):
             output of loss function(s)
 
         """
-        loss = 0
+        loss = 0.0
         y_true = y_true.long()
         if isinstance(self.loss_fn, list):
             # if you specify a different loss for each task
@@ -124,7 +129,7 @@ class TabNetMultiTaskClassifier(TabModel):
                 shuffle=False,
             )
 
-        results = {}
+        results: dict = {}
         for data in dataloader:
             data = data.to(self.device).float()
             output, _ = self.network(data)
@@ -140,13 +145,13 @@ class TabNetMultiTaskClassifier(TabModel):
             for task_idx in range(len(self.output_dim)):
                 results[task_idx] = results.get(task_idx, []) + [predictions[task_idx]]
         # stack all task individually
-        results = [np.hstack(task_res) for task_res in results.values()]
+        results_ = [np.hstack(task_res) for task_res in results.values()]
         # map all task individually
-        results = [
+        results_ = [
             np.vectorize(self.preds_mapper[task_idx].get)(task_res.astype(str))
-            for task_idx, task_res in enumerate(results)
+            for task_idx, task_res in enumerate(results_)
         ]
-        return results
+        return results_
 
     def predict_proba(
         self, X: Union[torch.Tensor, np.ndarray, scipy.sparse.csr_matrix]
@@ -179,7 +184,7 @@ class TabNetMultiTaskClassifier(TabModel):
                 shuffle=False,
             )
 
-        results = {}
+        results: dict = {}
         for data in dataloader:
             data = data.to(self.device).float()
             output, _ = self.network(data)

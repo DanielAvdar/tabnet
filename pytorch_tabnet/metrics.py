@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Union
+from typing import List, Union, Any
 import numpy as np
 from sklearn.metrics import (
     roc_auc_score,
@@ -98,7 +98,7 @@ class UnsupMetricContainer:
     metric_names: List[str]
     prefix: str = ""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.metrics = Metric.get_metrics_by_names(self.metric_names)
         self.names = [self.prefix + name for name in self.metric_names]
 
@@ -146,7 +146,7 @@ class MetricContainer:
     metric_names: List[str]
     prefix: str = ""
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.metrics = Metric.get_metrics_by_names(self.metric_names)
         self.names = [self.prefix + name for name in self.metric_names]
 
@@ -419,7 +419,7 @@ class UnsupervisedMetric(Metric):
     _name: str = "unsup_loss"
     _maximize: bool = False
 
-    def __call__(
+    def __call__(  # type: ignore[override]
         self,
         y_pred: Union[np.ndarray, torch.Tensor],
         embedded_x: Union[np.ndarray, torch.Tensor],
@@ -455,7 +455,7 @@ class UnsupervisedNumpyMetric(Metric):
     _name: str = "unsup_loss_numpy"
     _maximize: bool = False
 
-    def __call__(
+    def __call__(  # type: ignore[override]
         self, y_pred: np.ndarray, embedded_x: np.ndarray, obf_vars: np.ndarray
     ) -> float:
         """
@@ -506,7 +506,7 @@ class RMSE(Metric):
         return np.sqrt(mean_squared_error(y_true, y_score))
 
 
-def check_metrics(metrics: List[Union[str, type]]) -> List[str]:
+def check_metrics(metrics: List[Union[str, Any]]) -> List[str]:
     """Check if custom metrics are provided.
 
     Parameters

@@ -28,7 +28,7 @@ class SparsemaxFunction(Function):
     """
 
     @staticmethod
-    def forward(ctx, input: torch.Tensor, dim: int = -1) -> torch.Tensor:
+    def forward(ctx: torch.Tensor, input: torch.Tensor, dim: int = -1) -> torch.Tensor:
         """sparsemax: normalizing sparse transform (a la softmax)
 
         Parameters
@@ -54,7 +54,9 @@ class SparsemaxFunction(Function):
         return output
 
     @staticmethod
-    def backward(ctx, grad_output: torch.Tensor) -> tuple[torch.Tensor, None]:
+    def backward(
+        ctx: torch.Tensor, grad_output: torch.Tensor
+    ) -> tuple[torch.Tensor, None]:
         supp_size, output = ctx.saved_tensors
         dim = ctx.dim
         grad_input = grad_output.clone()
@@ -117,7 +119,7 @@ class Entmax15Function(Function):
     """
 
     @staticmethod
-    def forward(ctx, input: torch.Tensor, dim: int = -1) -> torch.Tensor:
+    def forward(ctx: torch.Tensor, input: torch.Tensor, dim: int = -1) -> torch.Tensor:
         ctx.dim = dim
 
         max_val, _ = input.max(dim=dim, keepdim=True)
@@ -130,7 +132,9 @@ class Entmax15Function(Function):
         return output
 
     @staticmethod
-    def backward(ctx, grad_output: torch.Tensor) -> tuple[torch.Tensor, None]:
+    def backward(
+        ctx: torch.Tensor, grad_output: torch.Tensor
+    ) -> tuple[torch.Tensor, None]:
         (Y,) = ctx.saved_tensors
         gppr = Y.sqrt()  # = 1 / g'' (Y)
         dX = grad_output * gppr
@@ -166,7 +170,7 @@ class Entmoid15(Function):
     """A highly optimized equivalent of lambda x: Entmax15([x, 0])"""
 
     @staticmethod
-    def forward(ctx, input: torch.Tensor) -> torch.Tensor:
+    def forward(ctx: torch.Tensor, input: torch.Tensor) -> torch.Tensor:
         output = Entmoid15._forward(input)
         ctx.save_for_backward(output)
         return output
@@ -180,7 +184,7 @@ class Entmoid15(Function):
         return torch.where(is_pos, 1 - y_neg, y_neg)
 
     @staticmethod
-    def backward(ctx, grad_output: torch.Tensor) -> torch.Tensor:
+    def backward(ctx: torch.Tensor, grad_output: torch.Tensor) -> torch.Tensor:
         return Entmoid15._backward(ctx.saved_tensors[0], grad_output)
 
     @staticmethod

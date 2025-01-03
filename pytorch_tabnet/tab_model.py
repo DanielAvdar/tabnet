@@ -8,8 +8,13 @@ from torch.utils.data import DataLoader
 import scipy
 from typing import Union, Dict, Any, Tuple, List
 
+from dataclasses import dataclass
 
+
+@dataclass
 class TabNetClassifier(TabModel):
+    output_dim: int = None
+
     def __post_init__(self) -> None:
         super(TabNetClassifier, self).__post_init__()
         self._task: str = "classification"
@@ -18,21 +23,7 @@ class TabNetClassifier(TabModel):
 
     def weight_updater(
         self, weights: Union[bool, Dict[str, Any]]
-    ) -> Union[bool, Dict[str, Any]]:
-        """
-        Updates weights dictionary according to target_mapper.
-
-        Parameters
-        ----------
-        weights : bool or dict
-            Given weights for balancing training.
-
-        Returns
-        -------
-        bool or dict
-            Same bool if weights are bool, updated dict otherwise.
-
-        """
+    ) -> Union[bool, Dict[Union[str, int], Any]]:
         if isinstance(weights, int):
             return weights
         elif isinstance(weights, dict):
@@ -46,7 +37,7 @@ class TabNetClassifier(TabModel):
     def compute_loss(self, y_pred: torch.Tensor, y_true: torch.Tensor) -> torch.Tensor:
         return self.loss_fn(y_pred, y_true.long())
 
-    def update_fit_params(
+    def update_fit_params(  # type: ignore[override]
         self,
         X_train: np.ndarray,
         y_train: np.ndarray,
@@ -59,7 +50,7 @@ class TabNetClassifier(TabModel):
         for X, y in eval_set:
             check_output_dim(train_labels, y)
         self.output_dim: int = output_dim
-        self._default_metric: str = "auc" if self.output_dim == 2 else "accuracy"
+        self._default_metric = "auc" if self.output_dim == 2 else "accuracy"
         self.classes_: List[Any] = train_labels
         self.target_mapper: Dict[Any, int] = {
             class_label: index for index, class_label in enumerate(self.classes_)
@@ -67,7 +58,9 @@ class TabNetClassifier(TabModel):
         self.preds_mapper: Dict[str, Any] = {
             str(index): class_label for index, class_label in enumerate(self.classes_)
         }
-        self.updated_weights: Union[bool, Dict[str, Any]] = self.weight_updater(weights)
+        self.updated_weights: Union[bool, Dict[Union[str, int], Any]] = (
+            self.weight_updater(weights)
+        )
 
     def stack_batches(
         self,
@@ -76,27 +69,14 @@ class TabNetClassifier(TabModel):
     ) -> Tuple[np.ndarray, np.ndarray]:
         y_true: np.ndarray = np.hstack(list_y_true)
         y_score: np.ndarray = np.vstack(list_y_score)
-        y_score: np.ndarray = softmax(y_score, axis=1)
+        y_score = softmax(y_score, axis=1)
         return y_true, y_score
 
     def predict_func(self, outputs: np.ndarray) -> np.ndarray:
-        outputs: np.ndarray = np.argmax(outputs, axis=1)
+        outputs = np.argmax(outputs, axis=1)
         return np.vectorize(self.preds_mapper.get)(outputs.astype(str))
 
     def predict_proba(self, X: Union[torch.Tensor, np.ndarray]) -> np.ndarray:
-        """
-        Make predictions for classification on a batch (valid)
-
-        Parameters
-        ----------
-        X : a :tensor: `torch.Tensor` or matrix: `scipy.sparse.csr_matrix`
-            Input data
-
-        Returns
-        -------
-        res : np.ndarray
-
-        """
         self.network.eval()
 
         if scipy.sparse.issparse(X):
@@ -106,7 +86,7 @@ class TabNetClassifier(TabModel):
                 shuffle=False,
             )
         else:
-            dataloader: DataLoader = DataLoader(
+            dataloader = DataLoader(
                 PredictDataset(X),
                 batch_size=self.batch_size,
                 shuffle=False,
@@ -114,7 +94,7 @@ class TabNetClassifier(TabModel):
 
         results: List[np.ndarray] = []
         for batch_nb, data in enumerate(dataloader):
-            data: torch.Tensor = data.to(self.device).float()
+            data = data.to(self.device).float()
 
             output: torch.Tensor
             _M_loss: torch.Tensor
@@ -127,7 +107,10 @@ class TabNetClassifier(TabModel):
         return res
 
 
+@dataclass
 class TabNetRegressor(TabModel):
+    output_dim: int = None
+
     def __post_init__(self) -> None:
         super(TabNetRegressor, self).__post_init__()
         self._task: str = "regression"

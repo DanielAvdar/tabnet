@@ -127,9 +127,9 @@ def create_sampler(
                 len(np.where(y_train == t)[0]) for t in np.unique(y_train)
             ])
 
-            weights = 1.0 / class_sample_count
+            weights_ = 1.0 / class_sample_count
 
-            samples_weight = np.array([weights[t] for t in y_train])
+            samples_weight = np.array([weights_[t] for t in y_train])
 
             samples_weight = torch.from_numpy(samples_weight)
             samples_weight = samples_weight.double()
@@ -143,7 +143,7 @@ def create_sampler(
         sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
     else:
         # custom weights
-        if len(weights) != len(y_train):
+        if len(weights) != len(y_train):  # type: ignore
             raise ValueError("Custom weights should match number of train samples.")
         need_shuffle = False
         samples_weight = np.array(weights)
@@ -286,7 +286,7 @@ def create_explain_matrix(
             indices_trick.append([i + acc_emb])
         else:
             indices_trick.append(
-                range(i + acc_emb, i + acc_emb + all_emb_impact[nb_emb] + 1)
+                range(i + acc_emb, i + acc_emb + all_emb_impact[nb_emb] + 1)  # type: ignore
             )
             acc_emb += all_emb_impact[nb_emb]
             nb_emb += 1
