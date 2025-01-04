@@ -87,7 +87,11 @@ def test_stack_batches_regressor(
     expected_y_true_shape,
     expected_y_score_shape,
 ):
-    y_true, y_score = regressor_instance.stack_batches(list_y_true, list_y_score)
+    list_y_true_torch = [torch.tensor(x) for x in list_y_true]
+    list_y_score_torch = [torch.tensor(x) for x in list_y_score]
+    y_true, y_score = regressor_instance.stack_batches(
+        list_y_true_torch, list_y_score_torch
+    )
     assert y_true.shape == expected_y_true_shape
     assert y_score.shape == expected_y_score_shape
 

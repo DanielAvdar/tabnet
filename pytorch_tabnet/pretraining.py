@@ -24,7 +24,7 @@ from pytorch_tabnet.metrics import (
 )
 from pytorch_tabnet.abstract_model import TabModel
 import scipy
-from typing import List, Union, Optional, Callable, Dict
+from typing import List, Union, Optional, Callable, Dict, Tuple
 
 
 @dataclass
@@ -357,15 +357,9 @@ class TabNetPretrainer(TabModel):
         # Main loop
         for batch_idx, X in enumerate(loader):
             output, embedded_x, obf_vars = self._predict_batch(X)
-            list_output.append(
-                output.cpu().detach().numpy()
-            )  # todo: switch to from numpy to torch
-            list_embedded_x.append(
-                embedded_x.cpu().detach().numpy()
-            )  # todo: switch to from numpy to torch
-            list_obfuscation.append(
-                obf_vars.cpu().detach().numpy()
-            )  # todo: switch to from numpy to torch
+            list_output.append(output)
+            list_embedded_x.append(embedded_x)
+            list_obfuscation.append(obf_vars)
 
         output, embedded_x, obf_vars = self.stack_batches(
             list_output, list_embedded_x, list_obfuscation
@@ -395,15 +389,18 @@ class TabNetPretrainer(TabModel):
         X = X.to(self.device).float()
         return self.network(X)
 
-    def stack_batches(  # todo: switch to from numpy to torch
+    def stack_batches(  # type: ignore[override]
         self,
-        list_output: List[np.ndarray],
-        list_embedded_x: List[np.ndarray],
-        list_obfuscation: List[np.ndarray],
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        output = np.vstack(list_output)
-        embedded_x = np.vstack(list_embedded_x)
-        obf_vars = np.vstack(list_obfuscation)
+        list_output: List[torch.Tensor],
+        list_embedded_x: List[torch.Tensor],
+        list_obfuscation: List[torch.Tensor],
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        # output = np.vstack(list_output)
+        # embedded_x = np.vstack(list_embedded_x)
+        # obf_vars = np.vstack(list_obfuscation)
+        output = torch.vstack(list_output)
+        embedded_x = torch.vstack(list_embedded_x)
+        obf_vars = torch.vstack(list_obfuscation)
         return output, embedded_x, obf_vars
 
     def predict(
@@ -439,12 +436,18 @@ class TabNetPretrainer(TabModel):
 
         results = []
         embedded_res = []
-        for batch_nb, data in enumerate(dataloader):
-            data = data.to(self.device).float()
-            output, embeded_x, _ = self.network(data)
-            predictions = output.cpu().detach().numpy()
-            results.append(predictions)
-            embedded_res.append(embeded_x.cpu().detach().numpy())
-        res_output = np.vstack(results)
-        embedded_inputs = np.vstack(embedded_res)
+        with torch.no_grad():
+            for batch_nb, data in enumerate(dataloader):
+                data = data.to(self.device).float()
+                output, embeded_x, _ = self.network(data)
+                # predictions = output.cpu().detach().numpy()
+                predictions = output
+                results.append(predictions)
+                # embedded_res.append(embeded_x.cpu().detach().numpy())
+                embedded_res.append(embeded_x)
+        # res_output = np.vstack(results)
+        # embedded_inputs = np.vstack(embedded_res)
+        res_output = torch.vstack(results).cpu().detach().numpy()
+
+        embedded_inputs = torch.vstack(embedded_res).cpu().detach().numpy()
         return res_output, embedded_inputs

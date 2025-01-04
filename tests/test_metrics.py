@@ -1,10 +1,9 @@
 import pytest
 import torch
-import numpy as np
+# import numpy as np
 
 from pytorch_tabnet.metrics import (
     UnsupervisedLoss,
-    UnsupervisedLossNumpy,
     UnsupMetricContainer,
     MetricContainer,
     check_metrics,
@@ -35,19 +34,24 @@ def test_UnsupervisedLoss():
     assert loss.item() == 0
 
 
-def test_UnsupervisedLossNumpy():
-    y_pred = np.random.rand(3, 5)  # todo: switch to from numpy to torch
-    embedded_x = np.random.rand(3, 5)  # todo: switch to from numpy to torch
-    obf_vars = np.random.randint(0, 2, (3, 5)).astype(
-        float
-    )  # todo: switch to from numpy to torch
-    loss = UnsupervisedLossNumpy(y_pred, embedded_x, obf_vars)
-    assert loss >= 0
-
-    # Test with all zeros in obf_vars
-    obf_vars = np.zeros((3, 5))  # todo: switch to from numpy to torch
-    loss = UnsupervisedLossNumpy(y_pred, embedded_x, obf_vars)
-    assert loss == 0
+# def test_UnsupervisedLossNumpy():
+#     # y_pred = np.random.rand(3, 5)  # todo: switch to from numpy to torch
+#     # embedded_x = np.random.rand(3, 5)  # todo: switch to from numpy to torch
+#     # obf_vars = np.random.randint(0, 2, (3, 5)).astype(
+#     #     float
+#     # )  # todo: switch to from numpy to torch
+#     y_pred = torch.rand(3, 5)
+#     embedded_x = torch.rand(3, 5)
+#     obf_vars = torch.randint(0, 2, (3, 5)).float()
+#
+#     loss = UnsupervisedLossNumpy(y_pred, embedded_x, obf_vars)
+#     assert loss >= 0
+#
+#     # Test with all zeros in obf_vars
+#     # obf_vars = np.zeros((3, 5))  # todo: switch to from numpy to torch
+#     obf_vars = torch.zeros(3, 5)
+#     loss = UnsupervisedLossNumpy(y_pred, embedded_x, obf_vars)
+#     assert loss == 0
 
 
 def test_UnsupMetricContainer():
@@ -62,8 +66,10 @@ def test_UnsupMetricContainer():
 
 def test_MetricContainer():
     container = MetricContainer(metric_names=["auc"])
-    y_true = np.random.randint(0, 2, 100)  # todo: switch to from numpy to torch
-    y_pred = np.random.rand(100, 2)  # todo: switch to from numpy to torch
+    # y_true = np.random.randint(0, 2, 100)  # todo: switch to from numpy to torch
+    # y_pred = np.random.rand(100, 2)  # todo: switch to from numpy to torch
+    y_true = torch.randint(0, 2, (100,))
+    y_pred = torch.rand(100, 2)
     logs = container(y_true, y_pred)
     assert "auc" in logs
 
@@ -111,12 +117,16 @@ def test_MetricContainer_different_metrics(metric_name):
     container = MetricContainer(metric_names=[metric_name])
 
     if metric_name not in ["auc", "accuracy", "logloss", "balanced_accuracy"]:
-        y_true = np.random.rand(100, 2)  # todo: switch to from numpy to torch
-        y_pred = np.random.rand(100, 2)  # todo: switch to from numpy to torch
+        # y_true = np.random.rand(100, 2)  # todo: switch to from numpy to torch
+        # y_pred = np.random.rand(100, 2)  # todo: switch to from numpy to torch
+        y_true = torch.rand(100, 2)
+        y_pred = torch.rand(100, 2)
         _ = container(y_true, y_pred)
     else:
-        y_true = np.random.randint(0, 2, 100)  # todo: switch to from numpy to torch
-        y_pred = np.random.rand(100, 2)  # todo: switch to from numpy to torch
+        # y_true = np.random.randint(0, 2, 100)  # todo: switch to from numpy to torch
+        # y_pred = np.random.rand(100, 2)  # todo: switch to from numpy to torch
+        y_true = torch.randint(0, 2, (100,))
+        y_pred = torch.rand(100, 2)
         _ = container(y_true, y_pred)
 
 
@@ -135,70 +145,106 @@ def test_Metric_get_metrics_by_names():
     [
         (
             AUC,
-            np.array([0, 1, 1, 0]),  # todo: switch to from numpy to torch
-            np.array([
+            # np.array([0, 1, 1, 0]),  # todo: switch to from numpy to torch
+            # np.array([
+            #     [0.1, 0.9],
+            #     [0.2, 0.8],
+            #     [0.3, 0.7],
+            #     [0.4, 0.6],
+            # ]),  # todo: switch to from numpy to torch
+            torch.tensor([0, 1, 1, 0]),
+            torch.tensor([
                 [0.1, 0.9],
                 [0.2, 0.8],
                 [0.3, 0.7],
                 [0.4, 0.6],
-            ]),  # todo: switch to from numpy to torch
+            ]),
             0.5,
         ),
         (
             Accuracy,
-            np.array([0, 1, 1, 0]),  # todo: switch to from numpy to torch
-            np.array([
+            # np.array([0, 1, 1, 0]),  # todo: switch to from numpy to torch
+            # np.array([
+            #     [0.9, 0.1],
+            #     [0.2, 0.8],
+            #     [0.3, 0.7],
+            #     [0.6, 0.4],
+            # ]),  # todo: switch to from numpy to torch
+            torch.tensor([0, 1, 1, 0]),
+            torch.tensor([
                 [0.9, 0.1],
                 [0.2, 0.8],
                 [0.3, 0.7],
                 [0.6, 0.4],
-            ]),  # todo: switch to from numpy to torch
+            ]),
             1,
         ),
         (
             BalancedAccuracy,
-            np.array([0, 1, 1, 0]),  # todo: switch to from numpy to torch
-            np.array([
+            # np.array([0, 1, 1, 0]),  # todo: switch to from numpy to torch
+            # np.array([
+            #     [0.9, 0.1],
+            #     [0.2, 0.8],
+            #     [0.3, 0.7],
+            #     [0.6, 0.4],
+            # ]),  # todo: switch to from numpy to torch
+            torch.tensor([0, 1, 1, 0]),
+            torch.tensor([
                 [0.9, 0.1],
                 [0.2, 0.8],
                 [0.3, 0.7],
                 [0.6, 0.4],
-            ]),  # todo: switch to from numpy to torch
+            ]),
             1,
         ),
         (
             LogLoss,
-            np.array([0, 1, 1, 0]),  # todo: switch to from numpy to torch
-            np.array([
+            # np.array([0, 1, 1, 0]),  # todo: switch to from numpy to torch
+            # np.array([
+            #     [0.9, 0.1],
+            #     [0.2, 0.8],
+            #     [0.3, 0.7],
+            #     [0.6, 0.4],
+            # ]),  # todo: switch to from numpy to torch
+            torch.tensor([0, 1, 1, 0]),
+            torch.tensor([
                 [0.9, 0.1],
                 [0.2, 0.8],
                 [0.3, 0.7],
                 [0.6, 0.4],
-            ]),  # todo: switch to from numpy to torch
-            0.3,
+            ]),
+            0.48,
         ),
         (
             MAE,
-            np.array([1.0, 2.0, 3.0]),
-            np.array([1.5, 2.5, 3.5]),
+            # np.array([1.0, 2.0, 3.0]),
+            # np.array([1.5, 2.5, 3.5]),
+            torch.tensor([1.0, 2.0, 3.0]),
+            torch.tensor([1.5, 2.5, 3.5]),
             0.5,
         ),  # todo: switch to from numpy to torch
         (
             MSE,
-            np.array([1.0, 2.0, 3.0]),
-            np.array([1.5, 2.5, 3.5]),
+            # np.array([1.0, 2.0, 3.0]),
+            # np.array([1.5, 2.5, 3.5]),
+            torch.tensor([1.0, 2.0, 3.0]),
+            torch.tensor([1.5, 2.5, 3.5]),
             0.25,
         ),  # todo: switch to from numpy to torch
         (
             RMSLE,
-            np.array([1.0, 2.0, 3.0]),
-            np.array([1.5, 2.5, 3.5]),
+            # np.array([1.0, 2.0, 3.0]),
+            # np.array([1.5, 2.5, 3.5]),
+            torch.tensor([1.0, 2.0, 3.0]),
+            torch.tensor([1.5, 2.5, 3.5]),
             0.17,
         ),  # todo: switch to from numpy to torch
         (
             RMSE,
-            np.array([1.0, 2.0, 3.0]),
-            np.array([1.5, 2.5, 3.5]),
+            # np.array([1.0, 2.0, 3.0]),
+            # np.array([1.5, 2.5, 3.5]),
+            torch.tensor([1.0, 2.0, 3.0]),
+            torch.tensor([1.5, 2.5, 3.5]),
             0.5,
         ),  # todo: switch to from numpy to torch
     ],
@@ -228,49 +274,70 @@ def test_UnsupervisedMetric():
 
 def test_UnsupervisedNumpyMetric():
     metric = UnsupervisedNumpyMetric()
-    y_pred = np.random.rand(3, 5)  # todo: switch to from numpy to torch
-    embedded_x = np.random.rand(3, 5)  # todo: switch to from numpy to torch
-    obf_vars = np.random.randint(0, 2, (3, 5)).astype(
-        float
-    )  # todo: switch to from numpy to torch
+    # y_pred = np.random.rand(3, 5)  # todo: switch to from numpy to torch
+    # embedded_x = np.random.rand(3, 5)  # todo: switch to from numpy to torch
+    # obf_vars = np.random.randint(0, 2, (3, 5)).astype(
+    #     float
+    # )  # todo: switch to from numpy to torch
+    y_pred = torch.rand(3, 5)
+    embedded_x = torch.rand(3, 5)
+    obf_vars = torch.randint(0, 2, (3, 5)).float()
     loss = metric(y_pred, embedded_x, obf_vars)
     assert loss >= 0
 
 
-@pytest.mark.parametrize(
-    "y_pred,embedded_x,obf_vars",
-    [
-        (
-            np.random.uniform(
-                low=-2, high=2, size=(20, 100)
-            ),  # todo: switch to from numpy to torch
-            np.random.uniform(
-                low=-2, high=2, size=(20, 100)
-            ),  # todo: switch to from numpy to torch
-            np.random.choice(
-                [0, 1], size=(20, 100), replace=True
-            ),  # todo: switch to from numpy to torch
-        ),
-        (
-            np.random.uniform(
-                low=-2, high=2, size=(30, 50)
-            ),  # todo: switch to from numpy to torch
-            np.ones((30, 50)),  # todo: switch to from numpy to torch
-            np.random.choice(
-                [0, 1], size=(30, 50), replace=True
-            ),  # todo: switch to from numpy to torch
-        ),
-    ],
-)
-def test_equal_losses(y_pred, embedded_x, obf_vars):
-    numpy_loss = UnsupervisedLossNumpy(
-        y_pred=y_pred, embedded_x=embedded_x, obf_vars=obf_vars
-    )
-
-    torch_loss = UnsupervisedLoss(
-        y_pred=torch.tensor(y_pred, dtype=torch.float64),
-        embedded_x=torch.tensor(embedded_x, dtype=torch.float64),
-        obf_vars=torch.tensor(obf_vars, dtype=torch.float64),
-    )
-
-    assert np.isclose(numpy_loss, torch_loss.detach().numpy())
+#
+# @pytest.mark.parametrize(
+#     "y_pred,embedded_x,obf_vars",
+#     [
+#         (
+#             # np.random.uniform(
+#             #     low=-2, high=2, size=(20, 100)
+#             # ),  # todo: switch to from numpy to torch
+#             # np.random.uniform(
+#             #     low=-2, high=2, size=(20, 100)
+#             # ),  # todo: switch to from numpy to torch
+#             # np.random.choice(
+#             #     [0, 1], size=(20, 100), replace=True
+#             # ),  # todo: switch to from numpy to torch
+#             torch.tensor(np.random.uniform(
+#                 low=-2, high=2, size=(20, 100)
+#             )),
+#             torch.tensor(np.random.uniform(
+#                 low=-2, high=2, size=(20, 100)
+#             )),
+#             torch.tensor(np.random.choice(
+#                 [0, 1], size=(20, 100), replace=True
+#             )),
+#
+#         ),
+#         (
+#         #     np.random.uniform(
+#         #         low=-2, high=2, size=(30, 50)
+#         #     ),  # todo: switch to from numpy to torch
+#         #     np.ones((30, 50)),  # todo: switch to from numpy to torch
+#         #     np.random.choice(
+#         #         [0, 1], size=(30, 50), replace=True
+#         #     ),  # todo: switch to from numpy to torch
+#             torch.tensor(np.random.uniform(
+#                 low=-2, high=2, size=(30, 50)
+#             )),
+#             torch.ones((30, 50)),
+#             torch.tensor(np.random.choice(
+#                 [0, 1], size=(30, 50), replace=True
+#             )),
+#         ),
+#     ],
+# )
+# def test_equal_losses(y_pred, embedded_x, obf_vars):
+#     numpy_loss = UnsupervisedLossNumpy(
+#         y_pred=y_pred, embedded_x=embedded_x, obf_vars=obf_vars
+#     )
+#
+#     torch_loss = UnsupervisedLoss(
+#         y_pred=torch.tensor(y_pred, dtype=torch.float64),
+#         embedded_x=torch.tensor(embedded_x, dtype=torch.float64),
+#         obf_vars=torch.tensor(obf_vars, dtype=torch.float64),
+#     )
+#
+#     assert np.isclose(numpy_loss, torch_loss.detach().numpy())

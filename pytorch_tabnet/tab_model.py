@@ -1,6 +1,5 @@
 import torch
 import numpy as np
-from scipy.special import softmax
 from pytorch_tabnet.utils import SparsePredictDataset, PredictDataset, filter_weights
 from pytorch_tabnet.abstract_model import TabModel
 from pytorch_tabnet.multiclass_utils import infer_output_dim, check_output_dim
@@ -62,14 +61,21 @@ class TabNetClassifier(TabModel):
             self.weight_updater(weights)
         )
 
-    def stack_batches(  # todo: switch to from numpy to torch
+    def stack_batches(
         self,
-        list_y_true: List[np.ndarray],
-        list_y_score: List[np.ndarray],
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        y_true: np.ndarray = np.hstack(list_y_true)
-        y_score: np.ndarray = np.vstack(list_y_score)
-        y_score = softmax(y_score, axis=1)
+        # list_y_true: List[np.ndarray],
+        # list_y_score: List[np.ndarray],
+        # ) -> Tuple[np.ndarray, np.ndarray]:
+        #     y_true: np.ndarray = np.hstack(list_y_true)
+        #     y_score: np.ndarray = np.vstack(list_y_score)
+        #     y_score = softmax(y_score, axis=1)
+        #     return y_true, y_score
+        list_y_true: List[torch.Tensor],
+        list_y_score: List[torch.Tensor],
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        y_true: torch.Tensor = torch.hstack(list_y_true)
+        y_score: torch.Tensor = torch.vstack(list_y_score)
+        y_score = torch.nn.Softmax(dim=1)(y_score)
         return y_true, y_score
 
     def predict_func(self, outputs: np.ndarray) -> np.ndarray:
@@ -146,11 +152,11 @@ class TabNetRegressor(TabModel):
     def predict_func(self, outputs: np.ndarray) -> np.ndarray:
         return outputs
 
-    def stack_batches(  # todo: switch to from numpy to torch
+    def stack_batches(
         self,
-        list_y_true: List[np.ndarray],
-        list_y_score: List[np.ndarray],
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        y_true: np.ndarray = np.vstack(list_y_true)
-        y_score: np.ndarray = np.vstack(list_y_score)
+        list_y_true: List[torch.Tensor],
+        list_y_score: List[torch.Tensor],
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        y_true: torch.Tensor = torch.vstack(list_y_true)
+        y_score: torch.Tensor = torch.vstack(list_y_score)
         return y_true, y_score

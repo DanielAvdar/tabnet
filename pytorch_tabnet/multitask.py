@@ -2,7 +2,6 @@ from dataclasses import dataclass
 
 import torch
 import numpy as np
-from scipy.special import softmax
 from pytorch_tabnet.utils import SparsePredictDataset, PredictDataset, filter_weights
 from pytorch_tabnet.abstract_model import TabModel
 from pytorch_tabnet.multiclass_utils import infer_multitask_output, check_output_dim
@@ -64,13 +63,19 @@ class TabNetMultiTaskClassifier(TabModel):
         return loss
 
     def stack_batches(  # todo: switch to from numpy to torch
-        self, list_y_true: List[np.ndarray], list_y_score: List[List[np.ndarray]]
-    ) -> Tuple[np.ndarray, List[np.ndarray]]:
-        y_true = np.vstack(list_y_true)
+        self,
+        list_y_true: List[torch.Tensor],
+        list_y_score: List[List[torch.Tensor]],
+        # ) -> Tuple[np.ndarray, List[np.ndarray]]:
+    ) -> Tuple[torch.Tensor, List[torch.Tensor]]:
+        # y_true = np.vstack(list_y_true)
+        y_true = torch.vstack(list_y_true)
         y_score = []
         for i in range(len(self.output_dim)):
-            score = np.vstack([x[i] for x in list_y_score])
-            score = softmax(score, axis=1)
+            # score = np.vstack([x[i] for x in list_y_score])
+            # score = softmax(score, axis=1)
+            score = torch.vstack([x[i] for x in list_y_score])
+            score = torch.nn.Softmax(dim=1)(score)
             y_score.append(score)
         return y_true, y_score
 
@@ -130,20 +135,23 @@ class TabNetMultiTaskClassifier(TabModel):
             )
 
         results: dict = {}
-        for data in dataloader:
-            data = data.to(self.device).float()
-            output, _ = self.network(data)
-            predictions = [
-                torch.argmax(torch.nn.Softmax(dim=1)(task_output), dim=1)
-                .cpu()
-                .detach()
-                .numpy()
-                .reshape(-1)
-                for task_output in output
-            ]
+        with torch.no_grad():
+            for data in dataloader:
+                data = data.to(self.device).float()
+                output, _ = self.network(data)
+                predictions = [
+                    torch.argmax(torch.nn.Softmax(dim=1)(task_output), dim=1)
+                    .cpu()
+                    .detach()
+                    .numpy()
+                    .reshape(-1)
+                    for task_output in output
+                ]
 
-            for task_idx in range(len(self.output_dim)):
-                results[task_idx] = results.get(task_idx, []) + [predictions[task_idx]]
+                for task_idx in range(len(self.output_dim)):
+                    results[task_idx] = results.get(task_idx, []) + [
+                        predictions[task_idx]
+                    ]
         # stack all task individually
         results_ = [np.hstack(task_res) for task_res in results.values()]
         # map all task individually

@@ -311,11 +311,12 @@ class TabModel(BaseEstimator):
             )
 
         results = []
-        for batch_nb, data in enumerate(dataloader):
-            data = data.to(self.device).float()
-            output, _M_loss = self.network(data)
-            predictions = output.cpu().detach().numpy()
-            results.append(predictions)
+        with torch.no_grad():
+            for batch_nb, data in enumerate(dataloader):
+                data = data.to(self.device).float()
+                output, _M_loss = self.network(data)
+                predictions = output.cpu().detach().numpy()
+                results.append(predictions)
         res = np.vstack(results)
         return self.predict_func(res)
 
@@ -561,12 +562,12 @@ class TabModel(BaseEstimator):
 
         list_y_true = []
         list_y_score = []
-
-        # Main loop
-        for batch_idx, (X, y) in enumerate(loader):
-            scores = self._predict_batch(X)
-            list_y_true.append(y)
-            list_y_score.append(scores)
+        with torch.no_grad():
+            # Main loop
+            for batch_idx, (X, y) in enumerate(loader):
+                scores = self._predict_batch(X.to(self.device))
+                list_y_true.append(y.to(self.device))
+                list_y_score.append(scores)
 
         y_true, scores = self.stack_batches(list_y_true, list_y_score)
 
@@ -577,7 +578,7 @@ class TabModel(BaseEstimator):
 
     def _predict_batch(
         self, X: torch.Tensor
-    ) -> np.ndarray:  # todo: switch to from numpy to torch
+    ) -> torch.Tensor:  # todo: switch to from numpy to torch
         """
         Predict one batch of data.
 
@@ -597,9 +598,9 @@ class TabModel(BaseEstimator):
         scores, _ = self.network(X)
 
         if isinstance(scores, list):
-            scores = [x.cpu().detach().numpy() for x in scores]
+            scores = [x for x in scores]
         else:
-            scores = scores.cpu().detach().numpy()
+            scores = scores
 
         return scores
 
@@ -846,9 +847,6 @@ class TabModel(BaseEstimator):
     @abstractmethod
     def predict_func(self, y_score: np.ndarray) -> np.ndarray: ...
 
-
-
     def stack_batches(
         self, *args: Any, **kwargs: Any
-    ) -> Tuple[np.ndarray, np.ndarray]:  # todo: switch to from numpy to torch
-        ...
+    ) -> Tuple[torch.Tensor, torch.Tensor]: ...

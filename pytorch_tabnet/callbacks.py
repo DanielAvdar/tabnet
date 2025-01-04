@@ -2,6 +2,7 @@ import time
 import datetime
 import copy
 import numpy as np
+import torch
 from dataclasses import dataclass, field
 from typing import List, Any, Dict, Optional
 import warnings
@@ -137,7 +138,11 @@ class EarlyStopping(Callback):
         max_improved = self.is_maximize and loss_change > self.tol
         min_improved = (not self.is_maximize) and (-loss_change > self.tol)
         if max_improved or min_improved:
-            self.best_loss = current_loss
+            self.best_loss = (
+                current_loss.item()
+                if isinstance(current_loss, torch.Tensor)
+                else current_loss
+            )
             self.best_epoch = epoch
             self.wait = 1
             self.best_weights = copy.deepcopy(self.trainer.network.state_dict())

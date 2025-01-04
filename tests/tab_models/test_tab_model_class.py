@@ -100,7 +100,11 @@ def test_stack_batches(
     expected_y_true,
     expected_y_score_shape,
 ):
-    y_true, y_score = classifier_instance.stack_batches(list_y_true, list_y_score)
+    list_y_true_torch = [torch.tensor(y_true) for y_true in list_y_true]
+    list_y_score_torch = [torch.tensor(y_score) for y_score in list_y_score]
+    y_true, y_score = classifier_instance.stack_batches(
+        list_y_true_torch, list_y_score_torch
+    )
     assert np.array_equal(y_true, expected_y_true)
     assert y_score.shape == expected_y_score_shape
 
