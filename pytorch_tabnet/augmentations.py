@@ -1,7 +1,9 @@
-import torch
-from pytorch_tabnet.utils import define_device
-import numpy as np
 from typing import Tuple
+
+import numpy as np
+import torch
+
+from pytorch_tabnet.utils import define_device
 
 
 class RegressionSMOTE:
@@ -36,9 +38,7 @@ class RegressionSMOTE:
         np.random.seed(self.seed)
         return
 
-    def __call__(
-        self, X: torch.Tensor, y: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __call__(self, X: torch.Tensor, y: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         batch_size = X.shape[0]
         random_values = torch.rand(batch_size, device=self.device)
         idx_to_change = random_values < self.p
@@ -49,14 +49,10 @@ class RegressionSMOTE:
         index_permute = torch.randperm(batch_size, device=self.device)
 
         X[idx_to_change] = random_betas[idx_to_change, None] * X[idx_to_change]
-        X[idx_to_change] += (1 - random_betas[idx_to_change, None]) * X[index_permute][
-            idx_to_change
-        ].view(X[idx_to_change].size())  # noqa
+        X[idx_to_change] += (1 - random_betas[idx_to_change, None]) * X[index_permute][idx_to_change].view(X[idx_to_change].size())  # noqa
 
         y[idx_to_change] = random_betas[idx_to_change, None] * y[idx_to_change]
-        y[idx_to_change] += (1 - random_betas[idx_to_change, None]) * y[index_permute][
-            idx_to_change
-        ].view(y[idx_to_change].size())  # noqa
+        y[idx_to_change] += (1 - random_betas[idx_to_change, None]) * y[index_permute][idx_to_change].view(y[idx_to_change].size())  # noqa
 
         return X, y
 
@@ -92,9 +88,7 @@ class ClassificationSMOTE:
         np.random.seed(self.seed)
         return
 
-    def __call__(
-        self, X: torch.Tensor, y: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __call__(self, X: torch.Tensor, y: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         batch_size = X.shape[0]
         random_values = torch.rand(batch_size, device=self.device)
         idx_to_change = random_values < self.p
@@ -105,8 +99,6 @@ class ClassificationSMOTE:
         index_permute = torch.randperm(batch_size, device=self.device)
 
         X[idx_to_change] = random_betas[idx_to_change, None] * X[idx_to_change]
-        X[idx_to_change] += (1 - random_betas[idx_to_change, None]) * X[index_permute][
-            idx_to_change
-        ].view(X[idx_to_change].size())  # noqa
+        X[idx_to_change] += (1 - random_betas[idx_to_change, None]) * X[index_permute][idx_to_change].view(X[idx_to_change].size())  # noqa
 
         return X, y

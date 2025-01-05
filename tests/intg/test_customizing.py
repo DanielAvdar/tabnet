@@ -95,7 +95,7 @@ def test_customizing():
             self._maximize = True
 
         def __call__(self, y_true, y_score):
-            return 2 * roc_auc_score(y_true, y_score[:, 1])
+            return 2 * roc_auc_score(y_true.cpu(), y_score[:, 1].cpu())
 
     # %%
     clf.fit(

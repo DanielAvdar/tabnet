@@ -1,7 +1,7 @@
 
 [project]
-name = "pytorch_tabnet"
-version = "4.1.0"
+name = "eh-pytorch-tabnet"
+dynamic = ["version"]
 description = "PyTorch implementation of TabNet"
 readme = "README.md"
 authors = []
@@ -14,6 +14,7 @@ exclude = ["tabnet/*.ipynb"]
 dependencies = [
     "numpy",
     "torch",
+    "torcheval",
     "tqdm",
     "scikit_learn",
     "scipy",
@@ -68,8 +69,14 @@ source = "."
 only-include = ["pytorch_tabnet", ]
 source = "."
 [tool.ruff]
+line-length = 140
+
 # In addition to the standard set of exclusions, omit all tests, plus a specific file.
 extend-exclude = ["tests/intg/*", "intg/*", "docs/*", "release-script","docs-scripts/*"]
+[tool.ruff.lint]
+select = ["F",  "I", "F", "W", "E", "A", ]
+
+fixable = ["ALL"]
 [tool.mypy]
 python_version = "3.11"
 disallow_untyped_defs = true

@@ -1,30 +1,31 @@
 from dataclasses import dataclass
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
-import torch
 import numpy as np
-from torch.utils.data import DataLoader
-from pytorch_tabnet import tab_network
-from pytorch_tabnet.utils import (
-    create_explain_matrix,
-    filter_weights,
-    SparsePredictDataset,
-    PredictDataset,
-    check_input,
-    create_group_matrix,
-)
+import scipy
+import torch
 from torch.nn.utils import clip_grad_norm_
+from torch.utils.data import DataLoader
+
+from pytorch_tabnet import tab_network
+from pytorch_tabnet.abstract_model import TabModel
+from pytorch_tabnet.metrics import (
+    UnsupervisedLoss,
+    UnsupMetricContainer,
+    check_metrics,
+)
 from pytorch_tabnet.pretraining_utils import (
     create_dataloaders,
     validate_eval_set,
 )
-from pytorch_tabnet.metrics import (
-    UnsupMetricContainer,
-    check_metrics,
-    UnsupervisedLoss,
+from pytorch_tabnet.utils import (
+    PredictDataset,
+    SparsePredictDataset,
+    check_input,
+    create_explain_matrix,
+    create_group_matrix,
+    filter_weights,
 )
-from pytorch_tabnet.abstract_model import TabModel
-import scipy
-from typing import List, Union, Optional, Callable, Dict
 
 
 @dataclass
@@ -38,9 +39,7 @@ class TabNetPretrainer(TabModel):
     def prepare_target(self, y: np.ndarray) -> np.ndarray:
         return y
 
-    def compute_loss(
-        self, output: torch.Tensor, embedded_x: torch.Tensor, obf_vars: torch.Tensor
-    ) -> torch.Tensor:
+    def compute_loss(self, output: torch.Tensor, embedded_x: torch.Tensor, obf_vars: torch.Tensor) -> torch.Tensor:
         return self.loss_fn(output, embedded_x, obf_vars)
 
     def update_fit_params(  # type: ignore[override]
@@ -160,13 +159,11 @@ class TabNetPretrainer(TabModel):
             self._train_epoch(train_dataloader)
 
             # Apply predict epoch to all eval sets
-            for eval_name_, valid_dataloader in zip(eval_names, valid_dataloaders):
+            for eval_name_, valid_dataloader in zip(eval_names, valid_dataloaders, strict=False):
                 self._predict_epoch(eval_name_, valid_dataloader)
 
             # Call method on_epoch_end for all callbacks
-            self._callback_container.on_epoch_end(
-                epoch_idx, logs=self.history.epoch_metrics
-            )
+            self._callback_container.on_epoch_end(epoch_idx, logs=self.history.epoch_metrics)
 
             if self._stop_training:
                 break
@@ -243,9 +240,7 @@ class TabNetPretrainer(TabModel):
             self._metrics_names.extend(metric_container.names)
 
         # Early stopping metric is the last eval metric
-        self.early_stopping_metric = (
-            self._metrics_names[-1] if len(self._metrics_names) > 0 else None
-        )
+        self.early_stopping_metric = self._metrics_names[-1] if len(self._metrics_names) > 0 else None
 
     def _construct_loaders(  # type: ignore[override]
         self, X_train: np.ndarray, eval_set: List[Union[np.ndarray, List[np.ndarray]]]
@@ -355,24 +350,20 @@ class TabNetPretrainer(TabModel):
         list_embedded_x = []
         list_obfuscation = []
         # Main loop
-        for batch_idx, X in enumerate(loader):
+        for _batch_idx, X in enumerate(loader):
             output, embedded_x, obf_vars = self._predict_batch(X)
-            list_output.append(output.cpu().detach().numpy())
-            list_embedded_x.append(embedded_x.cpu().detach().numpy())
-            list_obfuscation.append(obf_vars.cpu().detach().numpy())
+            list_output.append(output)
+            list_embedded_x.append(embedded_x)
+            list_obfuscation.append(obf_vars)
 
-        output, embedded_x, obf_vars = self.stack_batches(
-            list_output, list_embedded_x, list_obfuscation
-        )
+        output, embedded_x, obf_vars = self.stack_batches(list_output, list_embedded_x, list_obfuscation)
 
         metrics_logs = self._metric_container_dict[name](output, embedded_x, obf_vars)  # type: ignore
         self.network.train()
         self.history.epoch_metrics.update(metrics_logs)
         return
 
-    def _predict_batch(
-        self, X: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def _predict_batch(self, X: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Predict one batch of data.
 
@@ -389,20 +380,21 @@ class TabNetPretrainer(TabModel):
         X = X.to(self.device).float()
         return self.network(X)
 
-    def stack_batches(
+    def stack_batches(  # type: ignore[override]
         self,
-        list_output: List[np.ndarray],
-        list_embedded_x: List[np.ndarray],
-        list_obfuscation: List[np.ndarray],
-    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        output = np.vstack(list_output)
-        embedded_x = np.vstack(list_embedded_x)
-        obf_vars = np.vstack(list_obfuscation)
+        list_output: List[torch.Tensor],
+        list_embedded_x: List[torch.Tensor],
+        list_obfuscation: List[torch.Tensor],
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        # output = np.vstack(list_output)
+        # embedded_x = np.vstack(list_embedded_x)
+        # obf_vars = np.vstack(list_obfuscation)
+        output = torch.vstack(list_output)
+        embedded_x = torch.vstack(list_embedded_x)
+        obf_vars = torch.vstack(list_obfuscation)
         return output, embedded_x, obf_vars
 
-    def predict(
-        self, X: Union[np.ndarray, scipy.sparse.csr_matrix]
-    ) -> tuple[np.ndarray, np.ndarray]:
+    def predict(self, X: Union[np.ndarray, scipy.sparse.csr_matrix]) -> tuple[np.ndarray, np.ndarray]:
         """
         Make predictions on a batch (valid)
 
@@ -433,12 +425,18 @@ class TabNetPretrainer(TabModel):
 
         results = []
         embedded_res = []
-        for batch_nb, data in enumerate(dataloader):
-            data = data.to(self.device).float()
-            output, embeded_x, _ = self.network(data)
-            predictions = output.cpu().detach().numpy()
-            results.append(predictions)
-            embedded_res.append(embeded_x.cpu().detach().numpy())
-        res_output = np.vstack(results)
-        embedded_inputs = np.vstack(embedded_res)
+        with torch.no_grad():
+            for _batch_nb, data in enumerate(dataloader):
+                data = data.to(self.device).float()
+                output, embeded_x, _ = self.network(data)
+                # predictions = output.cpu().detach().numpy()
+                predictions = output
+                results.append(predictions)
+                # embedded_res.append(embeded_x.cpu().detach().numpy())
+                embedded_res.append(embeded_x)
+        # res_output = np.vstack(results)
+        # embedded_inputs = np.vstack(embedded_res)
+        res_output = torch.vstack(results).cpu().detach().numpy()
+
+        embedded_inputs = torch.vstack(embedded_res).cpu().detach().numpy()
         return res_output, embedded_inputs

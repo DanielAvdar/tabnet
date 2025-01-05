@@ -2,15 +2,8 @@ import numpy as np
 import pytest
 import torch
 from scipy.sparse import csr_matrix
+
 from pytorch_tabnet.tab_model import TabNetClassifier
-
-
-# @pytest.fixture
-# def sample_data():
-#     X_train = np.random.rand(100, 10)
-#     y_train = np.random.randint(0, 2, size=100)
-#     eval_set = [(np.random.rand(20, 10), np.random.randint(0, 2, size=20))]
-#     return X_train, y_train, eval_set
 
 
 @pytest.fixture(
@@ -100,7 +93,9 @@ def test_stack_batches(
     expected_y_true,
     expected_y_score_shape,
 ):
-    y_true, y_score = classifier_instance.stack_batches(list_y_true, list_y_score)
+    list_y_true_torch = [torch.tensor(y_true) for y_true in list_y_true]
+    list_y_score_torch = [torch.tensor(y_score) for y_score in list_y_score]
+    y_true, y_score = classifier_instance.stack_batches(list_y_true_torch, list_y_score_torch)
     assert np.array_equal(y_true, expected_y_true)
     assert y_score.shape == expected_y_score_shape
 

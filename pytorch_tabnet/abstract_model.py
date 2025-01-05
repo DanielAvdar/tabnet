@@ -1,42 +1,44 @@
-from dataclasses import dataclass, field
-from typing import List, Any, Dict, Tuple, Union, Callable
-import torch
-from torch.nn.utils import clip_grad_norm_
-import numpy as np
-from scipy.sparse import csc_matrix
-from abc import abstractmethod
-from pytorch_tabnet import tab_network
-from pytorch_tabnet.utils import (
-    SparsePredictDataset,
-    PredictDataset,
-    create_explain_matrix,
-    validate_eval_set,
-    create_dataloaders,
-    define_device,
-    ComplexEncoder,
-    check_input,
-    check_warm_start,
-    create_group_matrix,
-    check_embedding_parameters,
-)
-from pytorch_tabnet.callbacks import (
-    CallbackContainer,
-    History,
-    EarlyStopping,
-    LRSchedulerCallback,
-    Callback,
-)
-from pytorch_tabnet.metrics import MetricContainer, check_metrics
-from sklearn.base import BaseEstimator
-from torch.utils.data import DataLoader
+import copy
 import io
 import json
-from pathlib import Path
 import shutil
-import zipfile
 import warnings
-import copy
+import zipfile
+from abc import abstractmethod
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Tuple, Union
+
+import numpy as np
 import scipy
+import torch
+from scipy.sparse import csc_matrix
+from sklearn.base import BaseEstimator
+from torch.nn.utils import clip_grad_norm_
+from torch.utils.data import DataLoader
+
+from pytorch_tabnet import tab_network
+from pytorch_tabnet.callbacks import (
+    Callback,
+    CallbackContainer,
+    EarlyStopping,
+    History,
+    LRSchedulerCallback,
+)
+from pytorch_tabnet.metrics import MetricContainer, check_metrics
+from pytorch_tabnet.utils import (
+    ComplexEncoder,
+    PredictDataset,
+    SparsePredictDataset,
+    check_embedding_parameters,
+    check_input,
+    check_warm_start,
+    create_dataloaders,
+    create_explain_matrix,
+    create_group_matrix,
+    define_device,
+    validate_eval_set,
+)
 
 
 @dataclass
@@ -69,9 +71,7 @@ class TabModel(BaseEstimator):
     n_shared_decoder: int = 1
     n_indep_decoder: int = 1
     grouped_features: List[List[int]] = field(default_factory=list)
-    _callback_container: CallbackContainer = field(
-        default=None, repr=False, init=False, compare=False
-    )
+    _callback_container: CallbackContainer = field(default=None, repr=False, init=False, compare=False)
 
     def __post_init__(self) -> None:
         # These are default values needed for saving model
@@ -82,15 +82,13 @@ class TabModel(BaseEstimator):
         # Defining device
         self.device = torch.device(define_device(self.device_name))
         if self.verbose != 0:
-            warnings.warn(f"Device used : {self.device}")
+            warnings.warn(f"Device used : {self.device}", stacklevel=2)
 
         # create deep copies of mutable parameters
         self.optimizer_fn = copy.deepcopy(self.optimizer_fn)
         self.scheduler_fn = copy.deepcopy(self.scheduler_fn)
 
-        updated_params = check_embedding_parameters(
-            self.cat_dims, self.cat_idxs, self.cat_emb_dim
-        )
+        updated_params = check_embedding_parameters(self.cat_dims, self.cat_idxs, self.cat_emb_dim)
         self.cat_dims, self.cat_idxs, self.cat_emb_dim = updated_params
 
     def __update__(self, **kwargs: Any) -> None:
@@ -118,7 +116,7 @@ class TabModel(BaseEstimator):
                     exec(f"global previous_val; previous_val = self.{var_name}")
                     if previous_val != value:  # type: ignore # noqa
                         wrn_msg = f"Pretraining: {var_name} changed from {previous_val} to {value}"  # type: ignore # noqa
-                        warnings.warn(wrn_msg)
+                        warnings.warn(wrn_msg, stacklevel=2)
                         exec(f"self.{var_name} = value")
                 except AttributeError:
                     exec(f"self.{var_name} = value")
@@ -232,9 +230,7 @@ class TabModel(BaseEstimator):
         # Validate and reformat eval set depending on training data
         eval_names, eval_set = validate_eval_set(eval_set, eval_name, X_train, y_train)
 
-        train_dataloader, valid_dataloaders = self._construct_loaders(
-            X_train, y_train, eval_set
-        )
+        train_dataloader, valid_dataloaders = self._construct_loaders(X_train, y_train, eval_set)
 
         if from_unsupervised is not None:
             # Update parameters to match self pretraining
@@ -250,7 +246,7 @@ class TabModel(BaseEstimator):
 
         if from_unsupervised is not None:
             self.load_weights_from_unsupervised(from_unsupervised)
-            warnings.warn("Loading weights from unsupervised pretraining")
+            warnings.warn("Loading weights from unsupervised pretraining", stacklevel=2)
         # Call method on_train_begin for all callbacks
         self._callback_container.on_train_begin()
 
@@ -262,13 +258,11 @@ class TabModel(BaseEstimator):
             self._train_epoch(train_dataloader)
 
             # Apply predict epoch to all eval sets
-            for eval_name_, valid_dataloader in zip(eval_names, valid_dataloaders):
+            for eval_name_, valid_dataloader in zip(eval_names, valid_dataloaders, strict=False):
                 self._predict_epoch(eval_name_, valid_dataloader)
 
             # Call method on_epoch_end for all callbacks
-            self._callback_container.on_epoch_end(
-                epoch_idx, logs=self.history.epoch_metrics
-            )
+            self._callback_container.on_epoch_end(epoch_idx, logs=self.history.epoch_metrics)
 
             if self._stop_training:
                 break
@@ -311,17 +305,16 @@ class TabModel(BaseEstimator):
             )
 
         results = []
-        for batch_nb, data in enumerate(dataloader):
-            data = data.to(self.device).float()
-            output, _M_loss = self.network(data)
-            predictions = output.cpu().detach().numpy()
-            results.append(predictions)
+        with torch.no_grad():
+            for _batch_nb, data in enumerate(dataloader):
+                data = data.to(self.device).float()
+                output, _M_loss = self.network(data)
+                predictions = output.cpu().detach().numpy()
+                results.append(predictions)
         res = np.vstack(results)
         return self.predict_func(res)
 
-    def explain(
-        self, X: np.ndarray, normalize: bool = False
-    ) -> Tuple[np.ndarray, Dict]:
+    def explain(self, X: np.ndarray, normalize: bool = False) -> Tuple[np.ndarray, Dict]:
         """
         Return local explanation
 
@@ -361,12 +354,8 @@ class TabModel(BaseEstimator):
 
             M_explain, masks = self.network.forward_masks(data)
             for key, value in masks.items():
-                masks[key] = csc_matrix.dot(
-                    value.cpu().detach().numpy(), self.reducing_matrix
-                )
-            original_feat_explain = csc_matrix.dot(
-                M_explain.cpu().detach().numpy(), self.reducing_matrix
-            )
+                masks[key] = csc_matrix.dot(value.cpu().detach().numpy(), self.reducing_matrix)
+            original_feat_explain = csc_matrix.dot(M_explain.cpu().detach().numpy(), self.reducing_matrix)
             res_explain.append(original_feat_explain)
 
             if batch_nb == 0:
@@ -561,12 +550,12 @@ class TabModel(BaseEstimator):
 
         list_y_true = []
         list_y_score = []
-
-        # Main loop
-        for batch_idx, (X, y) in enumerate(loader):
-            scores = self._predict_batch(X)
-            list_y_true.append(y)
-            list_y_score.append(scores)
+        with torch.no_grad():
+            # Main loop
+            for _batch_idx, (X, y) in enumerate(loader):
+                scores = self._predict_batch(X.to(self.device))
+                list_y_true.append(y.to(self.device))
+                list_y_score.append(scores)
 
         y_true, scores = self.stack_batches(list_y_true, list_y_score)
 
@@ -575,7 +564,7 @@ class TabModel(BaseEstimator):
         self.history.epoch_metrics.update(metrics_logs)
         return
 
-    def _predict_batch(self, X: torch.Tensor) -> np.ndarray:
+    def _predict_batch(self, X: torch.Tensor) -> torch.Tensor:  # todo: switch to from numpy to torch
         """
         Predict one batch of data.
 
@@ -595,9 +584,9 @@ class TabModel(BaseEstimator):
         scores, _ = self.network(X)
 
         if isinstance(scores, list):
-            scores = [x.cpu().detach().numpy() for x in scores]
+            scores = [x for x in scores]
         else:
-            scores = scores.cpu().detach().numpy()
+            scores = scores
 
         return scores
 
@@ -633,9 +622,7 @@ class TabModel(BaseEstimator):
             self.network.post_embed_dim,
         )
 
-    def _set_metrics(
-        self, metrics: Union[None, List[str]], eval_names: List[str]
-    ) -> None:
+    def _set_metrics(self, metrics: Union[None, List[str]], eval_names: List[str]) -> None:
         """Set attributes relative to the metrics.
 
         Parameters
@@ -652,9 +639,7 @@ class TabModel(BaseEstimator):
         # Set metric container for each sets
         self._metric_container_dict: Dict[str, MetricContainer] = {}
         for name in eval_names:
-            self._metric_container_dict.update({
-                name: MetricContainer(metrics, prefix=f"{name}_")
-            })
+            self._metric_container_dict.update({name: MetricContainer(metrics, prefix=f"{name}_")})
 
         self._metrics: List = []
         self._metrics_names: List[str] = []
@@ -663,9 +648,7 @@ class TabModel(BaseEstimator):
             self._metrics_names.extend(metric_container.names)
 
         # Early stopping metric is the last eval metric
-        self.early_stopping_metric: Union[None, str] = (
-            self._metrics_names[-1] if len(self._metrics_names) > 0 else None
-        )
+        self.early_stopping_metric: Union[None, str] = self._metrics_names[-1] if len(self._metrics_names) > 0 else None
 
     def _set_callbacks(self, custom_callbacks: Union[None, List]) -> None:
         """Setup the callbacks functions.
@@ -677,23 +660,19 @@ class TabModel(BaseEstimator):
 
         """
         # Setup default callbacks history, early stopping and scheduler
-        callbacks: List[
-            Union[History, EarlyStopping, LRSchedulerCallback, Callback]
-        ] = []
+        callbacks: List[Union[History, EarlyStopping, LRSchedulerCallback, Callback]] = []
         self.history = History(self, verbose=self.verbose)
         callbacks.append(self.history)
         if (self.early_stopping_metric is not None) and (self.patience > 0):
             early_stopping = EarlyStopping(
                 early_stopping_metric=self.early_stopping_metric,
-                is_maximize=(
-                    self._metrics[-1]._maximize if len(self._metrics) > 0 else None
-                ),
+                is_maximize=(self._metrics[-1]._maximize if len(self._metrics) > 0 else None),
                 patience=self.patience,
             )
             callbacks.append(early_stopping)
         else:
             wrn_msg = "No early stopping will be performed, last training weights will be used."
-            warnings.warn(wrn_msg)
+            warnings.warn(wrn_msg, stacklevel=2)
 
         if self.scheduler_fn is not None:
             # Add LR Scheduler call_back
@@ -714,9 +693,7 @@ class TabModel(BaseEstimator):
 
     def _set_optimizer(self) -> None:
         """Setup optimizer."""
-        self._optimizer = self.optimizer_fn(
-            self.network.parameters(), **self.optimizer_params
-        )
+        self._optimizer = self.optimizer_fn(self.network.parameters(), **self.optimizer_params)
 
     def _construct_loaders(
         self,
@@ -801,9 +778,7 @@ class TabModel(BaseEstimator):
             0 for no balancing
             1 for automated balancing
         """
-        raise NotImplementedError(
-            "users must define update_fit_params to use this base class"
-        )
+        raise NotImplementedError("users must define update_fit_params to use this base class")
 
     @abstractmethod
     def compute_loss(self, *args: Any, **kwargs: Any) -> torch.Tensor:
@@ -822,9 +797,7 @@ class TabModel(BaseEstimator):
         float
             Loss value
         """
-        raise NotImplementedError(
-            "users must define compute_loss to use this base class"
-        )
+        ...
 
     @abstractmethod
     def prepare_target(self, y: np.ndarray) -> torch.Tensor:
@@ -841,22 +814,9 @@ class TabModel(BaseEstimator):
         `torch.Tensor`
             Converted target matrix.
         """
-        raise NotImplementedError(
-            "users must define prepare_target to use this base class"
-        )
+        ...
 
     @abstractmethod
-    def predict_func(self, y_score: np.ndarray) -> np.ndarray:
-        raise NotImplementedError(
-            "users must define predict_func to use this base class"
-        )
+    def predict_func(self, y_score: np.ndarray) -> np.ndarray: ...
 
-    # _default_metric: str = "accuracy"
-    # _default_loss: Callable = torch.nn.functional.cross_entropy
-
-    # def stack_batches(
-    #     self, list_y_true: List[torch.Tensor], list_y_score: List[np.ndarray],*args, **kwargs
-    # ) -> Tuple[np.ndarray, np.ndarray]:
-    #     y_true = np.concatenate([x.cpu().detach().numpy() for x in list_y_true])
-    #     scores = np.concatenate(list_y_score)
-    #     return y_true, scores
+    def stack_batches(self, *args: Any, **kwargs: Any) -> Tuple[torch.Tensor, torch.Tensor]: ...

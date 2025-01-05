@@ -1,20 +1,19 @@
-import pytest
 import numpy as np
-from sklearn.utils.multiclass import (
-    unique_labels,
-    type_of_target,
-)
+import pytest
 from scipy import sparse
+from scipy.sparse import csr_matrix, dok_matrix, lil_matrix
+from sklearn.utils.multiclass import (
+    type_of_target,
+    unique_labels,
+)
 
 from pytorch_tabnet.multiclass_utils import (
-    infer_multitask_output,
+    assert_all_finite,
     check_output_dim,
+    infer_multitask_output,
     infer_output_dim,
+    is_multilabel,
 )
-from pytorch_tabnet.multiclass_utils import assert_all_finite
-from scipy.sparse import csr_matrix, dok_matrix, lil_matrix
-
-from pytorch_tabnet.multiclass_utils import is_multilabel
 
 
 # Tests for unique_labels

@@ -1,12 +1,13 @@
-from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
-import torch
-import numpy as np
-import scipy
 import json
-from sklearn.utils import check_array
-import pandas as pd
 import warnings
-from typing import Union, List, Tuple, Dict, Iterable, Optional
+from typing import Dict, Iterable, List, Optional, Tuple, Union
+
+import numpy as np
+import pandas as pd
+import scipy
+import torch
+from sklearn.utils import check_array
+from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 
 
 class TorchDataset(Dataset):
@@ -100,9 +101,7 @@ class SparsePredictDataset(Dataset):
         return x
 
 
-def create_sampler(
-    weights: Union[int, Dict, Iterable], y_train: np.ndarray
-) -> Tuple[bool, Optional[WeightedRandomSampler]]:
+def create_sampler(weights: Union[int, Dict, Iterable], y_train: np.ndarray) -> Tuple[bool, Optional[WeightedRandomSampler]]:
     """
     This creates a sampler from the given weights
 
@@ -123,9 +122,7 @@ def create_sampler(
             sampler = None
         elif weights == 1:
             need_shuffle = False
-            class_sample_count = np.array([
-                len(np.where(y_train == t)[0]) for t in np.unique(y_train)
-            ])
+            class_sample_count = np.array([len(np.where(y_train == t)[0]) for t in np.unique(y_train)])
 
             weights_ = 1.0 / class_sample_count
 
@@ -369,9 +366,7 @@ def check_list_groups(list_groups: List[List[int]], input_dim: int) -> None:
         for group_pos, group in enumerate(list_groups):
             msg = f"Groups must be given as a list of list, but found {group} in position {group_pos}."  # noqa
             assert isinstance(group, list), msg
-            assert len(group) > 0, (
-                "Empty groups are forbidding please remove empty groups []"
-            )
+            assert len(group) > 0, "Empty groups are forbidding please remove empty groups []"
 
     n_elements_in_groups = np.sum([len(group) for group in list_groups])
     flat_list = []
@@ -379,15 +374,11 @@ def check_list_groups(list_groups: List[List[int]], input_dim: int) -> None:
         flat_list.extend(group)
     unique_elements = np.unique(flat_list)
     n_unique_elements_in_groups = len(unique_elements)
-    msg = (
-        "One feature can only appear in one group, please check your grouped_features."
-    )
+    msg = "One feature can only appear in one group, please check your grouped_features."
     assert n_unique_elements_in_groups == n_elements_in_groups, msg
 
     highest_feat = np.max(unique_elements)
-    assert highest_feat < input_dim, (
-        f"Number of features is {input_dim} but one group contains {highest_feat}."
-    )  # noqa
+    assert highest_feat < input_dim, f"Number of features is {input_dim} but one group contains {highest_feat}."  # noqa
     return
 
 
@@ -445,43 +436,24 @@ def validate_eval_set(
     """
     eval_name = eval_name or [f"val_{i}" for i in range(len(eval_set))]
 
-    assert len(eval_set) == len(eval_name), (
-        "eval_set and eval_name have not the same length"
-    )
+    assert len(eval_set) == len(eval_name), "eval_set and eval_name have not the same length"
     if len(eval_set) > 0:
-        assert all(len(elem) == 2 for elem in eval_set), (
-            "Each tuple of eval_set need to have two elements"
-        )
-    for name, (X, y) in zip(eval_name, eval_set):
+        assert all(len(elem) == 2 for elem in eval_set), "Each tuple of eval_set need to have two elements"
+    for name, (X, y) in zip(eval_name, eval_set, strict=False):
         check_input(X)
-        msg = (
-            f"Dimension mismatch between X_{name} "
-            + f"{X.shape} and X_train {X_train.shape}"
-        )
+        msg = f"Dimension mismatch between X_{name} " + f"{X.shape} and X_train {X_train.shape}"
         assert len(X.shape) == len(X_train.shape), msg
 
-        msg = (
-            f"Dimension mismatch between y_{name} "
-            + f"{y.shape} and y_train {y_train.shape}"
-        )
+        msg = f"Dimension mismatch between y_{name} " + f"{y.shape} and y_train {y_train.shape}"
         assert len(y.shape) == len(y_train.shape), msg
 
-        msg = (
-            f"Number of columns is different between X_{name} "
-            + f"({X.shape[1]}) and X_train ({X_train.shape[1]})"
-        )
+        msg = f"Number of columns is different between X_{name} " + f"({X.shape[1]}) and X_train ({X_train.shape[1]})"
         assert X.shape[1] == X_train.shape[1], msg
 
         if len(y_train.shape) == 2:
-            msg = (
-                f"Number of columns is different between y_{name} "
-                + f"({y.shape[1]}) and y_train ({y_train.shape[1]})"
-            )
+            msg = f"Number of columns is different between y_{name} " + f"({y.shape[1]}) and y_train ({y_train.shape[1]})"
             assert y.shape[1] == y_train.shape[1], msg
-        msg = (
-            f"You need the same number of rows between X_{name} "
-            + f"({X.shape[0]}) and y_{name} ({y.shape[0]})"
-        )
+        msg = f"You need the same number of rows between X_{name} " + f"({X.shape[0]}) and y_{name} ({y.shape[0]})"
         assert X.shape[0] == y.shape[0], msg
 
     return eval_name, eval_set
@@ -527,9 +499,7 @@ def check_input(X: np.ndarray) -> None:
     and check array according to scikit rules
     """
     if isinstance(X, (pd.DataFrame, pd.Series)):
-        err_message = (
-            "Pandas DataFrame are not supported: apply X.values when calling fit"
-        )
+        err_message = "Pandas DataFrame are not supported: apply X.values when calling fit"
         raise TypeError(err_message)
     check_array(X, accept_sparse=True)
 
@@ -540,10 +510,8 @@ def check_warm_start(warm_start: bool, from_unsupervised: Optional[bool]) -> Non
     """
     if warm_start and from_unsupervised is not None:
         warn_msg = "warm_start=True and from_unsupervised != None: "
-        warn_msg = (
-            "warm_start will be ignore, training will start from unsupervised weights"
-        )
-        warnings.warn(warn_msg)
+        warn_msg = "warm_start will be ignore, training will start from unsupervised weights"
+        warnings.warn(warn_msg, stacklevel=2)
     return
 
 

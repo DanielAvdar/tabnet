@@ -70,7 +70,7 @@ def test_regression():
     X_test = train[features].values[test_indices]
     y_test = train[target].values[test_indices].reshape(-1, 1)
     # %%
-    max_epochs =  2
+    max_epochs =  3
     # %%
     from pytorch_tabnet.augmentations import RegressionSMOTE
     aug = RegressionSMOTE(p=0.2)

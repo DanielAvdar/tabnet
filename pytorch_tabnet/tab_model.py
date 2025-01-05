@@ -1,14 +1,14 @@
-import torch
-import numpy as np
-from scipy.special import softmax
-from pytorch_tabnet.utils import SparsePredictDataset, PredictDataset, filter_weights
-from pytorch_tabnet.abstract_model import TabModel
-from pytorch_tabnet.multiclass_utils import infer_output_dim, check_output_dim
-from torch.utils.data import DataLoader
-import scipy
-from typing import Union, Dict, Any, Tuple, List
-
 from dataclasses import dataclass
+from typing import Any, Dict, List, Tuple, Union
+
+import numpy as np
+import scipy
+import torch
+from torch.utils.data import DataLoader
+
+from pytorch_tabnet.abstract_model import TabModel
+from pytorch_tabnet.multiclass_utils import check_output_dim, infer_output_dim
+from pytorch_tabnet.utils import PredictDataset, SparsePredictDataset, filter_weights
 
 
 @dataclass
@@ -21,9 +21,7 @@ class TabNetClassifier(TabModel):
         self._default_loss: Any = torch.nn.functional.cross_entropy
         self._default_metric: str = "accuracy"
 
-    def weight_updater(
-        self, weights: Union[bool, Dict[str, Any]]
-    ) -> Union[bool, Dict[Union[str, int], Any]]:
+    def weight_updater(self, weights: Union[bool, Dict[str, Any]]) -> Union[bool, Dict[Union[str, int], Any]]:
         if isinstance(weights, int):
             return weights
         elif isinstance(weights, dict):
@@ -47,29 +45,30 @@ class TabNetClassifier(TabModel):
         output_dim: int
         train_labels: List[Any]
         output_dim, train_labels = infer_output_dim(y_train)
-        for X, y in eval_set:
+        for _X, y in eval_set:
             check_output_dim(train_labels, y)
         self.output_dim: int = output_dim
         self._default_metric = "auc" if self.output_dim == 2 else "accuracy"
         self.classes_: List[Any] = train_labels
-        self.target_mapper: Dict[Any, int] = {
-            class_label: index for index, class_label in enumerate(self.classes_)
-        }
-        self.preds_mapper: Dict[str, Any] = {
-            str(index): class_label for index, class_label in enumerate(self.classes_)
-        }
-        self.updated_weights: Union[bool, Dict[Union[str, int], Any]] = (
-            self.weight_updater(weights)
-        )
+        self.target_mapper: Dict[Any, int] = {class_label: index for index, class_label in enumerate(self.classes_)}
+        self.preds_mapper: Dict[str, Any] = {str(index): class_label for index, class_label in enumerate(self.classes_)}
+        self.updated_weights: Union[bool, Dict[Union[str, int], Any]] = self.weight_updater(weights)
 
     def stack_batches(
         self,
-        list_y_true: List[np.ndarray],
-        list_y_score: List[np.ndarray],
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        y_true: np.ndarray = np.hstack(list_y_true)
-        y_score: np.ndarray = np.vstack(list_y_score)
-        y_score = softmax(y_score, axis=1)
+        # list_y_true: List[np.ndarray],
+        # list_y_score: List[np.ndarray],
+        # ) -> Tuple[np.ndarray, np.ndarray]:
+        #     y_true: np.ndarray = np.hstack(list_y_true)
+        #     y_score: np.ndarray = np.vstack(list_y_score)
+        #     y_score = softmax(y_score, axis=1)
+        #     return y_true, y_score
+        list_y_true: List[torch.Tensor],
+        list_y_score: List[torch.Tensor],
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        y_true: torch.Tensor = torch.hstack(list_y_true)
+        y_score: torch.Tensor = torch.vstack(list_y_score)
+        y_score = torch.nn.Softmax(dim=1)(y_score)
         return y_true, y_score
 
     def predict_func(self, outputs: np.ndarray) -> np.ndarray:
@@ -93,15 +92,13 @@ class TabNetClassifier(TabModel):
             )
 
         results: List[np.ndarray] = []
-        for batch_nb, data in enumerate(dataloader):
+        for _batch_nb, data in enumerate(dataloader):
             data = data.to(self.device).float()
 
             output: torch.Tensor
             _M_loss: torch.Tensor
             output, _M_loss = self.network(data)
-            predictions: np.ndarray = (
-                torch.nn.Softmax(dim=1)(output).cpu().detach().numpy()
-            )
+            predictions: np.ndarray = torch.nn.Softmax(dim=1)(output).cpu().detach().numpy()
             results.append(predictions)
         res: np.ndarray = np.vstack(results)
         return res
@@ -148,9 +145,9 @@ class TabNetRegressor(TabModel):
 
     def stack_batches(
         self,
-        list_y_true: List[np.ndarray],
-        list_y_score: List[np.ndarray],
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        y_true: np.ndarray = np.vstack(list_y_true)
-        y_score: np.ndarray = np.vstack(list_y_score)
+        list_y_true: List[torch.Tensor],
+        list_y_score: List[torch.Tensor],
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        y_true: torch.Tensor = torch.vstack(list_y_true)
+        y_score: torch.Tensor = torch.vstack(list_y_score)
         return y_true, y_score
