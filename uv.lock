@@ -531,6 +531,75 @@ wheels = [
 ]
 
 [[package]]
+name = "eh-pytorch-tabnet"
+version = "4.0.post90.dev0+61b8838"
+source = { editable = "." }
+dependencies = [
+    { name = "numpy" },
+    { name = "scikit-learn" },
+    { name = "scipy" },
+    { name = "torch", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'darwin'" },
+    { name = "torch", version = "2.5.1+cu124", source = { registry = "https://download.pytorch.org/whl/cu124" }, marker = "sys_platform != 'darwin'" },
+    { name = "torcheval" },
+    { name = "tqdm" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "db-dtypes" },
+    { name = "hypothesis" },
+    { name = "jupyter" },
+    { name = "matplotlib" },
+    { name = "mypy" },
+    { name = "pandas" },
+    { name = "pandas-stubs" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-parametrization" },
+    { name = "recommonmark" },
+    { name = "ruff" },
+    { name = "sphinx" },
+    { name = "sphinx-rtd-theme" },
+    { name = "types-pytz" },
+    { name = "wget" },
+    { name = "xgboost" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "numpy" },
+    { name = "scikit-learn" },
+    { name = "scipy" },
+    { name = "torch", marker = "sys_platform != 'darwin'", index = "https://download.pytorch.org/whl/cu124" },
+    { name = "torch", marker = "sys_platform == 'darwin'" },
+    { name = "torcheval" },
+    { name = "tqdm" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "db-dtypes" },
+    { name = "hypothesis" },
+    { name = "jupyter" },
+    { name = "matplotlib" },
+    { name = "mypy" },
+    { name = "pandas" },
+    { name = "pandas-stubs" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-parametrization" },
+    { name = "recommonmark" },
+    { name = "ruff" },
+    { name = "sphinx" },
+    { name = "sphinx-rtd-theme" },
+    { name = "types-pytz" },
+    { name = "wget" },
+    { name = "xgboost" },
+]
+
+[[package]]
 name = "exceptiongroup"
 version = "1.2.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2038,75 +2107,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/e3/c4/358cd13daa1d912ef795010897a483ab2f0b41c9ea1b35235a8b2f7d15a7/python_json_logger-3.2.1.tar.gz", hash = "sha256:8eb0554ea17cb75b05d2848bc14fb02fbdbd9d6972120781b974380bfa162008", size = 16287 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4b/72/2f30cf26664fcfa0bd8ec5ee62ec90c03bd485e4a294d92aabc76c5203a5/python_json_logger-3.2.1-py3-none-any.whl", hash = "sha256:cdc17047eb5374bd311e748b42f99d71223f3b0e186f4206cc5d52aefe85b090", size = 14924 },
-]
-
-[[package]]
-name = "pytorch-tabnet"
-version = "4.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "numpy" },
-    { name = "scikit-learn" },
-    { name = "scipy" },
-    { name = "torch", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'darwin'" },
-    { name = "torch", version = "2.5.1+cu124", source = { registry = "https://download.pytorch.org/whl/cu124" }, marker = "sys_platform != 'darwin'" },
-    { name = "torcheval" },
-    { name = "tqdm" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "db-dtypes" },
-    { name = "hypothesis" },
-    { name = "jupyter" },
-    { name = "matplotlib" },
-    { name = "mypy" },
-    { name = "pandas" },
-    { name = "pandas-stubs" },
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-parametrization" },
-    { name = "recommonmark" },
-    { name = "ruff" },
-    { name = "sphinx" },
-    { name = "sphinx-rtd-theme" },
-    { name = "types-pytz" },
-    { name = "wget" },
-    { name = "xgboost" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "numpy" },
-    { name = "scikit-learn" },
-    { name = "scipy" },
-    { name = "torch", marker = "sys_platform != 'darwin'", index = "https://download.pytorch.org/whl/cu124" },
-    { name = "torch", marker = "sys_platform == 'darwin'" },
-    { name = "torcheval" },
-    { name = "tqdm" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "db-dtypes" },
-    { name = "hypothesis" },
-    { name = "jupyter" },
-    { name = "matplotlib" },
-    { name = "mypy" },
-    { name = "pandas" },
-    { name = "pandas-stubs" },
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "pytest-parametrization" },
-    { name = "recommonmark" },
-    { name = "ruff" },
-    { name = "sphinx" },
-    { name = "sphinx-rtd-theme" },
-    { name = "types-pytz" },
-    { name = "wget" },
-    { name = "xgboost" },
 ]
 
 [[package]]
