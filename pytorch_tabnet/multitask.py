@@ -62,18 +62,14 @@ class TabNetMultiTaskClassifier(TabModel):
         loss /= len(y_pred)
         return loss
 
-    def stack_batches(  # todo: switch to from numpy to torch
+    def stack_batches(
         self,
         list_y_true: List[torch.Tensor],
         list_y_score: List[List[torch.Tensor]],
-        # ) -> Tuple[np.ndarray, List[np.ndarray]]:
     ) -> Tuple[torch.Tensor, List[torch.Tensor]]:
-        # y_true = np.vstack(list_y_true)
         y_true = torch.vstack(list_y_true)
         y_score = []
         for i in range(len(self.output_dim)):
-            # score = np.vstack([x[i] for x in list_y_score])
-            # score = softmax(score, axis=1)
             score = torch.vstack([x[i] for x in list_y_score])
             score = torch.nn.Softmax(dim=1)(score)
             y_score.append(score)

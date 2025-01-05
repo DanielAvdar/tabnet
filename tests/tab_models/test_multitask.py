@@ -10,13 +10,6 @@ def to_torch(X):
     return torch.tensor(X, device=device)
 
 
-# @pytest.fixture
-# def sample_data():
-#     X_train = np.random.rand(1000, 10)
-#     y_train = np.random.randint(0, 2, size=(1000, 3))
-#     X_test = np.random.rand(50, 10)
-#     y_test = np.random.randint(0, 2, size=(50, 3))
-#     return X_train, y_train, X_test, y_test
 @pytest.fixture(
     params=[
         (

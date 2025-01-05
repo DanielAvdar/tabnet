@@ -5,14 +5,6 @@ from scipy.sparse import csr_matrix
 from pytorch_tabnet.tab_model import TabNetClassifier
 
 
-# @pytest.fixture
-# def sample_data():
-#     X_train = np.random.rand(100, 10)
-#     y_train = np.random.randint(0, 2, size=100)
-#     eval_set = [(np.random.rand(20, 10), np.random.randint(0, 2, size=20))]
-#     return X_train, y_train, eval_set
-
-
 @pytest.fixture(
     params=[
         (
