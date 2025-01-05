@@ -1,18 +1,18 @@
 import numpy as np
 import pytest
+import torch
 from scipy import sparse as sparse
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, WeightedRandomSampler
 
 import pytorch_tabnet
 from pytorch_tabnet.pretraining_utils import create_dataloaders
-
-from pytorch_tabnet.utils import validate_eval_set
+from pytorch_tabnet.utils import (
+    check_list_groups,
+    create_group_matrix,
+    create_sampler,
+    validate_eval_set,
+)
 from tests.test_pretraining_utils import mock_create_sampler
-from pytorch_tabnet.utils import check_list_groups
-import torch
-from pytorch_tabnet.utils import create_group_matrix
-from torch.utils.data import WeightedRandomSampler
-from pytorch_tabnet.utils import create_sampler
 
 
 @pytest.mark.parametrize(
@@ -53,19 +53,13 @@ def test_validate_eval_set_errors(eval_set, eval_name, error_message):
         validate_eval_set(eval_set, eval_name, X_train, y_train)
 
 
-@pytest.mark.parametrize(
-    "eval_name, expected_names", [(["validation"], ["validation"]), (None, ["val_0"])]
-)
-def test_validate_eval_set_valid_inputs_and_default_eval_name(
-    eval_name, expected_names
-):
+@pytest.mark.parametrize("eval_name, expected_names", [(["validation"], ["validation"]), (None, ["val_0"])])
+def test_validate_eval_set_valid_inputs_and_default_eval_name(eval_name, expected_names):
     X_train = np.random.rand(100, 10)
     y_train = np.random.rand(100)
     eval_set = [(np.random.rand(20, 10), np.random.rand(20))]
 
-    validated_names, validated_set = validate_eval_set(
-        eval_set, eval_name, X_train, y_train
-    )
+    validated_names, validated_set = validate_eval_set(eval_set, eval_name, X_train, y_train)
 
     assert validated_names == expected_names
     assert len(validated_set) == len(eval_set)
@@ -92,15 +86,9 @@ def test_create_dataloaders(
     monkeypatch.setattr(pytorch_tabnet.utils, "create_sampler", mock_create_sampler)
 
     X_train = sparse.random(100, 10) if X_train_sparse else np.random.rand(100, 10)
-    eval_set = (
-        [sparse.random(50, 10), sparse.random(50, 10)]
-        if eval_set_sparse
-        else [np.random.rand(50, 10), np.random.rand(50, 10)]
-    )
+    eval_set = [sparse.random(50, 10), sparse.random(50, 10)] if eval_set_sparse else [np.random.rand(50, 10), np.random.rand(50, 10)]
 
-    train_dataloader, valid_dataloaders = create_dataloaders(
-        X_train, eval_set, weights, batch_size, num_workers, drop_last, pin_memory
-    )
+    train_dataloader, valid_dataloaders = create_dataloaders(X_train, eval_set, weights, batch_size, num_workers, drop_last, pin_memory)
 
     assert isinstance(train_dataloader, DataLoader)
     assert isinstance(valid_dataloaders, list)
@@ -165,9 +153,7 @@ def test_check_list_groups_valid(list_groups, input_dim):
 )
 def test_create_group_matrix_shape(list_groups, input_dim, expected_shape):
     result = create_group_matrix(list_groups, input_dim)
-    assert result.shape == expected_shape, (
-        f"Expected shape {expected_shape}, got {result.shape}"
-    )
+    assert result.shape == expected_shape, f"Expected shape {expected_shape}, got {result.shape}"
 
 
 @pytest.mark.parametrize(
@@ -214,17 +200,13 @@ def test_create_group_matrix_invalid_input(list_groups, input_dim):
         (
             [[0], [1]],
             3,
-            torch.tensor(
-                [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=torch.float32
-            ),
+            torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=torch.float32),
         ),
     ],
 )
 def test_create_group_matrix_correct_output(list_groups, input_dim, expected_matrix):
     result = create_group_matrix(list_groups, input_dim)
-    assert torch.allclose(result, expected_matrix), (
-        f"Expected matrix {expected_matrix}, got {result}"
-    )
+    assert torch.allclose(result, expected_matrix), f"Expected matrix {expected_matrix}, got {result}"
 
 
 @pytest.mark.parametrize(
@@ -257,9 +239,7 @@ def test_create_sampler_invalid_inputs(weights, y_train, expected_error, error_m
         (1, [0, 1, 0, 1], False, WeightedRandomSampler),
     ],
 )
-def test_create_sampler_integer_weights(
-    weights, y_train, expected_need_shuffle, expected_sampler_type
-):
+def test_create_sampler_integer_weights(weights, y_train, expected_need_shuffle, expected_sampler_type):
     y_train = np.array(y_train)
     need_shuffle, sampler = create_sampler(weights, y_train)
 

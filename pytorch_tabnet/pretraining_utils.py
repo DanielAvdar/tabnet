@@ -1,13 +1,15 @@
-from torch.utils.data import DataLoader
-from pytorch_tabnet.utils import (
-    create_sampler,
-    SparsePredictDataset,
-    PredictDataset,
-    check_input,
-)
-import scipy
-from typing import Union, List, Tuple, Dict, Any, Iterable
+from typing import Any, Dict, Iterable, List, Tuple, Union
+
 import numpy as np
+import scipy
+from torch.utils.data import DataLoader
+
+from pytorch_tabnet.utils import (
+    PredictDataset,
+    SparsePredictDataset,
+    check_input,
+    create_sampler,
+)
 
 
 def create_dataloaders(
@@ -104,9 +106,7 @@ def create_dataloaders(
     return train_dataloader, valid_dataloaders
 
 
-def validate_eval_set(
-    eval_set: List[np.ndarray], eval_name: List[str], X_train: np.ndarray
-) -> List[str]:
+def validate_eval_set(eval_set: List[np.ndarray], eval_name: List[str], X_train: np.ndarray) -> List[str]:
     """Check if the shapes of eval_set are compatible with X_train.
 
     Parameters
@@ -126,15 +126,10 @@ def validate_eval_set(
 
     """
     eval_names = eval_name or [f"val_{i}" for i in range(len(eval_set))]
-    assert len(eval_set) == len(eval_names), (
-        "eval_set and eval_name have not the same length"
-    )
+    assert len(eval_set) == len(eval_names), "eval_set and eval_name have not the same length"
 
     for set_nb, X in enumerate(eval_set):
         check_input(X)
-        msg = (
-            f"Number of columns is different between eval set {set_nb}"
-            + f"({X.shape[1]}) and X_train ({X_train.shape[1]})"
-        )
+        msg = f"Number of columns is different between eval set {set_nb}" + f"({X.shape[1]}) and X_train ({X_train.shape[1]})"
         assert X.shape[1] == X_train.shape[1], msg
     return eval_names

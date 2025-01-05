@@ -1,19 +1,19 @@
-import torch
 import pytest
+import torch
 
-from pytorch_tabnet.sparsemax import Sparsemax, entmoid15, Entmax15
+from pytorch_tabnet.sparsemax import Entmax15, Sparsemax, entmoid15
 
 
 # Generate test cases for Sparsemax
 @pytest.mark.parametrize("dim", [-1, 0, 1])
 @pytest.mark.parametrize("input_shape", [(5, 3), (2, 4, 6)])
 def test_sparsemax(input_shape, dim):
-    input = torch.randn(input_shape)
+    input_ = torch.randn(input_shape)
     sparsemax_op = Sparsemax(dim=dim)
-    output = sparsemax_op(input)
+    output = sparsemax_op(input_)
 
     # Check shape
-    assert output.shape == input.shape
+    assert output.shape == input_.shape
 
     # Check normalization along the specified dimension
     sum_along_dim = output.sum(dim=dim)
@@ -27,12 +27,12 @@ def test_sparsemax(input_shape, dim):
 @pytest.mark.parametrize("dim", [-1, 0, 1])
 @pytest.mark.parametrize("input_shape", [(5, 3), (2, 4, 6)])
 def test_entmax15(input_shape, dim):
-    input = torch.randn(input_shape)
+    input_ = torch.randn(input_shape)
     entmax15_op = Entmax15(dim=dim)
-    output = entmax15_op(input)
+    output = entmax15_op(input_)
 
     # Check shape
-    assert output.shape == input.shape
+    assert output.shape == input_.shape
 
     # Check normalization along the specified dimension
     sum_along_dim = output.sum(dim=dim)

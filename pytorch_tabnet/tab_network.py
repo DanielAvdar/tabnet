@@ -1,13 +1,13 @@
-import torch
-from torch.nn import Linear, BatchNorm1d, ReLU
+from typing import List, Optional, Union
+
 import numpy as np
+import torch
+from torch.nn import BatchNorm1d, Linear, ReLU
+
 from pytorch_tabnet import sparsemax
-from typing import List, Union, Optional
 
 
-def initialize_non_glu(
-    module: torch.nn.Module, input_dim: int, output_dim: int
-) -> None:
+def initialize_non_glu(module: torch.nn.Module, input_dim: int, output_dim: int) -> None:
     gain_value = np.sqrt((input_dim + output_dim) / np.sqrt(4 * input_dim))
     torch.nn.init.xavier_normal_(module.weight, gain=gain_value)
     # torch.nn.init.zeros_(module.bias)
@@ -27,9 +27,7 @@ class GBN(torch.nn.Module):
     https://arxiv.org/abs/1705.08741
     """
 
-    def __init__(
-        self, input_dim: int, virtual_batch_size: int = 128, momentum: float = 0.01
-    ):
+    def __init__(self, input_dim: int, virtual_batch_size: int = 128, momentum: float = 0.01):
         super(GBN, self).__init__()
 
         self.input_dim = input_dim
@@ -120,13 +118,9 @@ class TabNetEncoder(torch.nn.Module):
             shared_feat_transform = torch.nn.ModuleList()
             for i in range(self.n_shared):
                 if i == 0:
-                    shared_feat_transform.append(
-                        Linear(self.input_dim, 2 * (n_d + n_a), bias=False)
-                    )
+                    shared_feat_transform.append(Linear(self.input_dim, 2 * (n_d + n_a), bias=False))
                 else:
-                    shared_feat_transform.append(
-                        Linear(n_d + n_a, 2 * (n_d + n_a), bias=False)
-                    )
+                    shared_feat_transform.append(Linear(n_d + n_a, 2 * (n_d + n_a), bias=False))
 
         else:
             shared_feat_transform = None
@@ -143,7 +137,7 @@ class TabNetEncoder(torch.nn.Module):
         self.feat_transformers = torch.nn.ModuleList()
         self.att_transformers = torch.nn.ModuleList()
 
-        for step in range(n_steps):
+        for _step in range(n_steps):
             transformer = FeatTransformer(
                 self.input_dim,
                 n_d + n_a,
@@ -163,9 +157,7 @@ class TabNetEncoder(torch.nn.Module):
             self.feat_transformers.append(transformer)
             self.att_transformers.append(attention)
 
-    def forward(
-        self, x: torch.Tensor, prior: Optional[torch.Tensor] = None
-    ) -> tuple[List[torch.Tensor], torch.Tensor]:
+    def forward(self, x: torch.Tensor, prior: Optional[torch.Tensor] = None) -> tuple[List[torch.Tensor], torch.Tensor]:
         x = self.initial_bn(x)
 
         bs = x.shape[0]  # batch size
@@ -177,9 +169,7 @@ class TabNetEncoder(torch.nn.Module):
         steps_output = []
         for step in range(self.n_steps):
             M = self.att_transformers[step](prior, att)
-            M_loss += torch.mean(
-                torch.sum(torch.mul(M, torch.log(M + self.epsilon)), dim=1)
-            )
+            M_loss += torch.mean(torch.sum(torch.mul(M, torch.log(M + self.epsilon)), dim=1))
             # update prior
             prior = torch.mul(self.gamma - M, prior)
             # output
@@ -269,12 +259,12 @@ class TabNetDecoder(torch.nn.Module):
 
         if self.n_shared > 0:
             shared_feat_transform = torch.nn.ModuleList()
-            for i in range(self.n_shared):
+            for _i in range(self.n_shared):
                 shared_feat_transform.append(Linear(n_d, 2 * n_d, bias=False))
         else:
             shared_feat_transform = None
 
-        for step in range(n_steps):
+        for _step in range(n_steps):
             transformer = FeatTransformer(
                 n_d,
                 n_d,
@@ -306,8 +296,8 @@ class TabNetPretraining(torch.nn.Module):
         n_a: int = 8,
         n_steps: int = 3,
         gamma: float = 1.3,
-        cat_idxs: List[int] = [],
-        cat_dims: List[int] = [],
+        cat_idxs: List[int] = None,
+        cat_dims: List[int] = None,
         cat_emb_dim: int = 1,
         n_independent: int = 2,
         n_shared: int = 2,
@@ -319,6 +309,10 @@ class TabNetPretraining(torch.nn.Module):
         n_indep_decoder: int = 1,
         group_attention_matrix: Optional[torch.Tensor] = None,
     ):
+        if cat_dims is None:
+            cat_dims = []
+        if cat_idxs is None:
+            cat_idxs = []
         super(TabNetPretraining, self).__init__()
 
         self.cat_idxs = cat_idxs or []
@@ -344,14 +338,10 @@ class TabNetPretraining(torch.nn.Module):
             raise ValueError("n_shared and n_independent can't be both zero.")
 
         self.virtual_batch_size = virtual_batch_size
-        self.embedder = EmbeddingGenerator(
-            input_dim, cat_dims, cat_idxs, cat_emb_dim, group_attention_matrix
-        )
+        self.embedder = EmbeddingGenerator(input_dim, cat_dims, cat_idxs, cat_emb_dim, group_attention_matrix)
         self.post_embed_dim = self.embedder.post_embed_dim
 
-        self.masker = RandomObfuscator(
-            self.pretraining_ratio, group_matrix=self.embedder.embedding_group_matrix
-        )
+        self.masker = RandomObfuscator(self.pretraining_ratio, group_matrix=self.embedder.embedding_group_matrix)
         self.encoder = TabNetEncoder(
             input_dim=self.post_embed_dim,
             output_dim=self.post_embed_dim,
@@ -377,9 +367,7 @@ class TabNetPretraining(torch.nn.Module):
             momentum=momentum,
         )
 
-    def forward(
-        self, x: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Returns: res, embedded_x, obf_vars
             res : output of reconstruction
@@ -497,9 +485,7 @@ class TabNetNoEmbeddings(torch.nn.Module):
             self.final_mapping = Linear(n_d, output_dim, bias=False)
             initialize_non_glu(self.final_mapping, n_d, output_dim)  # type: ignore
 
-    def forward(
-        self, x: torch.Tensor
-    ) -> tuple[Union[torch.Tensor, List[torch.Tensor]], torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> tuple[Union[torch.Tensor, List[torch.Tensor]], torch.Tensor]:
         res = 0
         steps_output, M_loss = self.encoder(x)
         res = torch.sum(torch.stack(steps_output, dim=0), dim=0)
@@ -526,8 +512,8 @@ class TabNet(torch.nn.Module):
         n_a: int = 8,
         n_steps: int = 3,
         gamma: float = 1.3,
-        cat_idxs: List[int] = [],
-        cat_dims: List[int] = [],
+        cat_idxs: List[int] = None,
+        cat_dims: List[int] = None,
         cat_emb_dim: Union[int, List[int]] = 1,
         n_independent: int = 2,
         n_shared: int = 2,
@@ -578,6 +564,10 @@ class TabNet(torch.nn.Module):
         group_attention_matrix : torch matrix
             Matrix of size (n_groups, input_dim), m_ij = importance within group i of feature j
         """
+        if cat_dims is None:
+            cat_dims = []
+        if cat_idxs is None:
+            cat_idxs = []
         super(TabNet, self).__init__()
         self.cat_idxs = cat_idxs or []
         self.cat_dims = cat_dims or []
@@ -600,9 +590,7 @@ class TabNet(torch.nn.Module):
             raise ValueError("n_shared and n_independent can't be both zero.")
 
         self.virtual_batch_size = virtual_batch_size
-        self.embedder = EmbeddingGenerator(
-            input_dim, cat_dims, cat_idxs, cat_emb_dim, group_attention_matrix
-        )
+        self.embedder = EmbeddingGenerator(input_dim, cat_dims, cat_idxs, cat_emb_dim, group_attention_matrix)
         self.post_embed_dim = self.embedder.post_embed_dim
 
         self.tabnet = TabNetNoEmbeddings(
@@ -621,9 +609,7 @@ class TabNet(torch.nn.Module):
             self.embedder.embedding_group_matrix,
         )
 
-    def forward(
-        self, x: torch.Tensor
-    ) -> tuple[Union[torch.Tensor, List[torch.Tensor]], torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> tuple[Union[torch.Tensor, List[torch.Tensor]], torch.Tensor]:
         x = self.embedder(x)
         return self.tabnet(x)
 
@@ -661,9 +647,7 @@ class AttentiveTransformer(torch.nn.Module):
         super(AttentiveTransformer, self).__init__()
         self.fc = Linear(input_dim, group_dim, bias=False)
         initialize_non_glu(self.fc, input_dim, group_dim)
-        self.bn = GBN(
-            group_dim, virtual_batch_size=virtual_batch_size, momentum=momentum
-        )
+        self.bn = GBN(group_dim, virtual_batch_size=virtual_batch_size, momentum=momentum)
 
         if mask_type == "sparsemax":
             # Sparsemax
@@ -672,13 +656,9 @@ class AttentiveTransformer(torch.nn.Module):
             # Entmax
             self.selector = sparsemax.Entmax15(dim=-1)
         else:
-            raise NotImplementedError(
-                "Please choose either sparsemax" + "or entmax as masktype"
-            )
+            raise NotImplementedError("Please choose either sparsemax" + "or entmax as masktype")
 
-    def forward(
-        self, priors: torch.Tensor, processed_feat: torch.Tensor
-    ) -> torch.Tensor:
+    def forward(self, priors: torch.Tensor, processed_feat: torch.Tensor) -> torch.Tensor:
         x = self.fc(processed_feat)
         x = self.bn(x)
         x = torch.mul(x, priors)
@@ -817,9 +797,7 @@ class GLU_Layer(torch.nn.Module):
             self.fc = Linear(input_dim, 2 * output_dim, bias=False)
         initialize_glu(self.fc, input_dim, 2 * output_dim)
 
-        self.bn = GBN(
-            2 * output_dim, virtual_batch_size=virtual_batch_size, momentum=momentum
-        )
+        self.bn = GBN(2 * output_dim, virtual_batch_size=virtual_batch_size, momentum=momentum)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.fc(x)
@@ -875,7 +853,7 @@ class EmbeddingGenerator(torch.nn.Module):
 
         self.embeddings = torch.nn.ModuleList()
 
-        for cat_dim, emb_dim in zip(cat_dims, cat_emb_dims):
+        for cat_dim, emb_dim in zip(cat_dims, cat_emb_dims, strict=False):
             self.embeddings.append(torch.nn.Embedding(cat_dim, emb_dim))
 
         # record continuous indices
@@ -884,25 +862,21 @@ class EmbeddingGenerator(torch.nn.Module):
 
         # update group matrix
         n_groups = group_matrix.shape[0]
-        self.embedding_group_matrix = torch.empty(
-            (n_groups, self.post_embed_dim), device=group_matrix.device
-        )
+        self.embedding_group_matrix = torch.empty((n_groups, self.post_embed_dim), device=group_matrix.device)
         for group_idx in range(n_groups):
             post_emb_idx = 0
             cat_feat_counter = 0
             for init_feat_idx in range(input_dim):
                 if self.continuous_idx[init_feat_idx] == 1:
                     # this means that no embedding is applied to this column
-                    self.embedding_group_matrix[group_idx, post_emb_idx] = group_matrix[
-                        group_idx, init_feat_idx
-                    ]  # noqa
+                    self.embedding_group_matrix[group_idx, post_emb_idx] = group_matrix[group_idx, init_feat_idx]  # noqa
                     post_emb_idx += 1
                 else:
                     # this is a categorical feature which creates multiple embeddings
                     n_embeddings = cat_emb_dims[cat_feat_counter]
-                    self.embedding_group_matrix[
-                        group_idx, post_emb_idx : post_emb_idx + n_embeddings
-                    ] = group_matrix[group_idx, init_feat_idx] / n_embeddings  # noqa
+                    self.embedding_group_matrix[group_idx, post_emb_idx : post_emb_idx + n_embeddings] = (
+                        group_matrix[group_idx, init_feat_idx] / n_embeddings
+                    )  # noqa
                     post_emb_idx += n_embeddings
                     cat_feat_counter += 1
 
@@ -923,9 +897,7 @@ class EmbeddingGenerator(torch.nn.Module):
             if is_continuous:
                 cols.append(x[:, feat_init_idx].float().view(-1, 1))
             else:
-                cols.append(
-                    self.embeddings[cat_feat_counter](x[:, feat_init_idx].long())
-                )
+                cols.append(self.embeddings[cat_feat_counter](x[:, feat_init_idx].long()))
                 cat_feat_counter += 1
         # concat
         post_embeddings = torch.cat(cols, dim=1)
@@ -953,9 +925,7 @@ class RandomObfuscator(torch.nn.Module):
         self.group_matrix = (group_matrix > 0) + 0.0
         self.num_groups = group_matrix.shape[0]
 
-    def forward(
-        self, x: torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Generate random obfuscation mask.
 
@@ -965,9 +935,7 @@ class RandomObfuscator(torch.nn.Module):
         """
         bs = x.shape[0]
 
-        obfuscated_groups = torch.bernoulli(
-            self.pretraining_ratio * torch.ones((bs, self.num_groups), device=x.device)
-        )
+        obfuscated_groups = torch.bernoulli(self.pretraining_ratio * torch.ones((bs, self.num_groups), device=x.device))
         obfuscated_vars = torch.matmul(obfuscated_groups, self.group_matrix)
         masked_input = torch.mul(1 - obfuscated_vars, x)
         return masked_input, obfuscated_groups, obfuscated_vars

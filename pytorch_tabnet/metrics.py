@@ -1,15 +1,14 @@
 from dataclasses import dataclass
-from typing import List, Union, Any
-
+from typing import Any, List, Union
 
 import torch
-from torcheval.metrics.functional import (
-    multiclass_auroc,
-    multiclass_accuracy,
-    mean_squared_error,
-    binary_normalized_entropy,
-)
 from torch.nn import CrossEntropyLoss
+from torcheval.metrics.functional import (
+    binary_normalized_entropy,
+    mean_squared_error,
+    multiclass_accuracy,
+    multiclass_auroc,
+)
 
 
 def UnsupervisedLoss(
@@ -154,11 +153,7 @@ class MetricContainer:
         logs = {}
         for metric in self.metrics:
             if isinstance(y_pred, list):
-                res = torch.mean(
-                    torch.tensor([
-                        metric(y_true[:, i], y_pred[i]) for i in range(len(y_pred))
-                    ])
-                )
+                res = torch.mean(torch.tensor([metric(y_true[:, i], y_pred[i]) for i in range(len(y_pred))]))
             else:
                 res = metric(y_true, y_pred)
             logs[self.prefix + metric._name] = res
@@ -198,9 +193,7 @@ class Metric:
         available_names = [metric()._name for metric in available_metrics]
         metrics = []
         for name in names:
-            assert name in available_names, (
-                f"{name} is not available, choose in {available_names}"
-            )
+            assert name in available_names, f"{name} is not available, choose in {available_names}"
             idx = available_names.index(name)
             metric = available_metrics[idx]()
             metrics.append(metric)
@@ -238,9 +231,7 @@ class AUC(Metric):
         """
         num_of_classes = y_score.shape[1]
 
-        return (
-            multiclass_auroc(y_score, y_true, num_classes=num_of_classes).cpu().item()
-        )
+        return multiclass_auroc(y_score, y_true, num_classes=num_of_classes).cpu().item()
 
 
 class Accuracy(Metric):
@@ -308,13 +299,7 @@ class BalancedAccuracy(Metric):
 
         num_of_classes = y_score.shape[1]
 
-        return (
-            multiclass_accuracy(
-                y_score, y_true, average="macro", num_classes=num_of_classes
-            )
-            .cpu()
-            .item()
-        )
+        return multiclass_accuracy(y_score, y_true, average="macro", num_classes=num_of_classes).cpu().item()
 
 
 class LogLoss(Metric):

@@ -1,9 +1,9 @@
-import torch
-import pytest
-
-from pytorch_tabnet.augmentations import RegressionSMOTE, ClassificationSMOTE
-from pytorch_tabnet.utils import define_device
 import numpy as np
+import pytest
+import torch
+
+from pytorch_tabnet.augmentations import ClassificationSMOTE, RegressionSMOTE
+from pytorch_tabnet.utils import define_device
 
 
 @pytest.fixture

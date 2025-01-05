@@ -1,9 +1,9 @@
-import torch
-import numpy as np
 from dataclasses import dataclass
 
-from pytorch_tabnet.abstract_model import TabModel
+import numpy as np
+import torch
 
+from pytorch_tabnet.abstract_model import TabModel
 
 # Define necessary functions and classes from the provided code
 # ... (copy the entire code provided in "Related information and code...")

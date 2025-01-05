@@ -1,9 +1,10 @@
-import torch
 import pytest
+import torch
+
 from pytorch_tabnet.tab_network import (
     AttentiveTransformer,
-    FeatTransformer,
     EmbeddingGenerator,
+    FeatTransformer,
     RandomObfuscator,
     TabNetPretraining,
 )
@@ -33,9 +34,7 @@ def embedding_generator(input_data):
 
 def test_initialization_with_embeddings(embedding_generator, input_data):
     assert embedding_generator.skip_embedding is False
-    assert embedding_generator.post_embed_dim == input_data["input_dim"] + sum(
-        input_data["cat_emb_dims"]
-    ) - len(input_data["cat_emb_dims"])
+    assert embedding_generator.post_embed_dim == input_data["input_dim"] + sum(input_data["cat_emb_dims"]) - len(input_data["cat_emb_dims"])
     assert len(embedding_generator.embeddings) == len(input_data["cat_dims"])
 
 
@@ -142,9 +141,7 @@ def test_random_obfuscator():
         (10, 0.2, 3, 0, 0, "n_shared and n_independent can't be both zero."),
     ],
 )
-def test_tabnet_pretraining_initialization_errors(
-    input_dim, pretraining_ratio, n_steps, n_independent, n_shared, expected_error
-):
+def test_tabnet_pretraining_initialization_errors(input_dim, pretraining_ratio, n_steps, n_independent, n_shared, expected_error):
     with pytest.raises(ValueError, match=expected_error):
         TabNetPretraining(
             input_dim=input_dim,

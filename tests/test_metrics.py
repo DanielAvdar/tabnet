@@ -1,23 +1,23 @@
 import pytest
 import torch
-# import numpy as np
 
+# import numpy as np
 from pytorch_tabnet.metrics import (
-    UnsupervisedLoss,
-    UnsupMetricContainer,
-    MetricContainer,
-    check_metrics,
-    MAE,
-    RMSE,
-    UnsupervisedNumpyMetric,
-    UnsupervisedMetric,
     AUC,
+    MAE,
+    MSE,
+    RMSE,
+    RMSLE,
     Accuracy,
     BalancedAccuracy,
     LogLoss,
-    MSE,
-    RMSLE,
     Metric,
+    MetricContainer,
+    UnsupervisedLoss,
+    UnsupervisedMetric,
+    UnsupervisedNumpyMetric,
+    UnsupMetricContainer,
+    check_metrics,
 )
 
 
@@ -55,12 +55,7 @@ def test_MetricContainer():
 
 def test_check_metrics():
     metrics = check_metrics(["auc", "accuracy", MAE, RMSE])
-    assert (
-        "auc" in metrics
-        and "accuracy" in metrics
-        and "mae" in metrics
-        and "rmse" in metrics
-    )
+    assert "auc" in metrics and "accuracy" in metrics and "mae" in metrics and "rmse" in metrics
     with pytest.raises(TypeError):
         check_metrics([1])
 

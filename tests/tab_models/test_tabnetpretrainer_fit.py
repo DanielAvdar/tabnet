@@ -1,5 +1,5 @@
-import pytest
 import numpy as np
+import pytest
 import scipy
 
 from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
@@ -42,9 +42,7 @@ from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
                 max_epochs=1,
                 batch_size=16,
                 virtual_batch_size=32,
-                weights=np.ones(
-                    100
-                ),  # todo fix bug in TabNetPretrainer for 1000 samples
+                weights=np.ones(100),  # todo fix bug in TabNetPretrainer for 1000 samples
             ),
             np.random.rand(100, 10),
             np.random.rand(200, 10),

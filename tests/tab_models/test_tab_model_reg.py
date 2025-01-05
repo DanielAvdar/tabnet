@@ -1,8 +1,9 @@
 import numpy as np
 import pytest
 import torch
-from pytorch_tabnet.tab_model import TabNetRegressor
 from scipy.sparse import csr_matrix
+
+from pytorch_tabnet.tab_model import TabNetRegressor
 
 
 @pytest.fixture(
@@ -81,9 +82,7 @@ def test_stack_batches_regressor(
 ):
     list_y_true_torch = [torch.tensor(x) for x in list_y_true]
     list_y_score_torch = [torch.tensor(x) for x in list_y_score]
-    y_true, y_score = regressor_instance.stack_batches(
-        list_y_true_torch, list_y_score_torch
-    )
+    y_true, y_score = regressor_instance.stack_batches(list_y_true_torch, list_y_score_torch)
     assert y_true.shape == expected_y_true_shape
     assert y_score.shape == expected_y_score_shape
 

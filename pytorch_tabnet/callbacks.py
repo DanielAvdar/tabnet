@@ -1,11 +1,12 @@
-import time
-import datetime
 import copy
+import datetime
+import time
+import warnings
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 import torch
-from dataclasses import dataclass, field
-from typing import List, Any, Dict, Optional
-import warnings
 
 
 class Callback:
@@ -138,11 +139,7 @@ class EarlyStopping(Callback):
         max_improved = self.is_maximize and loss_change > self.tol
         min_improved = (not self.is_maximize) and (-loss_change > self.tol)
         if max_improved or min_improved:
-            self.best_loss = (
-                current_loss.item()
-                if isinstance(current_loss, torch.Tensor)
-                else current_loss
-            )
+            self.best_loss = current_loss.item() if isinstance(current_loss, torch.Tensor) else current_loss
             self.best_epoch = epoch
             self.wait = 1
             self.best_weights = copy.deepcopy(self.trainer.network.state_dict())
@@ -161,10 +158,7 @@ class EarlyStopping(Callback):
 
         if self.stopped_epoch > 0:
             msg = f"\nEarly stopping occurred at epoch {self.stopped_epoch}"
-            msg += (
-                f" with best_epoch = {self.best_epoch} and "
-                + f"best_{self.early_stopping_metric} = {round(self.best_loss, 5)}"
-            )
+            msg += f" with best_epoch = {self.best_epoch} and " + f"best_{self.early_stopping_metric} = {round(self.best_loss, 5)}"
             print(msg)
         else:
             msg = (
@@ -174,7 +168,7 @@ class EarlyStopping(Callback):
             )
             print(msg)
         wrn_msg = "Best weights from best epoch are automatically used!"
-        warnings.warn(wrn_msg)
+        warnings.warn(wrn_msg, stacklevel=2)
 
 
 @dataclass
@@ -229,9 +223,7 @@ class History(Callback):
 
     def on_batch_end(self, batch: int, logs: Optional[Dict[str, Any]] = None) -> None:
         batch_size: int = logs["batch_size"]
-        self.epoch_loss = (
-            self.samples_seen * self.epoch_loss + batch_size * logs["loss"]
-        ) / (self.samples_seen + batch_size)
+        self.epoch_loss = (self.samples_seen * self.epoch_loss + batch_size * logs["loss"]) / (self.samples_seen + batch_size)
         self.samples_seen += batch_size
 
     def __getitem__(self, name: str) -> List[float]:

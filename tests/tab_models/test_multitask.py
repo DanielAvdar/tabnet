@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 import torch
+
 from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

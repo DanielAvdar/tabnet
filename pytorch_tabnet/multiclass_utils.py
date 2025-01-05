@@ -6,16 +6,13 @@ Multi-class / multi-label utility function
 
 from collections.abc import Sequence
 from itertools import chain
-from typing import Union, List
-
-from scipy.sparse import issparse
-from scipy.sparse.base import spmatrix
-from scipy.sparse import dok_matrix
-from scipy.sparse import lil_matrix
-import scipy.sparse as sp
+from typing import List, Union
 
 import numpy as np
 import pandas as pd
+import scipy.sparse as sp
+from scipy.sparse import dok_matrix, issparse, lil_matrix
+from scipy.sparse.base import spmatrix
 
 
 def _assert_all_finite(X: np.ndarray, allow_nan: bool = False) -> None:
@@ -31,12 +28,7 @@ def _assert_all_finite(X: np.ndarray, allow_nan: bool = False) -> None:
         pass
     elif is_float:
         msg_err = "Input contains {} or a value too large for {!r}."
-        if (
-            allow_nan
-            and np.isinf(X).any()
-            or not allow_nan
-            and not np.isfinite(X).all()
-        ):
+        if allow_nan and np.isinf(X).any() or not allow_nan and not np.isfinite(X).all():
             type_err = "infinity" if allow_nan else "NaN, infinity"
             raise ValueError(msg_err.format(type_err, X.dtype))
     # for object dtype data, we only check for NaNs (GH-13254)
@@ -183,8 +175,7 @@ def is_multilabel(y: Union[np.ndarray, spmatrix]) -> bool:
             len(y.data) == 0
             or np.unique(y.data).size == 1
             and (
-                y.dtype.kind in "biu"
-                or _is_integral_float(np.unique(y.data))  # bool, int, uint
+                y.dtype.kind in "biu" or _is_integral_float(np.unique(y.data))  # bool, int, uint
             )
         )
     else:
@@ -281,14 +272,10 @@ def type_of_target(y: Union[np.ndarray, spmatrix]) -> str:
     >>> type_of_target(np.array([[0, 1], [1, 1]]))
     'multilabel-indicator'
     """
-    valid = (
-        isinstance(y, (Sequence, spmatrix)) or hasattr(y, "__array__")
-    ) and not isinstance(y, str)
+    valid = (isinstance(y, (Sequence, spmatrix)) or hasattr(y, "__array__")) and not isinstance(y, str)
 
     if not valid:
-        raise ValueError(
-            "Expected array-like (array or non-string sequence), got %r" % y
-        )
+        raise ValueError("Expected array-like (array or non-string sequence), got %r" % y)
 
     sparseseries = y.__class__.__name__ == "SparseSeries"
     if sparseseries:
@@ -305,11 +292,7 @@ def type_of_target(y: Union[np.ndarray, spmatrix]) -> str:
 
     # The old sequence of sequences format
     try:
-        if (
-            not hasattr(y[0], "__array__")
-            and isinstance(y[0], Sequence)
-            and not isinstance(y[0], str)
-        ):
+        if not hasattr(y[0], "__array__") and isinstance(y[0], Sequence) and not isinstance(y[0], str):
             raise ValueError(
                 "You appear to be using a legacy multi-label data"
                 " representation. Sequence of sequences are no"
@@ -347,9 +330,7 @@ def type_of_target(y: Union[np.ndarray, spmatrix]) -> str:
 def check_unique_type(y: np.ndarray) -> None:
     target_types = pd.Series(y).map(type).unique()
     if len(target_types) != 1:
-        raise TypeError(
-            f"Values on the target must have the same type. Target has types {target_types}"
-        )
+        raise TypeError(f"Values on the target must have the same type. Target has types {target_types}")
 
 
 def infer_output_dim(y_train: np.ndarray) -> tuple[int, np.ndarray]:
@@ -407,10 +388,7 @@ def infer_multitask_output(y_train: np.ndarray) -> tuple[List[int], List[np.ndar
     """
 
     if len(y_train.shape) < 2:
-        raise ValueError(
-            "y_train should be of shape (n_examples, n_tasks)"
-            + f"but got {y_train.shape}"
-        )
+        raise ValueError("y_train should be of shape (n_examples, n_tasks)" + f"but got {y_train.shape}")
     nb_tasks = y_train.shape[1]
     tasks_dims = []
     tasks_labels = []

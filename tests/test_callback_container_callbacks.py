@@ -1,6 +1,6 @@
-import pytest
-
 import time
+
+import pytest
 
 from pytorch_tabnet.callbacks import (
     Callback,
@@ -60,9 +60,7 @@ def test_callback_container(trainer):
 
 
 def test_early_stopping_minimize(trainer, logs):
-    early_stopping = EarlyStopping(
-        early_stopping_metric="loss", is_maximize=False, patience=2, tol=0.01
-    )
+    early_stopping = EarlyStopping(early_stopping_metric="loss", is_maximize=False, patience=2, tol=0.01)
     early_stopping.set_trainer(trainer)
 
     # Simulate training for a few epochs
@@ -80,9 +78,7 @@ def test_early_stopping_minimize(trainer, logs):
 
 
 def test_early_stopping_maximize(trainer, logs):
-    early_stopping = EarlyStopping(
-        early_stopping_metric="loss", is_maximize=True, patience=2, tol=0.1
-    )
+    early_stopping = EarlyStopping(early_stopping_metric="loss", is_maximize=True, patience=2, tol=0.1)
     early_stopping.set_trainer(trainer)
 
     # Simulate training for a few epochs
@@ -101,9 +97,7 @@ def test_early_stopping_maximize(trainer, logs):
 
 
 def test_early_stopping_patience(trainer, logs):
-    early_stopping = EarlyStopping(
-        early_stopping_metric="loss", is_maximize=False, patience=2, tol=0.1
-    )
+    early_stopping = EarlyStopping(early_stopping_metric="loss", is_maximize=False, patience=2, tol=0.1)
     early_stopping.set_trainer(trainer)
 
     losses = [0.5, 0.4, 0.5, 0.6, 0.7]
