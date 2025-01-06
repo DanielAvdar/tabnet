@@ -45,6 +45,8 @@ from pytorch_tabnet.utils import (
 class TabModel(BaseEstimator):
     """Class for TabNet model."""
 
+    compile_backends = ["inductor", "cudagraphs", "ipex", "onnxrt"]
+
     n_d: int = 8
     n_a: int = 8
     n_steps: int = 3
@@ -72,6 +74,7 @@ class TabModel(BaseEstimator):
     n_indep_decoder: int = 1
     grouped_features: List[List[int]] = field(default_factory=list)
     _callback_container: CallbackContainer = field(default=None, repr=False, init=False, compare=False)
+    compile_backend: str = ""
 
     def __post_init__(self) -> None:
         # These are default values needed for saving model
@@ -614,6 +617,8 @@ class TabModel(BaseEstimator):
             mask_type=self.mask_type,
             group_attention_matrix=self.group_matrix.to(self.device),
         ).to(self.device)
+        if self.compile_backend in self.compile_backends:
+            self.network = torch.compile(self.network, backend=self.compile_backend)
 
         self.reducing_matrix = create_explain_matrix(
             self.network.input_dim,

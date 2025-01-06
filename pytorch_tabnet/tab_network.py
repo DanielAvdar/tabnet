@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-import numpy as np
+import numpy as np  # todo: remove np
 import torch
 from torch.nn import BatchNorm1d, Linear, ReLU
 
@@ -8,14 +8,14 @@ from pytorch_tabnet import sparsemax
 
 
 def initialize_non_glu(module: torch.nn.Module, input_dim: int, output_dim: int) -> None:
-    gain_value = np.sqrt((input_dim + output_dim) / np.sqrt(4 * input_dim))
+    gain_value = np.sqrt((input_dim + output_dim) / np.sqrt(4 * input_dim))  # todo: remove np
     torch.nn.init.xavier_normal_(module.weight, gain=gain_value)
     # torch.nn.init.zeros_(module.bias)
     return
 
 
 def initialize_glu(module: torch.nn.Module, input_dim: int, output_dim: int) -> None:
-    gain_value = np.sqrt((input_dim + output_dim) / np.sqrt(input_dim))
+    gain_value = np.sqrt((input_dim + output_dim) / np.sqrt(input_dim))  # todo: remove np
     torch.nn.init.xavier_normal_(module.weight, gain=gain_value)
     # torch.nn.init.zeros_(module.bias)
     return
@@ -35,7 +35,7 @@ class GBN(torch.nn.Module):
         self.bn = BatchNorm1d(self.input_dim, momentum=momentum)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        chunks = x.chunk(int(np.ceil(x.shape[0] / self.virtual_batch_size)), 0)
+        chunks = x.chunk(int(np.ceil(x.shape[0] / self.virtual_batch_size)), 0)  # todo: remove np
         res = [self.bn(x_) for x_ in chunks]
 
         return torch.cat(res, dim=0)
@@ -162,9 +162,11 @@ class TabNetEncoder(torch.nn.Module):
 
         bs = x.shape[0]  # batch size
         if prior is None:
-            prior = torch.ones((bs, self.attention_dim)).to(x.device)
+            prior = torch.ones((bs, self.attention_dim)).to(
+                x.device
+            )  # todo: skipping cudagraphs due to skipping cudagraphs due to cpu device
 
-        M_loss = torch.tensor(0.0).to(x.device)
+        M_loss = torch.tensor(0.0).to(x.device)  # todo: skipping cudagraphs due to skipping cudagraphs due to cpu device
         att = self.initial_splitter(x)[:, self.n_d :]
         steps_output = []
         for step in range(self.n_steps):
@@ -385,7 +387,11 @@ class TabNetPretraining(torch.nn.Module):
         else:
             steps_out, _ = self.encoder(embedded_x)
             res = self.decoder(steps_out)
-            return res, embedded_x, torch.ones(embedded_x.shape).to(x.device)
+            return (
+                res,
+                embedded_x,
+                torch.ones(embedded_x.shape).to(x.device),
+            )  # todo: skipping cudagraphs due to skipping cudagraphs due to cpu device
 
     def forward_masks(self, x: torch.Tensor) -> tuple[torch.Tensor, dict]:
         embedded_x = self.embedder(x)
@@ -766,7 +772,7 @@ class GLU_Block(torch.nn.Module):
             self.glu_layers.append(GLU_Layer(output_dim, output_dim, fc=fc, **params))  # type: ignore
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        scale = torch.sqrt(torch.FloatTensor([0.5]).to(x.device))
+        scale = torch.sqrt(torch.FloatTensor([0.5]).to(x.device))  # todo: skipping cudagraphs due to skipping cudagraphs due to cpu device
         if self.first:  # the first layer of the block has no scale multiplication
             x = self.glu_layers[0](x)
             layers_left = range(1, self.n_glu)
@@ -849,7 +855,7 @@ class EmbeddingGenerator(torch.nn.Module):
         if isinstance(cat_emb_dims, int):
             cat_emb_dims = [cat_emb_dims] * len(cat_dims)
 
-        self.post_embed_dim = int(input_dim + np.sum(cat_emb_dims) - len(cat_emb_dims))
+        self.post_embed_dim = int(input_dim + np.sum(cat_emb_dims) - len(cat_emb_dims))  # todo: remove np
 
         self.embeddings = torch.nn.ModuleList()
 
