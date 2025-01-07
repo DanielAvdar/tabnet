@@ -200,7 +200,8 @@ class TabNetPretrainer(TabModel):
             mask_type=self.mask_type,
             group_attention_matrix=self.group_matrix.to(self.device),
         ).to(self.device)
-
+        if self.compile_backend in self.compile_backends:
+            self.network = torch.compile(self.network, backend=self.compile_backend)
         self.reducing_matrix = create_explain_matrix(
             self.network.input_dim,
             self.network.cat_emb_dim,

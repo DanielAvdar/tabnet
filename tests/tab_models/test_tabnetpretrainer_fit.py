@@ -1,10 +1,28 @@
 import numpy as np
 import pytest
 import scipy
+import torch
 
 from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
 from pytorch_tabnet.pretraining import TabNetPretrainer
 from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
+
+# import os
+
+compile_backends = [
+    "no-compile",
+]  # "onnxrt"]
+
+# torch.onnx.is_onnxrt_backend_supported()
+compile_backends += (
+    [
+        "onnxrt",
+    ]
+    if torch.onnx.is_onnxrt_backend_supported()
+    else []
+)
+compile_backends += ["cudagraphs"] if torch.cuda.is_available() else []
+# compile_backends += ["inductor"] if torch.cuda.is_available() and os.name != "nt" else []
 
 
 @pytest.mark.parametrize(
@@ -61,9 +79,10 @@ from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
     ],
 )
 @pytest.mark.parametrize("mask_type", ["sparsemax", "entmax"])
-def test_pretrainer_fit(model_params, fit_params, X_train, X_valid, mask_type):
+@pytest.mark.parametrize("compile_backend", compile_backends)
+def test_pretrainer_fit(model_params, fit_params, X_train, X_valid, mask_type, compile_backend):
     """Test TabNetPretrainer fit method."""
-    unsupervised_model = TabNetPretrainer(**model_params, mask_type=mask_type)
+    unsupervised_model = TabNetPretrainer(**model_params, mask_type=mask_type, compile_backend=compile_backend)
     unsupervised_model.fit(X_train=X_train, eval_set=[X_valid], **fit_params)
     assert hasattr(unsupervised_model, "network")
     assert unsupervised_model.network.pretraining_ratio == 0.8
