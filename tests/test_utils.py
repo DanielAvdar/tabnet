@@ -5,11 +5,11 @@ from scipy import sparse as sparse
 from torch.utils.data import DataLoader, WeightedRandomSampler
 
 import pytorch_tabnet
+from pytorch_tabnet.data_handlers import create_sampler
 from pytorch_tabnet.pretraining_utils import create_dataloaders
 from pytorch_tabnet.utils import (
     check_list_groups,
     create_group_matrix,
-    create_sampler,
     validate_eval_set,
 )
 from tests.test_pretraining_utils import mock_create_sampler
@@ -83,7 +83,7 @@ def test_create_dataloaders(
     pin_memory,
     monkeypatch,
 ):
-    monkeypatch.setattr(pytorch_tabnet.utils, "create_sampler", mock_create_sampler)
+    monkeypatch.setattr(pytorch_tabnet.data_handlers, "create_sampler", mock_create_sampler)
 
     X_train = sparse.random(100, 10) if X_train_sparse else np.random.rand(100, 10)
     eval_set = [sparse.random(50, 10), sparse.random(50, 10)] if eval_set_sparse else [np.random.rand(50, 10), np.random.rand(50, 10)]

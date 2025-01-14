@@ -7,8 +7,9 @@ import torch
 from torch.utils.data import DataLoader
 
 from pytorch_tabnet.abstract_model import TabModel
+from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset
 from pytorch_tabnet.multiclass_utils import check_output_dim, infer_output_dim
-from pytorch_tabnet.utils import PredictDataset, SparsePredictDataset, filter_weights
+from pytorch_tabnet.utils import filter_weights
 
 
 @dataclass

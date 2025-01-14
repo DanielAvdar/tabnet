@@ -25,15 +25,13 @@ from pytorch_tabnet.callbacks import (
     History,
     LRSchedulerCallback,
 )
+from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, create_dataloaders
 from pytorch_tabnet.metrics import MetricContainer, check_metrics
 from pytorch_tabnet.utils import (
     ComplexEncoder,
-    PredictDataset,
-    SparsePredictDataset,
     check_embedding_parameters,
     check_input,
     check_warm_start,
-    create_dataloaders,
     create_explain_matrix,
     create_group_matrix,
     define_device,

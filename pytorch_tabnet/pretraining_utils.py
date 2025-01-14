@@ -4,11 +4,9 @@ import numpy as np
 import scipy
 from torch.utils.data import DataLoader
 
+from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, create_sampler
 from pytorch_tabnet.utils import (
-    PredictDataset,
-    SparsePredictDataset,
     check_input,
-    create_sampler,
 )
 
 

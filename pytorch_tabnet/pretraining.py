@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 
 from pytorch_tabnet import tab_network
 from pytorch_tabnet.abstract_model import TabModel
+from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset
 from pytorch_tabnet.metrics import (
     UnsupervisedLoss,
     UnsupMetricContainer,
@@ -19,8 +20,6 @@ from pytorch_tabnet.pretraining_utils import (
     validate_eval_set,
 )
 from pytorch_tabnet.utils import (
-    PredictDataset,
-    SparsePredictDataset,
     check_input,
     create_explain_matrix,
     create_group_matrix,
