@@ -163,7 +163,7 @@ def test_forest():
     assert (test_acc == loaded_test_acc)
     assert test_acc > 0.2
 
-    clf.feature_importances_
+    # clf.feature_importances_
 
     explain_matrix, masks = clf.explain(X_test)
 

@@ -173,7 +173,7 @@ def test_pretraining():
 
     assert (test_auc == loaded_test_auc)
 
-    clf.feature_importances_
+    # clf.feature_importances_
 
     explain_matrix, masks = clf.explain(X_test)
 

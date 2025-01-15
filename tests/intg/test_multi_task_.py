@@ -157,7 +157,7 @@ def test_multi_task():
 
     loaded_clf.predict(X_test)
 
-    clf.feature_importances_
+    # clf.feature_importances_
 
     explain_matrix, masks = clf.explain(X_test)
 

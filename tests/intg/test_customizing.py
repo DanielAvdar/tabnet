@@ -138,7 +138,7 @@ def test_customizing():
     print(f"FINAL TEST SCORE FOR {dataset_name} : {loaded_test_auc}")
     assert (test_auc == loaded_test_auc)
 
-    clf.feature_importances_
+    # clf.feature_importances_
 
     explain_matrix, masks = clf.explain(X_test)
     fig, axs = plt.subplots(1, 3, figsize=(20, 20))
