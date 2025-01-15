@@ -142,7 +142,7 @@ class TabModel(BaseEstimator):
         from_unsupervised: Union[None, "TabModel"] = None,
         warm_start: bool = False,
         augmentations: Union[None, Any] = None,
-        compute_importance: bool = True,
+        compute_importance: bool = False,
         *args: Any,
         **kwargs: Any,
     ) -> None:

@@ -5,6 +5,8 @@ import scipy
 import torch
 from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 
+X_type = Union[np.ndarray, scipy.sparse.csr_matrix]
+
 
 class TorchDataset(Dataset):
     """
@@ -19,13 +21,13 @@ class TorchDataset(Dataset):
     """
 
     def __init__(self, x: np.ndarray, y: np.ndarray):
-        self.x = x
-        self.y = y
+        self.x = torch.from_numpy(x)
+        self.y = torch.from_numpy(y)
 
     def __len__(self) -> int:
         return len(self.x)
 
-    def __getitem__(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
+    def __getitem__(self, index: int) -> Tuple[torch.Tensor, torch.Tensor]:
         x, y = self.x[index], self.y[index]
         return x, y
 
@@ -43,14 +45,14 @@ class SparseTorchDataset(Dataset):
     """
 
     def __init__(self, x: scipy.sparse.csr_matrix, y: np.ndarray):
-        self.x = x
-        self.y = y
+        self.x = torch.from_numpy(x.toarray()).float()
+        self.y = torch.from_numpy(y)
 
     def __len__(self) -> int:
         return self.x.shape[0]
 
-    def __getitem__(self, index: int) -> Tuple[torch.Tensor, np.ndarray]:
-        x = torch.from_numpy(self.x[index].toarray()[0]).float()
+    def __getitem__(self, index: int) -> Tuple[torch.Tensor, torch.Tensor]:
+        x = self.x[index]
         y = self.y[index]
         return x, y
 
@@ -65,13 +67,18 @@ class PredictDataset(Dataset):
         The input matrix
     """
 
-    def __init__(self, x: np.ndarray):
-        self.x = x
+    def __init__(self, x: Union[X_type, torch.Tensor]):
+        if isinstance(x, torch.Tensor):
+            self.x = x
+        elif scipy.sparse.issparse(x):
+            self.x = torch.from_numpy(x.toarray())
+        else:
+            self.x = torch.from_numpy(x)
 
     def __len__(self) -> int:
         return len(self.x)
 
-    def __getitem__(self, index: int) -> np.ndarray:
+    def __getitem__(self, index: int) -> torch.Tensor:
         x = self.x[index]
         return x
 
@@ -87,13 +94,14 @@ class SparsePredictDataset(Dataset):
     """
 
     def __init__(self, x: scipy.sparse.csr_matrix):
-        self.x = x
+        self.x = torch.from_numpy(x.toarray()).float()
 
     def __len__(self) -> int:
         return self.x.shape[0]
 
     def __getitem__(self, index: int) -> torch.Tensor:
-        x = torch.from_numpy(self.x[index].toarray()[0]).float()
+        # x = torch.from_numpy(self.x[index].toarray()[0]).float()
+        x = self.x[index]
         return x
 
 
@@ -145,9 +153,9 @@ def create_sampler(weights: Union[int, Dict, Iterable], y_train: np.ndarray) -> 
 
 
 def create_dataloaders(
-    X_train: np.ndarray,
+    X_train: X_type,
     y_train: np.ndarray,
-    eval_set: List[Tuple[np.ndarray, np.ndarray]],
+    eval_set: List[Tuple[X_type, np.ndarray]],
     weights: Union[int, Dict, Iterable],
     batch_size: int,
     num_workers: int,
