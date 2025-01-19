@@ -286,6 +286,7 @@ class TabNetPretrainer(TabModel):
 
         for batch_idx, X in enumerate(train_loader):
             self._callback_container.on_batch_begin(batch_idx)
+            X = X.to(self.device, non_blocking=True)
 
             batch_logs = self._train_batch(X)
 
@@ -314,7 +315,7 @@ class TabNetPretrainer(TabModel):
         """
         batch_logs = {"batch_size": X.shape[0]}
 
-        X = X.to(self.device).float()
+        # X = X.to(self.device).float()
 
         for param in self.network.parameters():
             param.grad = None
