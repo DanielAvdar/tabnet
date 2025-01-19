@@ -89,7 +89,9 @@ class TabNetMultiTaskClassifier(TabModel):
         self.target_mapper = [{class_label: index for index, class_label in enumerate(classes)} for classes in self.classes_]
         self.preds_mapper = [{str(index): str(class_label) for index, class_label in enumerate(classes)} for classes in self.classes_]
         # self.updated_weights = weights
-        filter_weights(weights=weights, )
+        filter_weights(
+            weights=weights,
+        )
 
     def predict(self, X: Union[torch.Tensor, np.ndarray, scipy.sparse.csr_matrix]) -> List[np.ndarray]:
         """

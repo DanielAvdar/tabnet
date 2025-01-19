@@ -130,7 +130,7 @@ class TabModel(BaseEstimator):
         eval_name: Union[None, List[str]] = None,
         eval_metric: Union[None, List[str]] = None,
         loss_fn: Union[None, Callable] = None,
-        weights: Union[int, Dict,np.array] = 0,
+        weights: Union[int, Dict, np.array] = 0,
         max_epochs: int = 100,
         patience: int = 10,
         batch_size: int = 1024,
@@ -706,7 +706,7 @@ class TabModel(BaseEstimator):
         X_train: np.ndarray,
         y_train: np.ndarray,
         eval_set: List[Tuple[np.ndarray, np.ndarray]],
-            weights: Union[int, Dict,np.array],
+        weights: Union[int, Dict, np.array],
     ) -> Tuple[DataLoader, List[DataLoader]]:
         """Generate dataloaders for train and eval set.
 
@@ -761,7 +761,8 @@ class TabModel(BaseEstimator):
 
     def _update_network_params(self) -> None:
         self.network.virtual_batch_size = self.virtual_batch_size
-    def weight_updater(self, weights: Union[bool, Dict[str, Any]]) -> Union[bool, Dict[Union[str, int], Any]]:
+
+    def weight_updater(self, weights: Union[bool, Dict[Union[str, int], Any], Any]) -> Union[bool, Dict[Union[str, int], Any]]:
         return weights
 
     @abstractmethod

@@ -22,9 +22,9 @@ class TabNetClassifier(TabModel):
         self._default_loss: Any = torch.nn.functional.cross_entropy
         self._default_metric: str = "accuracy"
 
-    def weight_updater(self, weights: Union[bool, Dict[str, Any]]) -> Union[bool, Dict[Union[str, int], Any]]:
+    def weight_updater(self, weights: Union[bool, Dict[Union[str, int], Any], Any]) -> Union[bool, Dict[Union[str, int], Any]]:
         if isinstance(weights, int):
-            return weights
+            return weights  # type: ignore
         elif isinstance(weights, dict):
             return {self.target_mapper[key]: value for key, value in weights.items()}
         else:
