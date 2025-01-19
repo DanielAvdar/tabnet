@@ -81,7 +81,6 @@ def test_create_dataloaders_sparse_data(sparse_sample_data):
             np.random.randint(0, 2, size=100).astype(np.float32),
             [(csr_matrix(np.random.rand(20, 20).astype(np.float32)), np.random.randint(0, 2, size=20).astype(np.float32))],
         ),
-
     ],
 )
 def test_create_dataloaders_weights_handling_dense(weights, X_train, y_train, eval_set):
@@ -121,8 +120,7 @@ def test_create_dataloaders_batch_behavior_dense(sample_data, batch_size, drop_l
     pin_memory = False
     weights = 0
 
-    train_loader, _ = create_dataloaders(X_train, y_train, eval_set, weights, batch_size, num_workers, drop_last,
-                                         pin_memory)
+    train_loader, _ = create_dataloaders(X_train, y_train, eval_set, weights, batch_size, num_workers, drop_last, pin_memory)
 
     # Check if the correct number of batches is created
     assert len(train_loader) == expected_batches

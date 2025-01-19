@@ -57,7 +57,7 @@ def test_customizing():
 
     cat_dims = [categorical_dims[f] for i, f in enumerate(features) if f in categorical_columns]
 
-    max_epochs =  4
+    max_epochs = 6
     batch_size = 1024
     clf = TabNetClassifier(cat_idxs=cat_idxs,
                            cat_dims=cat_dims,

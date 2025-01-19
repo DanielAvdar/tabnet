@@ -512,7 +512,6 @@ class TabModel(BaseEstimator):
         """
         batch_logs = {"batch_size": X.shape[0]}
 
-
         if self.augmentations is not None:
             X, y = self.augmentations(X, y)
 

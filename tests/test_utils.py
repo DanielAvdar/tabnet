@@ -206,5 +206,3 @@ def test_create_group_matrix_invalid_input(list_groups, input_dim):
 def test_create_group_matrix_correct_output(list_groups, input_dim, expected_matrix):
     result = create_group_matrix(list_groups, input_dim)
     assert torch.allclose(result, expected_matrix), f"Expected matrix {expected_matrix}, got {result}"
-
-
