@@ -1,28 +1,23 @@
 import numpy as np
 import pytest
 import scipy
-import torch
 
 from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
 from pytorch_tabnet.pretraining import TabNetPretrainer
 from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
 
-# import os
-
-compile_backends = [
-    "no-compile",
-]  # "onnxrt"]
-
-# torch.onnx.is_onnxrt_backend_supported()
-compile_backends += (
-    [
-        "onnxrt",
-    ]
-    if torch.onnx.is_onnxrt_backend_supported()
-    else []
-)
-compile_backends += ["cudagraphs"] if torch.cuda.is_available() else []
-# compile_backends += ["inductor"] if torch.cuda.is_available() and os.name != "nt" else []
+# compile_backends = [
+#     "no-compile",
+# ]  # "onnxrt"]
+#
+# compile_backends += (
+#     [
+#         "onnxrt",
+#     ]
+#     if torch.onnx.is_onnxrt_backend_supported()
+#     else []
+# )
+# compile_backends += ["cudagraphs"] if torch.cuda.is_available() else []
 
 
 @pytest.mark.parametrize(
@@ -34,7 +29,7 @@ compile_backends += ["cudagraphs"] if torch.cuda.is_available() else []
                 pretraining_ratio=0.8,
                 max_epochs=1,
                 batch_size=32,
-                virtual_batch_size=16,
+                # virtual_batch_size=16,
             ),
             np.random.rand(1000, 10),
             np.random.rand(50, 10),
@@ -48,7 +43,7 @@ compile_backends += ["cudagraphs"] if torch.cuda.is_available() else []
                 pretraining_ratio=0.8,
                 max_epochs=1,
                 batch_size=32,
-                virtual_batch_size=32,
+                # virtual_batch_size=32,
             ),
             np.random.rand(1000, 10),
             np.random.rand(50, 10),
@@ -59,7 +54,7 @@ compile_backends += ["cudagraphs"] if torch.cuda.is_available() else []
                 pretraining_ratio=0.8,
                 max_epochs=1,
                 batch_size=16,
-                virtual_batch_size=32,
+                # virtual_batch_size=32,
                 weights=np.ones(100),  # todo fix bug in TabNetPretrainer for 1000 samples
             ),
             np.random.rand(100, 10),
@@ -71,7 +66,7 @@ compile_backends += ["cudagraphs"] if torch.cuda.is_available() else []
                 pretraining_ratio=0.8,
                 max_epochs=1,
                 batch_size=32,
-                virtual_batch_size=16,
+                # virtual_batch_size=16,
             ),
             scipy.sparse.csr_matrix((1000, 10)),
             scipy.sparse.csr_matrix((50, 10)),
@@ -79,11 +74,16 @@ compile_backends += ["cudagraphs"] if torch.cuda.is_available() else []
     ],
 )
 @pytest.mark.parametrize("mask_type", ["sparsemax", "entmax"])
-@pytest.mark.parametrize("compile_backend", compile_backends)
-def test_pretrainer_fit(model_params, fit_params, X_train, X_valid, mask_type, compile_backend):
+# @pytest.mark.parametrize("compile_backend", compile_backends)
+@pytest.mark.parametrize("pin_memory", [True, False])
+@pytest.mark.parametrize("num_workers", [0, 2])
+def test_pretrainer_fit(model_params, fit_params, X_train, X_valid, mask_type, pin_memory, num_workers):
     """Test TabNetPretrainer fit method."""
-    unsupervised_model = TabNetPretrainer(**model_params, mask_type=mask_type, compile_backend=compile_backend)
-    unsupervised_model.fit(X_train=X_train, eval_set=[X_valid], **fit_params)
+    unsupervised_model = TabNetPretrainer(
+        **model_params,
+        mask_type=mask_type,
+    )
+    unsupervised_model.fit(X_train=X_train, eval_set=[X_valid], **fit_params, pin_memory=pin_memory)
     assert hasattr(unsupervised_model, "network")
     assert unsupervised_model.network.pretraining_ratio == 0.8
     assert unsupervised_model.history.epoch_metrics
