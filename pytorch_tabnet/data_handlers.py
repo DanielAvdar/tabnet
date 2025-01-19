@@ -21,8 +21,8 @@ class TorchDataset(Dataset):
     """
 
     def __init__(self, x: np.ndarray, y: np.ndarray):
-        self.x = torch.from_numpy(x)
-        self.y = torch.from_numpy(y)
+        self.x = torch.from_numpy(x).float()
+        self.y = torch.from_numpy(y).float()
 
     def __len__(self) -> int:
         return len(self.x)
@@ -46,7 +46,7 @@ class SparseTorchDataset(Dataset):
 
     def __init__(self, x: scipy.sparse.csr_matrix, y: np.ndarray):
         self.x = torch.from_numpy(x.toarray()).float()
-        self.y = torch.from_numpy(y)
+        self.y = torch.from_numpy(y).float()
 
     def __len__(self) -> int:
         return self.x.shape[0]
@@ -74,6 +74,7 @@ class PredictDataset(Dataset):
             self.x = torch.from_numpy(x.toarray())
         else:
             self.x = torch.from_numpy(x)
+        self.x = self.x.float()
 
     def __len__(self) -> int:
         return len(self.x)
