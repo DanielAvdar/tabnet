@@ -105,7 +105,7 @@ def test_customizing():
         eval_metric=["auc", my_metric],
         max_epochs=max_epochs, patience=0,
         batch_size=batch_size,
-        virtual_batch_size=128,
+        # virtual_batch_size=128,
         num_workers=0,
         weights=1,
         drop_last=False,

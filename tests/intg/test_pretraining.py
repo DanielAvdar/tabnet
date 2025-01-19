@@ -94,7 +94,7 @@ def test_pretraining():
         X_train=X_train,
         eval_set=[X_valid],
         max_epochs=max_epochs, patience=5,
-        batch_size=2048, virtual_batch_size=128,
+        batch_size=2048, #virtual_batch_size=128,
         num_workers=0,
         drop_last=False,
         pretraining_ratio=0.5,

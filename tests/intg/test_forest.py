@@ -124,7 +124,8 @@ def test_forest():
         eval_set=[(X_train, y_train), (X_valid, y_valid)],
         eval_name=['train', 'valid'],
         max_epochs=max_epochs, patience=100,
-        batch_size=16384, virtual_batch_size=256,
+        batch_size=16384,
+        # virtual_batch_size=256,
         augmentations=aug
     )
 
