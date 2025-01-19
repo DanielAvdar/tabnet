@@ -45,8 +45,8 @@ class TabNetPretrainer(TabModel):
         self,
         weights: np.ndarray,
     ) -> None:
-        self.updated_weights = weights
-        filter_weights(self.updated_weights)
+        # self.updated_weights = weights
+        filter_weights(weights)
         self.preds_mapper = None
 
     def fit(  # type: ignore[override]
@@ -136,7 +136,7 @@ class TabNetPretrainer(TabModel):
 
         # Validate and reformat eval set depending on training data
         eval_names = validate_eval_set(eval_set, eval_name, X_train)
-        train_dataloader, valid_dataloaders = self._construct_loaders(X_train, eval_set)
+        train_dataloader, valid_dataloaders = self._construct_loaders(X_train, eval_set,weights=weights)
 
         if not hasattr(self, "network") or not warm_start:
             # model has never been fitted before of warm_start is False
@@ -243,7 +243,8 @@ class TabNetPretrainer(TabModel):
         self.early_stopping_metric = self._metrics_names[-1] if len(self._metrics_names) > 0 else None
 
     def _construct_loaders(  # type: ignore[override]
-        self, X_train: np.ndarray, eval_set: List[Union[np.ndarray, List[np.ndarray]]]
+        self, X_train: np.ndarray, eval_set: List[Union[np.ndarray, List[np.ndarray]]],
+            weights: Union[int, Dict,np.array],
     ) -> tuple[DataLoader, List[DataLoader]]:
         """Generate dataloaders for unsupervised train and eval set.
 
@@ -265,7 +266,7 @@ class TabNetPretrainer(TabModel):
         train_dataloader, valid_dataloaders = create_dataloaders(
             X_train,
             eval_set,
-            self.updated_weights,
+            weights,
             self.batch_size,
             self.num_workers,
             self.drop_last,

@@ -130,7 +130,7 @@ class TabModel(BaseEstimator):
         eval_name: Union[None, List[str]] = None,
         eval_metric: Union[None, List[str]] = None,
         loss_fn: Union[None, Callable] = None,
-        weights: Union[int, Dict] = 0,
+        weights: Union[int, Dict,np.array] = 0,
         max_epochs: int = 100,
         patience: int = 10,
         batch_size: int = 1024,
@@ -231,7 +231,12 @@ class TabModel(BaseEstimator):
         # Validate and reformat eval set depending on training data
         eval_names, eval_set = validate_eval_set(eval_set, eval_name, X_train, y_train)
 
-        train_dataloader, valid_dataloaders = self._construct_loaders(X_train, y_train, eval_set)
+        train_dataloader, valid_dataloaders = self._construct_loaders(
+            X_train,
+            y_train,
+            eval_set,
+            self.weight_updater(weights=weights),
+        )
 
         if from_unsupervised is not None:
             # Update parameters to match self pretraining
@@ -701,6 +706,7 @@ class TabModel(BaseEstimator):
         X_train: np.ndarray,
         y_train: np.ndarray,
         eval_set: List[Tuple[np.ndarray, np.ndarray]],
+            weights: Union[int, Dict,np.array],
     ) -> Tuple[DataLoader, List[DataLoader]]:
         """Generate dataloaders for train and eval set.
 
@@ -731,7 +737,7 @@ class TabModel(BaseEstimator):
             X_train,
             y_train_mapped,
             eval_set,
-            self.updated_weights,
+            weights,
             self.batch_size,
             self.num_workers,
             self.drop_last,
@@ -755,6 +761,8 @@ class TabModel(BaseEstimator):
 
     def _update_network_params(self) -> None:
         self.network.virtual_batch_size = self.virtual_batch_size
+    def weight_updater(self, weights: Union[bool, Dict[str, Any]]) -> Union[bool, Dict[Union[str, int], Any]]:
+        return weights
 
     @abstractmethod
     def update_fit_params(

@@ -53,7 +53,7 @@ class TabNetClassifier(TabModel):
         self.classes_: List[Any] = train_labels
         self.target_mapper: Dict[Any, int] = {class_label: index for index, class_label in enumerate(self.classes_)}
         self.preds_mapper: Dict[str, Any] = {str(index): class_label for index, class_label in enumerate(self.classes_)}
-        self.updated_weights: Union[bool, Dict[Union[str, int], Any]] = self.weight_updater(weights)
+        # self.updated_weights: Union[bool, Dict[Union[str, int], Any]] = self.weight_updater(weights)
 
     def stack_batches(
         self,
