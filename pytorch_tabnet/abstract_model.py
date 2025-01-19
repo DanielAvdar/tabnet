@@ -134,7 +134,7 @@ class TabModel(BaseEstimator):
         max_epochs: int = 100,
         patience: int = 10,
         batch_size: int = 1024,
-        virtual_batch_size: int = 128,
+        virtual_batch_size: int = None,
         num_workers: int = 0,
         drop_last: bool = True,
         callbacks: Union[None, List] = None,
@@ -198,7 +198,7 @@ class TabModel(BaseEstimator):
         self.max_epochs: int = max_epochs
         self.patience: int = patience
         self.batch_size = batch_size
-        self.virtual_batch_size = virtual_batch_size
+        self.virtual_batch_size = virtual_batch_size or batch_size
         self.num_workers: int = num_workers
         self.drop_last: bool = drop_last
         self.input_dim: int = X_train.shape[1]
@@ -480,6 +480,8 @@ class TabModel(BaseEstimator):
 
         for batch_idx, (X, y) in enumerate(train_loader):
             self._callback_container.on_batch_begin(batch_idx)
+            X = X.to(self.device, non_blocking=True)
+            y = y.to(self.device, non_blocking=True)
 
             batch_logs = self._train_batch(X, y)
 
@@ -510,8 +512,6 @@ class TabModel(BaseEstimator):
         """
         batch_logs = {"batch_size": X.shape[0]}
 
-        X = X.to(self.device).float()
-        y = y.to(self.device).float()
 
         if self.augmentations is not None:
             X, y = self.augmentations(X, y)
@@ -531,7 +531,7 @@ class TabModel(BaseEstimator):
             clip_grad_norm_(self.network.parameters(), self.clip_value)
         self._optimizer.step()
 
-        batch_logs["loss"] = loss.cpu().detach().numpy().item()
+        batch_logs["loss"] = loss.item()
 
         return batch_logs
 
@@ -554,8 +554,8 @@ class TabModel(BaseEstimator):
         with torch.no_grad():
             # Main loop
             for _batch_idx, (X, y) in enumerate(loader):
-                scores = self._predict_batch(X.to(self.device))
-                list_y_true.append(y.to(self.device))
+                scores = self._predict_batch(X.to(self.device, non_blocking=True).float())
+                list_y_true.append(y.to(self.device, non_blocking=True))
                 list_y_score.append(scores)
 
         y_true, scores = self.stack_batches(list_y_true, list_y_score)
@@ -579,7 +579,6 @@ class TabModel(BaseEstimator):
         np.array
             model scores
         """
-        X = X.to(self.device).float()
 
         # compute model output
         scores, _ = self.network(X)
