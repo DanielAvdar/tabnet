@@ -247,7 +247,7 @@ class TabNetPretrainer(TabModel):
         X_train: np.ndarray,
         eval_set: List[Union[np.ndarray, List[np.ndarray]]],
         weights: Union[int, Dict, np.array],
-    ) -> tuple[DataLoader, List[DataLoader]]:
+    ) -> tuple[DataLoader, List[DataLoader]]:  # todo: replace loader
         """Generate dataloaders for unsupervised train and eval set.
 
         Parameters
@@ -276,7 +276,7 @@ class TabNetPretrainer(TabModel):
         )
         return train_dataloader, valid_dataloaders
 
-    def _train_epoch(self, train_loader: DataLoader) -> None:
+    def _train_epoch(self, train_loader: DataLoader) -> None:  # todo: replace loader
         """
         Trains one epoch of the network in self.network
 
@@ -287,7 +287,7 @@ class TabNetPretrainer(TabModel):
         """
         self.network.train()
 
-        for batch_idx, X in enumerate(train_loader):
+        for batch_idx, X in enumerate(train_loader):  # todo: replace loader
             self._callback_container.on_batch_begin(batch_idx)
             X = X.to(self.device, non_blocking=True)
 
@@ -336,7 +336,7 @@ class TabNetPretrainer(TabModel):
 
         return batch_logs
 
-    def _predict_epoch(self, name: str, loader: DataLoader) -> None:
+    def _predict_epoch(self, name: str, loader: DataLoader) -> None:  # todo: replace loader
         """
         Predict an epoch and update metrics.
 
@@ -354,7 +354,7 @@ class TabNetPretrainer(TabModel):
         list_embedded_x = []
         list_obfuscation = []
         # Main loop
-        for _batch_idx, X in enumerate(loader):
+        for _batch_idx, X in enumerate(loader):  # todo: replace loader
             output, embedded_x, obf_vars = self._predict_batch(X)
             list_output.append(output)
             list_embedded_x.append(embedded_x)

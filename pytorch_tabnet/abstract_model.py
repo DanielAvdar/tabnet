@@ -231,7 +231,7 @@ class TabModel(BaseEstimator):
         # Validate and reformat eval set depending on training data
         eval_names, eval_set = validate_eval_set(eval_set, eval_name, X_train, y_train)
 
-        train_dataloader, valid_dataloaders = self._construct_loaders(
+        train_dataloader, valid_dataloaders = self._construct_loaders(  # todo: replace loader
             X_train,
             y_train,
             eval_set,
@@ -261,11 +261,11 @@ class TabModel(BaseEstimator):
             # Call method on_epoch_begin for all callbacks
             self._callback_container.on_epoch_begin(epoch_idx)
 
-            self._train_epoch(train_dataloader)
+            self._train_epoch(train_dataloader)  # todo: replace loader
 
             # Apply predict epoch to all eval sets
-            for eval_name_, valid_dataloader in zip(eval_names, valid_dataloaders, strict=False):
-                self._predict_epoch(eval_name_, valid_dataloader)
+            for eval_name_, valid_dataloader in zip(eval_names, valid_dataloaders, strict=False):  # todo: replace loader
+                self._predict_epoch(eval_name_, valid_dataloader)  # todo: replace loader
 
             # Call method on_epoch_end for all callbacks
             self._callback_container.on_epoch_end(epoch_idx, logs=self.history.epoch_metrics)
@@ -472,7 +472,7 @@ class TabModel(BaseEstimator):
 
         return
 
-    def _train_epoch(self, train_loader: DataLoader) -> None:
+    def _train_epoch(self, train_loader: DataLoader) -> None:  # todo: replace loader
         """
         Trains one epoch of the network in self.network
 
@@ -483,7 +483,7 @@ class TabModel(BaseEstimator):
         """
         self.network.train()
 
-        for batch_idx, (X, y) in enumerate(train_loader):
+        for batch_idx, (X, y) in enumerate(train_loader):  # todo: replace loader
             self._callback_container.on_batch_begin(batch_idx)
             X = X.to(self.device, non_blocking=True)
             y = y.to(self.device, non_blocking=True)
@@ -539,7 +539,7 @@ class TabModel(BaseEstimator):
 
         return batch_logs
 
-    def _predict_epoch(self, name: str, loader: DataLoader) -> None:
+    def _predict_epoch(self, name: str, loader: DataLoader) -> None:  # todo: replace loader
         """
         Predict an epoch and update metrics.
 
@@ -557,7 +557,7 @@ class TabModel(BaseEstimator):
         list_y_score = []
         with torch.no_grad():
             # Main loop
-            for _batch_idx, (X, y) in enumerate(loader):
+            for _batch_idx, (X, y) in enumerate(loader):  # todo: replace loader
                 scores = self._predict_batch(X.to(self.device, non_blocking=True).float())
                 list_y_true.append(y.to(self.device, non_blocking=True))
                 list_y_score.append(scores)
@@ -701,7 +701,7 @@ class TabModel(BaseEstimator):
         """Setup optimizer."""
         self._optimizer = self.optimizer_fn(self.network.parameters(), **self.optimizer_params)
 
-    def _construct_loaders(
+    def _construct_loaders(  # todo: replace loader
         self,
         X_train: np.ndarray,
         y_train: np.ndarray,
