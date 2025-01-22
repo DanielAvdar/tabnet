@@ -1,13 +1,14 @@
+import math
 from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
 from scipy import sparse as sparse
 from scipy.sparse import csr_matrix
-from torch.utils.data import DataLoader, WeightedRandomSampler
+from torch.utils.data import WeightedRandomSampler
 
 import pytorch_tabnet
-from pytorch_tabnet.data_handlers import create_dataloaders, create_dataloaders_pt, create_sampler, validate_eval_set
+from pytorch_tabnet.data_handlers import TBDataLoader, create_dataloaders, create_dataloaders_pt, create_sampler, validate_eval_set
 from pytorch_tabnet.utils import check_embedding_parameters
 
 
@@ -45,7 +46,8 @@ def test_create_dataloaders_dense_data(sample_data):
     assert len(train_loader) == len(y_train) // batch_size
     assert len(valid_loaders) == len(eval_set)
     for val_loader in valid_loaders:
-        assert isinstance(val_loader, DataLoader)
+        assert isinstance(val_loader, TBDataLoader)
+        assert len(val_loader) > 0
 
 
 def test_create_dataloaders_sparse_data(sparse_sample_data):
@@ -62,7 +64,7 @@ def test_create_dataloaders_sparse_data(sparse_sample_data):
     assert len(train_loader) == (len(y_train) + batch_size - 1) // batch_size
     assert len(valid_loaders) == len(eval_set)
     for val_loader in valid_loaders:
-        assert isinstance(val_loader, DataLoader)
+        assert isinstance(val_loader, TBDataLoader)
 
 
 @pytest.mark.parametrize(
@@ -322,29 +324,70 @@ def test_check_embedding_parameters_invalid(cat_dims, cat_idxs, cat_emb_dim, err
 
 
 @pytest.mark.parametrize(
-    "X_train_sparse,eval_set_sparse,weights,batch_size,num_workers,drop_last,pin_memory",
+    "x_train,eval_set",
     [
-        (False, True, [0.2] * 100, 128, 1, False, False),
+        (
+            np.random.rand(1000, 10),
+            [np.random.rand(50, 10), np.random.rand(50, 10), np.random.rand(300, 10)],
+        ),
     ],
 )
-@pytest.mark.skip("flaky")
+# @pytest.mark.parametrize(
+#     "weights",
+#     [
+#         (
+#             np.ones(1000),
+#             None,
+#         )
+#
+#     ],
+# )
+@pytest.mark.parametrize(
+    "batch_size",
+    [128, 1000, 2000, 64, 32, 600],
+)
+@pytest.mark.parametrize(
+    "num_workers,pin_memory",
+    [
+        (
+            0,
+            False,
+        )
+    ],
+)
+@pytest.mark.parametrize(
+    "drop_last",
+    [
+        (
+            True,
+            False,
+        )
+    ],
+)
+# @pytest.mark.skip("flaky")
 def test_create_dataloaders_pt(
-    X_train_sparse,
-    eval_set_sparse,
-    weights,
+    x_train,
+    eval_set,
+    # weights,
     batch_size,
     num_workers,
     drop_last,
     pin_memory,
     monkeypatch,
 ):
-    monkeypatch.setattr(pytorch_tabnet.data_handlers, "create_sampler", mock_create_sampler)
+    train_dataloader, valid_dataloaders = create_dataloaders_pt(x_train, eval_set, 0, batch_size, num_workers, drop_last, pin_memory)
+    assert len(train_dataloader) > 0
+    assert len(valid_dataloaders) > 0
 
-    X_train = sparse.random(100, 10) if X_train_sparse else np.random.rand(100, 10)
-    eval_set = [sparse.random(50, 10), sparse.random(50, 10)] if eval_set_sparse else [np.random.rand(50, 10), np.random.rand(50, 10)]
-
-    train_dataloader, valid_dataloaders = create_dataloaders_pt(X_train, eval_set, weights, batch_size, num_workers, drop_last, pin_memory)
-
-    assert isinstance(train_dataloader, DataLoader)
     assert isinstance(valid_dataloaders, list)
-    assert all(isinstance(loader, DataLoader) for loader in valid_dataloaders)
+    loaded_data = [d for d in train_dataloader]
+    # valid_loaded_data = [v for v in d for d in valid_dataloaders]
+    assert len(loaded_data) == len(train_dataloader)
+    assert len(loaded_data) == math.ceil(len(x_train) / batch_size) if not drop_last else True
+    assert len(loaded_data) == len(x_train) // batch_size if drop_last and len(x_train) // batch_size > 0 else True
+
+    # if batch_size<len(x_train):
+    #     for i, data in enumerate(loaded_data):
+    #         assert data.shape[0] == batch_size if batch_size<len(x_train) else data.shape[0] ==
+    #         len(x_train),f"Batch size should be consistent at {i}th batch"
+    # else:

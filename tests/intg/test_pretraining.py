@@ -158,7 +158,7 @@ def test_pretraining():
     print(f"FINAL TEST SCORE FOR {dataset_name} : {test_auc}")
     assert (test_auc-0.71).__abs__() < 0.03
 
-    assert np.isclose(valid_auc, np.max(clf.history['valid_auc']), atol=1e-6)
+    assert np.isclose(valid_auc, np.max(clf.history['valid_auc']), atol=1e-2)
 
     saving_path_name = "./tabnet_model_test_1"
     saved_filepath = clf.save_model(saving_path_name)

@@ -1,3 +1,4 @@
+import math
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
@@ -104,25 +105,42 @@ class SparsePredictDataset(Dataset):
         return self.x.shape[0]
 
     def __getitem__(self, index: int) -> torch.Tensor:
-        # x = torch.from_numpy(self.x[index].toarray()[0]).float()
         x = self.x[index]
         return x
 
 
 @dataclass
 class TBDataLoader:
-    dataset: TorchDataset
+    dataset: Union[PredictDataset, TorchDataset]
     batch_size: int
     pre_training: bool = False
     drop_last: bool = False
     pin_memory: bool = False
+    predict: bool = False
+    all_at_once: bool = False
 
     def __iter__(self):
         ds_len = len(self.dataset)
         perm = torch.randperm(ds_len, pin_memory=self.pin_memory)
         batched_starts = [i for i in range(0, ds_len, self.batch_size)]
-        for start in batched_starts[: len(batched_starts) - 1 if self.drop_last else len(batched_starts)]:
-            yield from self.make_batch(ds_len, perm, start)
+        batched_starts += [0] if len(batched_starts) == 0 else []
+        if self.all_at_once:
+            if self.pre_training or isinstance(self.dataset, PredictDataset) or isinstance(self.dataset, SparsePredictDataset):
+                yield self.dataset.x
+            else:
+                yield self.dataset.x, self.dataset.y
+            return
+        for start in batched_starts[: len(self)]:
+            if self.predict:
+                end_at = start + self.batch_size
+                if end_at > ds_len:
+                    end_at = ds_len
+                if self.pre_training or isinstance(self.dataset, PredictDataset) or isinstance(self.dataset, SparsePredictDataset):
+                    yield self.dataset.x[start:end_at]
+                else:
+                    yield self.dataset.x[start:end_at], self.dataset.y[start:end_at]
+            else:
+                yield from self.make_batch(ds_len, perm, start)
 
     def make_batch(self, ds_len, perm, start):
         end_at = start + self.batch_size
@@ -144,7 +162,11 @@ class TBDataLoader:
         yield batch
 
     def __len__(self):
-        return len(self.dataset) // self.batch_size + (0 if self.drop_last else 1)
+        res = math.ceil(len(self.dataset) / self.batch_size)
+        need_to_drop_last = self.drop_last and not self.predict
+        need_to_drop_last = need_to_drop_last and (res > 1)
+        res -= need_to_drop_last
+        return res
 
 
 def create_dataloaders(
@@ -218,22 +240,26 @@ def create_dataloaders(
     for X, y in eval_set:
         if scipy.sparse.issparse(X):
             valid_dataloaders.append(
-                DataLoader(
+                TBDataLoader(
                     SparseTorchDataset(X.astype(np.float32), y),
                     batch_size=batch_size,
-                    shuffle=False,
-                    num_workers=num_workers,
+                    # shuffle=False,
+                    # num_workers=num_workers,
                     pin_memory=pin_memory,
+                    predict=True,
+                    all_at_once=True,
                 )
             )
         else:
             valid_dataloaders.append(
-                DataLoader(
+                TBDataLoader(
                     TorchDataset(X.astype(np.float32), y),
                     batch_size=batch_size,
-                    shuffle=False,
-                    num_workers=num_workers,
+                    # shuffle=False,
+                    # num_workers=num_workers,
                     pin_memory=pin_memory,
+                    predict=True,
+                    all_at_once=True,
                 )
             )
 
@@ -328,53 +354,59 @@ def create_dataloaders_pt(
     train_dataloader, valid_dataloader : torch.DataLoader, torch.DataLoader
         Training and validation dataloaders
     """
-    need_shuffle, sampler = create_sampler(weights, X_train)
+    _need_shuffle, _sampler = create_sampler(weights, X_train)
 
     if scipy.sparse.issparse(X_train):
-        train_dataloader = DataLoader(
+        train_dataloader = TBDataLoader(
             SparsePredictDataset(X_train),
             batch_size=batch_size,
-            sampler=sampler,
-            shuffle=need_shuffle,
-            num_workers=num_workers,
+            # sampler=sampler,
+            # shuffle=need_shuffle,
+            # num_workers=num_workers,
             drop_last=drop_last,
             pin_memory=pin_memory,
+            pre_training=True,
         )
     else:
-        train_dataloader = DataLoader(
+        train_dataloader = TBDataLoader(
             PredictDataset(X_train),
             batch_size=batch_size,
-            sampler=sampler,
-            shuffle=need_shuffle,
-            num_workers=num_workers,
+            # sampler=sampler,
+            # shuffle=need_shuffle,
+            # num_workers=num_workers,
             drop_last=drop_last,
             pin_memory=pin_memory,
+            pre_training=True,
         )
 
     valid_dataloaders = []
     for X in eval_set:
         if scipy.sparse.issparse(X):
             valid_dataloaders.append(
-                DataLoader(
+                TBDataLoader(
                     SparsePredictDataset(X),
                     batch_size=batch_size,
-                    sampler=sampler,
-                    shuffle=need_shuffle,
-                    num_workers=num_workers,
+                    # sampler=sampler,
+                    # shuffle=need_shuffle,
+                    # num_workers=num_workers,
                     drop_last=drop_last,
                     pin_memory=pin_memory,
+                    predict=True,
+                    all_at_once=True,
                 )
             )
         else:
             valid_dataloaders.append(
-                DataLoader(
+                TBDataLoader(
                     PredictDataset(X),
                     batch_size=batch_size,
-                    sampler=sampler,
-                    shuffle=need_shuffle,
-                    num_workers=num_workers,
+                    # sampler=sampler,
+                    # shuffle=need_shuffle,
+                    # num_workers=num_workers,
                     drop_last=drop_last,
                     pin_memory=pin_memory,
+                    predict=True,
+                    all_at_once=True,
                 )
             )
 

@@ -1,21 +1,25 @@
+from pytorch_tabnet.tab_model import TabNetClassifier
+from pytorch_tabnet.augmentations import ClassificationSMOTE
+
+import torch
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+import pandas as pd
+import numpy as np
+
+np.random.seed(0)
+
+import os
+import wget
+from pathlib import Path
+import shutil
+import gzip
+
+from matplotlib import pyplot as plt
+
 def test_forest():
-    from pytorch_tabnet.tab_model import TabNetClassifier
 
-    import torch
-    from sklearn.preprocessing import LabelEncoder
-    from sklearn.metrics import accuracy_score
-    from sklearn.model_selection import train_test_split
-    import pandas as pd
-    import numpy as np
-    np.random.seed(0)
-
-    import os
-    import wget
-    from pathlib import Path
-    import shutil
-    import gzip
-
-    from matplotlib import pyplot as plt
 
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/covtype/covtype.data.gz"
     dataset_name = 'forest-cover-type'
@@ -101,12 +105,12 @@ def test_forest():
         scheduler_fn=torch.optim.lr_scheduler.StepLR, epsilon=1e-15
     )
 
-    if os.getenv("CI", False):
-        X_train = train[features].values[train_indices][:1000, :]
-        y_train = train[target].values[train_indices][:1000]
-    else:
-        X_train = train[features].values[train_indices]
-        y_train = train[target].values[train_indices]
+    # if os.getenv("CI", False):
+    #     X_train = train[features].values[train_indices][:1000, :]
+    #     y_train = train[target].values[train_indices][:1000]
+    # else:
+    X_train = train[features].values[train_indices]
+    y_train = train[target].values[train_indices]
 
     X_valid = train[features].values[valid_indices]
     y_valid = train[target].values[valid_indices]
@@ -116,7 +120,6 @@ def test_forest():
 
     max_epochs = 5
 
-    from pytorch_tabnet.augmentations import ClassificationSMOTE
     aug = ClassificationSMOTE(p=0.2)
 
     clf.fit(
