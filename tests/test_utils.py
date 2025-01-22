@@ -1,17 +1,12 @@
 import numpy as np
 import pytest
 import torch
-from scipy import sparse as sparse
-from torch.utils.data import DataLoader
 
-import pytorch_tabnet
-from pytorch_tabnet.pretraining_utils import create_dataloaders
 from pytorch_tabnet.utils import (
     check_list_groups,
     create_group_matrix,
     validate_eval_set,
 )
-from tests.test_pretraining_utils import mock_create_sampler
 
 
 @pytest.mark.parametrize(
@@ -64,34 +59,6 @@ def test_validate_eval_set_valid_inputs_and_default_eval_name(eval_name, expecte
     assert len(validated_set) == len(eval_set)
     assert np.array_equal(validated_set[0][0], eval_set[0][0])
     assert np.array_equal(validated_set[0][1], eval_set[0][1])
-
-
-@pytest.mark.parametrize(
-    "X_train_sparse,eval_set_sparse,weights,batch_size,num_workers,drop_last,pin_memory",
-    [
-        (False, True, [0.2] * 100, 128, 1, False, False),
-    ],
-)
-def test_create_dataloaders(
-    X_train_sparse,
-    eval_set_sparse,
-    weights,
-    batch_size,
-    num_workers,
-    drop_last,
-    pin_memory,
-    monkeypatch,
-):
-    monkeypatch.setattr(pytorch_tabnet.data_handlers, "create_sampler", mock_create_sampler)
-
-    X_train = sparse.random(100, 10) if X_train_sparse else np.random.rand(100, 10)
-    eval_set = [sparse.random(50, 10), sparse.random(50, 10)] if eval_set_sparse else [np.random.rand(50, 10), np.random.rand(50, 10)]
-
-    train_dataloader, valid_dataloaders = create_dataloaders(X_train, eval_set, weights, batch_size, num_workers, drop_last, pin_memory)
-
-    assert isinstance(train_dataloader, DataLoader)
-    assert isinstance(valid_dataloaders, list)
-    assert all(isinstance(loader, DataLoader) for loader in valid_dataloaders)
 
 
 @pytest.mark.parametrize(

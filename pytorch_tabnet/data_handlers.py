@@ -1,9 +1,12 @@
-from typing import Dict, Iterable, List, Optional, Tuple, Union
+from dataclasses import dataclass
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import scipy
 import torch
 from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
+
+from pytorch_tabnet.utils import check_input
 
 X_type = Union[np.ndarray, scipy.sparse.csr_matrix]
 
@@ -106,6 +109,137 @@ class SparsePredictDataset(Dataset):
         return x
 
 
+@dataclass
+class TBDataLoader:
+    dataset: TorchDataset
+    batch_size: int
+    pre_training: bool = False
+    drop_last: bool = False
+    pin_memory: bool = False
+
+    def __iter__(self):
+        ds_len = len(self.dataset)
+        perm = torch.randperm(ds_len, pin_memory=self.pin_memory)
+        batched_starts = [i for i in range(0, ds_len, self.batch_size)]
+        for start in batched_starts[: len(batched_starts) - 1 if self.drop_last else len(batched_starts)]:
+            yield from self.make_batch(ds_len, perm, start)
+
+    def make_batch(self, ds_len, perm, start):
+        end_at = start + self.batch_size
+        left_over = None
+        if end_at > ds_len:
+            left_over = end_at - ds_len
+            end_at = ds_len
+        batch = None
+
+        if self.pre_training:
+            batch = self.dataset.x[perm[start:end_at]]
+        else:
+            batch = self.dataset.x[start:end_at], self.dataset.y[start:end_at]
+        if left_over is not None:
+            if self.pre_training:
+                batch = torch.cat((batch, self.dataset.x[perm[:left_over]]))
+            else:
+                batch = torch.cat((batch[0], self.dataset.x[:left_over])), torch.cat((batch[1], self.dataset.y[:left_over]))
+        yield batch
+
+    def __len__(self):
+        return len(self.dataset) // self.batch_size + (0 if self.drop_last else 1)
+
+
+def create_dataloaders(
+    X_train: X_type,
+    y_train: np.ndarray,
+    eval_set: List[Tuple[X_type, np.ndarray]],
+    weights: Union[int, Dict, Iterable],
+    batch_size: int,
+    num_workers: int,
+    drop_last: bool,
+    pin_memory: bool,
+) -> Tuple[DataLoader, List[DataLoader]]:
+    """
+    Create dataloaders with or without subsampling depending on weights and balanced.
+
+    Parameters
+    ----------
+    X_train : np.ndarray
+        Training data
+    y_train : np.array
+        Mapped Training targets
+    eval_set : list of tuple
+        List of eval tuple set (X, y)
+    weights : either 0, 1, dict or iterable
+        if 0 (default) : no weights will be applied
+        if 1 : classification only, will balanced class with inverse frequency
+        if dict : keys are corresponding class values are sample weights
+        if iterable : list or np array must be of length equal to nb elements
+                      in the training set
+    batch_size : int
+        how many samples per batch to load
+    num_workers : int
+        how many subprocesses to use for data loading. 0 means that the data
+        will be loaded in the main process
+    drop_last : bool
+        set to True to drop the last incomplete batch, if the dataset size is not
+        divisible by the batch size. If False and the size of dataset is not
+        divisible by the batch size, then the last batch will be smaller
+    pin_memory : bool
+        Whether to pin GPU memory during training
+
+    Returns
+    -------
+    train_dataloader, valid_dataloader : torch.DataLoader, torch.DataLoader
+        Training and validation dataloaders
+    """
+    _need_shuffle, _sampler = create_sampler(weights, y_train)
+
+    if scipy.sparse.issparse(X_train):
+        train_dataloader = TBDataLoader(
+            SparseTorchDataset(X_train.astype(np.float32), y_train),
+            batch_size=batch_size,
+            # sampler=sampler,
+            # shuffle=need_shuffle,
+            # num_workers=num_workers,
+            drop_last=drop_last,
+            pin_memory=pin_memory,
+        )
+    else:
+        train_dataloader = TBDataLoader(
+            TorchDataset(X_train.astype(np.float32), y_train),
+            batch_size=batch_size,
+            # sampler=sampler,
+            # shuffle=need_shuffle,
+            # num_workers=num_workers,
+            drop_last=drop_last,
+            pin_memory=pin_memory,
+        )
+
+    valid_dataloaders = []
+    for X, y in eval_set:
+        if scipy.sparse.issparse(X):
+            valid_dataloaders.append(
+                DataLoader(
+                    SparseTorchDataset(X.astype(np.float32), y),
+                    batch_size=batch_size,
+                    shuffle=False,
+                    num_workers=num_workers,
+                    pin_memory=pin_memory,
+                )
+            )
+        else:
+            valid_dataloaders.append(
+                DataLoader(
+                    TorchDataset(X.astype(np.float32), y),
+                    batch_size=batch_size,
+                    shuffle=False,
+                    num_workers=num_workers,
+                    pin_memory=pin_memory,
+                )
+            )
+
+    return train_dataloader, valid_dataloaders
+
+
 def create_sampler(weights: Union[int, Dict, Iterable], y_train: np.ndarray) -> Tuple[bool, Optional[WeightedRandomSampler]]:
     """
     This creates a sampler from the given weights
@@ -153,11 +287,10 @@ def create_sampler(weights: Union[int, Dict, Iterable], y_train: np.ndarray) -> 
     return need_shuffle, sampler
 
 
-def create_dataloaders(
-    X_train: X_type,
-    y_train: np.ndarray,
-    eval_set: List[Tuple[X_type, np.ndarray]],
-    weights: Union[int, Dict, Iterable],
+def create_dataloaders_pt(
+    X_train: Union[scipy.sparse.csr_matrix, np.ndarray],
+    eval_set: List[Union[scipy.sparse.csr_matrix, np.ndarray]],
+    weights: Union[int, Dict[Any, Any], Iterable[Any]],
     batch_size: int,
     num_workers: int,
     drop_last: bool,
@@ -168,12 +301,10 @@ def create_dataloaders(
 
     Parameters
     ----------
-    X_train : np.ndarray
+    X_train : np.ndarray or scipy.sparse.csr_matrix
         Training data
-    y_train : np.array
-        Mapped Training targets
-    eval_set : list of tuple
-        List of eval tuple set (X, y)
+    eval_set : list of np.array (for Xs and ys) or scipy.sparse.csr_matrix (for Xs)
+        List of eval sets
     weights : either 0, 1, dict or iterable
         if 0 (default) : no weights will be applied
         if 1 : classification only, will balanced class with inverse frequency
@@ -197,11 +328,11 @@ def create_dataloaders(
     train_dataloader, valid_dataloader : torch.DataLoader, torch.DataLoader
         Training and validation dataloaders
     """
-    need_shuffle, sampler = create_sampler(weights, y_train)
+    need_shuffle, sampler = create_sampler(weights, X_train)
 
     if scipy.sparse.issparse(X_train):
         train_dataloader = DataLoader(
-            SparseTorchDataset(X_train.astype(np.float32), y_train),
+            SparsePredictDataset(X_train),
             batch_size=batch_size,
             sampler=sampler,
             shuffle=need_shuffle,
@@ -211,7 +342,7 @@ def create_dataloaders(
         )
     else:
         train_dataloader = DataLoader(
-            TorchDataset(X_train.astype(np.float32), y_train),
+            PredictDataset(X_train),
             batch_size=batch_size,
             sampler=sampler,
             shuffle=need_shuffle,
@@ -221,26 +352,59 @@ def create_dataloaders(
         )
 
     valid_dataloaders = []
-    for X, y in eval_set:
+    for X in eval_set:
         if scipy.sparse.issparse(X):
             valid_dataloaders.append(
                 DataLoader(
-                    SparseTorchDataset(X.astype(np.float32), y),
+                    SparsePredictDataset(X),
                     batch_size=batch_size,
-                    shuffle=False,
+                    sampler=sampler,
+                    shuffle=need_shuffle,
                     num_workers=num_workers,
+                    drop_last=drop_last,
                     pin_memory=pin_memory,
                 )
             )
         else:
             valid_dataloaders.append(
                 DataLoader(
-                    TorchDataset(X.astype(np.float32), y),
+                    PredictDataset(X),
                     batch_size=batch_size,
-                    shuffle=False,
+                    sampler=sampler,
+                    shuffle=need_shuffle,
                     num_workers=num_workers,
+                    drop_last=drop_last,
                     pin_memory=pin_memory,
                 )
             )
 
     return train_dataloader, valid_dataloaders
+
+
+def validate_eval_set(eval_set: List[np.ndarray], eval_name: List[str], X_train: np.ndarray) -> List[str]:
+    """Check if the shapes of eval_set are compatible with X_train.
+
+    Parameters
+    ----------
+    eval_set : List of numpy array
+        The list evaluation set.
+        The last one is used for early stopping
+    eval_name : List[str]
+        Names for eval sets.
+    X_train : np.ndarray
+        Train owned products
+
+    Returns
+    -------
+    eval_names : list of str
+        Validated list of eval_names.
+
+    """
+    eval_names = eval_name or [f"val_{i}" for i in range(len(eval_set))]
+    assert len(eval_set) == len(eval_names), "eval_set and eval_name have not the same length"
+
+    for set_nb, X in enumerate(eval_set):
+        check_input(X)
+        msg = f"Number of columns is different between eval set {set_nb}" + f"({X.shape[1]}) and X_train ({X_train.shape[1]})"
+        assert X.shape[1] == X_train.shape[1], msg
+    return eval_names

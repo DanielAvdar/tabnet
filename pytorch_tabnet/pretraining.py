@@ -9,15 +9,11 @@ from torch.utils.data import DataLoader
 
 from pytorch_tabnet import tab_network
 from pytorch_tabnet.abstract_model import TabModel
-from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset
+from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, create_dataloaders_pt, validate_eval_set
 from pytorch_tabnet.metrics import (
     UnsupervisedLoss,
     UnsupMetricContainer,
     check_metrics,
-)
-from pytorch_tabnet.pretraining_utils import (
-    create_dataloaders,
-    validate_eval_set,
 )
 from pytorch_tabnet.utils import (
     check_input,
@@ -265,7 +261,7 @@ class TabNetPretrainer(TabModel):
             List of validation dataloaders.
 
         """
-        train_dataloader, valid_dataloaders = create_dataloaders(
+        train_dataloader, valid_dataloaders = create_dataloaders_pt(
             X_train,
             eval_set,
             weights,
