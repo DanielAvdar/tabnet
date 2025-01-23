@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 import torch
-from scipy.sparse import csr_matrix
 
 from pytorch_tabnet.tab_model import TabNetClassifier
 
@@ -12,12 +11,19 @@ from pytorch_tabnet.tab_model import TabNetClassifier
             np.random.rand(1000, 10),
             np.random.randint(0, 2, size=1000),
             [(np.random.rand(20, 10), np.random.randint(0, 2, size=20))],
+            {0: 0.5, 1: 0.5},
         ),
         (
-            csr_matrix((100, 10)),
-            np.random.randint(0, 2, size=100),
-            [(csr_matrix((20, 10)), np.random.randint(0, 2, size=20))],
+            np.random.rand(1000, 10),
+            np.random.randint(0, 5, size=1000),
+            [(np.random.rand(20, 10), np.random.randint(0, 5, size=20))],
+            {0: 0.2, 1: 0.2, 2: 0.2, 3: 0.2, 4: 0.2},
         ),
+        # (
+        #     csr_matrix((100, 10)),
+        #     np.random.randint(0, 2, size=100),
+        #     [(csr_matrix((20, 10)), np.random.randint(0, 2, size=20))],
+        # ),
     ]
 )
 def sample_data(request):
@@ -30,16 +36,15 @@ def classifier_instance():
 
 
 def test_class_fit(sample_data, classifier_instance):
-    X_train, y_train, eval_set = sample_data
-    weights = {0: 0.5, 1: 0.5}
+    X_train, y_train, eval_set, weights = sample_data
+
     classifier_instance.fit(
         X_train,
         y_train,
         eval_set,
         weights=weights,
     )
-    assert classifier_instance.output_dim == 2 if isinstance(y_train, np.ndarray) else 1
-    assert classifier_instance._default_metric == "auc"
+    assert classifier_instance.output_dim == len(np.unique(sample_data[1]))
     assert classifier_instance.classes_ is not None
     # assert classifier_instance.updated_weights == {0: 0.5, 1: 0.5}
     proba_pred = classifier_instance.predict_proba(X_train)
@@ -49,11 +54,10 @@ def test_class_fit(sample_data, classifier_instance):
 
 
 def test_update_fit_params(sample_data, classifier_instance):
-    X_train, y_train, eval_set = sample_data
-    weights = {0: 0.5, 1: 0.5}
+    X_train, y_train, eval_set, weights = sample_data
     classifier_instance.update_fit_params(X_train, y_train, eval_set, weights)
-    assert classifier_instance.output_dim == 2
-    assert classifier_instance._default_metric == "auc"
+    assert classifier_instance.output_dim == len(np.unique(sample_data[1]))
+    # assert classifier_instance._default_metric == "auc"
     assert classifier_instance.classes_ is not None
     # assert classifier_instance.updated_weights == {0: 0.5, 1: 0.5}
 

@@ -4,10 +4,10 @@ from typing import Any, Dict, List, Tuple, Union
 import numpy as np
 import scipy
 import torch
-from torch.utils.data import DataLoader
 
+# from torch.utils.data import DataLoader
 from pytorch_tabnet.abstract_model import TabModel
-from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset
+from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, TBDataLoader
 from pytorch_tabnet.multiclass_utils import check_output_dim, infer_output_dim
 from pytorch_tabnet.utils import filter_weights
 
@@ -80,28 +80,33 @@ class TabNetClassifier(TabModel):
         self.network.eval()
 
         if scipy.sparse.issparse(X):
-            dataloader: DataLoader = DataLoader(
+            dataloader: TBDataLoader = TBDataLoader(
                 SparsePredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                # shuffle=False,
+                predict=True,
             )
         else:
-            dataloader = DataLoader(
+            dataloader = TBDataLoader(
                 PredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                # shuffle=False,
+                predict=True,
             )
 
         results: List[np.ndarray] = []
-        for _batch_nb, data in enumerate(dataloader):
-            data = data.to(self.device).float()
+        with torch.no_grad():
+            for _batch_nb, data in enumerate(dataloader):
+                data = data.to(self.device).float()
 
-            output: torch.Tensor
-            _M_loss: torch.Tensor
-            output, _M_loss = self.network(data)
-            predictions: np.ndarray = torch.nn.Softmax(dim=1)(output).cpu().detach().numpy()
-            results.append(predictions)
-        res: np.ndarray = np.vstack(results)
+                output: torch.Tensor
+                _M_loss: torch.Tensor
+                output, _M_loss = self.network(data)
+                predictions: np.ndarray = (
+                    torch.nn.Softmax(dim=1)(output).cpu().detach().numpy()
+                )  # todo: replace with pytorch's torch.vstack
+                results.append(predictions)
+            res: np.ndarray = np.vstack(results)  # todo: replace with pytorch's torch.vstack
         return res
 
 

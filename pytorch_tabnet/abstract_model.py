@@ -15,8 +15,8 @@ import torch
 from scipy.sparse import csc_matrix
 from sklearn.base import BaseEstimator
 from torch.nn.utils import clip_grad_norm_
-from torch.utils.data import DataLoader
 
+# from torch.utils.data import DataLoader
 from pytorch_tabnet import tab_network
 from pytorch_tabnet.callbacks import (
     Callback,
@@ -25,7 +25,7 @@ from pytorch_tabnet.callbacks import (
     History,
     LRSchedulerCallback,
 )
-from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, create_dataloaders
+from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, TBDataLoader, create_dataloaders
 from pytorch_tabnet.metrics import MetricContainer, check_metrics
 from pytorch_tabnet.utils import (
     ComplexEncoder,
@@ -298,16 +298,18 @@ class TabModel(BaseEstimator):
         self.network.eval()
 
         if scipy.sparse.issparse(X):
-            dataloader = DataLoader(
+            dataloader = TBDataLoader(
                 SparsePredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                # shuffle=False,
+                predict=True,
             )
         else:
-            dataloader = DataLoader(
+            dataloader = TBDataLoader(
                 PredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                # shuffle=False,
+                predict=True,
             )
 
         results = []
@@ -341,34 +343,36 @@ class TabModel(BaseEstimator):
         self.network.eval()
 
         if scipy.sparse.issparse(X):
-            dataloader = DataLoader(
+            dataloader = TBDataLoader(
                 SparsePredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                # shuffle=False,
+                predict=True,
             )
         else:
-            dataloader = DataLoader(
+            dataloader = TBDataLoader(
                 PredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                # shuffle=False,
+                predict=True,
             )
 
         res_explain = []
+        with torch.no_grad():
+            for batch_nb, data in enumerate(dataloader):
+                data = data.to(self.device).float()
 
-        for batch_nb, data in enumerate(dataloader):
-            data = data.to(self.device).float()
-
-            M_explain, masks = self.network.forward_masks(data)
-            for key, value in masks.items():
-                masks[key] = csc_matrix.dot(value.cpu().detach().numpy(), self.reducing_matrix)
-            original_feat_explain = csc_matrix.dot(M_explain.cpu().detach().numpy(), self.reducing_matrix)
-            res_explain.append(original_feat_explain)
-
-            if batch_nb == 0:
-                res_masks = masks
-            else:
+                M_explain, masks = self.network.forward_masks(data)
                 for key, value in masks.items():
-                    res_masks[key] = np.vstack([res_masks[key], value])
+                    masks[key] = csc_matrix.dot(value.cpu().detach().numpy(), self.reducing_matrix)
+                original_feat_explain = csc_matrix.dot(M_explain.cpu().detach().numpy(), self.reducing_matrix)
+                res_explain.append(original_feat_explain)
+
+                if batch_nb == 0:
+                    res_masks = masks
+                else:
+                    for key, value in masks.items():
+                        res_masks[key] = np.vstack([res_masks[key], value])
 
         res_explain = np.vstack(res_explain)
 
@@ -472,7 +476,7 @@ class TabModel(BaseEstimator):
 
         return
 
-    def _train_epoch(self, train_loader: DataLoader) -> None:  # todo: replace loader
+    def _train_epoch(self, train_loader: TBDataLoader) -> None:  # todo: replace loader
         """
         Trains one epoch of the network in self.network
 
@@ -539,7 +543,7 @@ class TabModel(BaseEstimator):
 
         return batch_logs
 
-    def _predict_epoch(self, name: str, loader: DataLoader) -> None:  # todo: replace loader
+    def _predict_epoch(self, name: str, loader: TBDataLoader) -> None:  # todo: replace loader
         """
         Predict an epoch and update metrics.
 
@@ -707,7 +711,7 @@ class TabModel(BaseEstimator):
         y_train: np.ndarray,
         eval_set: List[Tuple[np.ndarray, np.ndarray]],
         weights: Union[int, Dict, np.array],
-    ) -> Tuple[DataLoader, List[DataLoader]]:
+    ) -> Tuple[TBDataLoader, List[TBDataLoader]]:
         """Generate dataloaders for train and eval set.
 
         Parameters

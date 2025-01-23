@@ -4,10 +4,10 @@ from typing import List, Tuple, Union
 import numpy as np
 import scipy
 import torch
-from torch.utils.data import DataLoader
 
+# from torch.utils.data import DataLoader
 from pytorch_tabnet.abstract_model import TabModel
-from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset
+from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, TBDataLoader
 from pytorch_tabnet.multiclass_utils import check_output_dim, infer_multitask_output
 from pytorch_tabnet.utils import filter_weights
 
@@ -110,16 +110,18 @@ class TabNetMultiTaskClassifier(TabModel):
         self.network.eval()
 
         if scipy.sparse.issparse(X):
-            dataloader = DataLoader(
+            dataloader = TBDataLoader(
                 SparsePredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                # shuffle=False,
+                predict=True,
             )
         else:
-            dataloader = DataLoader(
+            dataloader = TBDataLoader(
                 PredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                # shuffle=False,
+                predict=True,
             )
 
         results: dict = {}
@@ -128,7 +130,8 @@ class TabNetMultiTaskClassifier(TabModel):
                 data = data.to(self.device).float()
                 output, _ = self.network(data)
                 predictions = [
-                    torch.argmax(torch.nn.Softmax(dim=1)(task_output), dim=1).cpu().detach().numpy().reshape(-1) for task_output in output
+                    torch.argmax(torch.nn.Softmax(dim=1)(task_output), dim=1).cpu().detach().numpy().reshape(-1)
+                    for task_output in output  # todo: replace with pytorch's torch.vstack
                 ]
 
                 for task_idx in range(len(self.output_dim)):
@@ -156,16 +159,18 @@ class TabNetMultiTaskClassifier(TabModel):
         self.network.eval()
 
         if scipy.sparse.issparse(X):
-            dataloader = DataLoader(
+            dataloader = TBDataLoader(
                 SparsePredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                # shuffle=False,
+                predict=True,
             )
         else:
-            dataloader = DataLoader(
+            dataloader = TBDataLoader(
                 PredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                # shuffle=False,
+                predict=True,
             )
 
         results: dict = {}

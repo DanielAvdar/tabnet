@@ -330,18 +330,12 @@ def test_check_embedding_parameters_invalid(cat_dims, cat_idxs, cat_emb_dim, err
             np.random.rand(1000, 10),
             [np.random.rand(50, 10), np.random.rand(50, 10), np.random.rand(300, 10)],
         ),
+        (
+            np.random.rand(10000, 10),
+            [np.random.rand(500, 10), np.random.rand(500, 10), np.random.rand(3000, 10)],
+        ),
     ],
 )
-# @pytest.mark.parametrize(
-#     "weights",
-#     [
-#         (
-#             np.ones(1000),
-#             None,
-#         )
-#
-#     ],
-# )
 @pytest.mark.parametrize(
     "batch_size",
     [128, 1000, 2000, 64, 32, 600],
@@ -358,10 +352,8 @@ def test_check_embedding_parameters_invalid(cat_dims, cat_idxs, cat_emb_dim, err
 @pytest.mark.parametrize(
     "drop_last",
     [
-        (
-            True,
-            False,
-        )
+        True,
+        False,
     ],
 )
 # @pytest.mark.skip("flaky")
@@ -373,7 +365,7 @@ def test_create_dataloaders_pt(
     num_workers,
     drop_last,
     pin_memory,
-    monkeypatch,
+    # monkeypatch,
 ):
     train_dataloader, valid_dataloaders = create_dataloaders_pt(x_train, eval_set, 0, batch_size, num_workers, drop_last, pin_memory)
     assert len(train_dataloader) > 0
@@ -382,9 +374,10 @@ def test_create_dataloaders_pt(
     assert isinstance(valid_dataloaders, list)
     loaded_data = [d for d in train_dataloader]
     # valid_loaded_data = [v for v in d for d in valid_dataloaders]
+    ceil_div = math.ceil(len(x_train) / batch_size)
     assert len(loaded_data) == len(train_dataloader)
-    assert len(loaded_data) == math.ceil(len(x_train) / batch_size) if not drop_last else True
-    assert len(loaded_data) == len(x_train) // batch_size if drop_last and len(x_train) // batch_size > 0 else True
+    assert len(loaded_data) == ceil_div if not drop_last else True
+    assert len(loaded_data) == ceil_div - 1 if drop_last and ceil_div > 1 else True
 
     # if batch_size<len(x_train):
     #     for i, data in enumerate(loaded_data):
