@@ -239,7 +239,7 @@ def create_dataloaders(
     _need_shuffle, _sampler = create_sampler(weights, y_train)
     t_weights = None
     if isinstance(weights, int) and weights == 1:
-        t_weights = create_class_weights(y_train)
+        t_weights = create_class_weights(y_train) * len(y_train)
 
     if scipy.sparse.issparse(X_train):
         train_dataloader = TBDataLoader(
