@@ -157,3 +157,6 @@ class TabNetRegressor(TabModel):
         y_true: torch.Tensor = torch.vstack(list_y_true)
         y_score: torch.Tensor = torch.vstack(list_y_score)
         return y_true, y_score
+
+
+MultiTabNetRegressor = TabNetRegressor

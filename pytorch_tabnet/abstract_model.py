@@ -231,7 +231,7 @@ class TabModel(BaseEstimator):
         # Validate and reformat eval set depending on training data
         eval_names, eval_set = validate_eval_set(eval_set, eval_name, X_train, y_train)
 
-        train_dataloader, valid_dataloaders = self._construct_loaders(  # todo: replace loader
+        train_dataloader, valid_dataloaders = self._construct_loaders(
             X_train,
             y_train,
             eval_set,
@@ -260,13 +260,10 @@ class TabModel(BaseEstimator):
         for epoch_idx in range(self.max_epochs):
             # Call method on_epoch_begin for all callbacks
             self._callback_container.on_epoch_begin(epoch_idx)
-
-            self._train_epoch(train_dataloader)  # todo: replace loader
-
+            self._train_epoch(train_dataloader)
             # Apply predict epoch to all eval sets
-            for eval_name_, valid_dataloader in zip(eval_names, valid_dataloaders, strict=False):  # todo: replace loader
-                self._predict_epoch(eval_name_, valid_dataloader)  # todo: replace loader
-
+            for eval_name_, valid_dataloader in zip(eval_names, valid_dataloaders, strict=False):
+                self._predict_epoch(eval_name_, valid_dataloader)
             # Call method on_epoch_end for all callbacks
             self._callback_container.on_epoch_end(epoch_idx, logs=self.history.epoch_metrics)
 
@@ -315,7 +312,7 @@ class TabModel(BaseEstimator):
         results = []
         with torch.no_grad():
             for _batch_nb, data in enumerate(dataloader):
-                data = data.to(self.device).float()
+                data = data.to(self.device, non_blocking=True).float()
                 output, _M_loss = self.network(data)
                 predictions = output.cpu().detach().numpy()
                 results.append(predictions)
@@ -360,7 +357,7 @@ class TabModel(BaseEstimator):
         res_explain = []
         with torch.no_grad():
             for batch_nb, data in enumerate(dataloader):
-                data = data.to(self.device).float()
+                data = data.to(self.device, non_blocking=True).float()
 
                 M_explain, masks = self.network.forward_masks(data)
                 for key, value in masks.items():
@@ -476,7 +473,7 @@ class TabModel(BaseEstimator):
 
         return
 
-    def _train_epoch(self, train_loader: TBDataLoader) -> None:  # todo: replace loader
+    def _train_epoch(self, train_loader: TBDataLoader) -> None:
         """
         Trains one epoch of the network in self.network
 
@@ -487,10 +484,14 @@ class TabModel(BaseEstimator):
         """
         self.network.train()
 
-        for batch_idx, (X, y) in enumerate(train_loader):  # todo: replace loader
+        for batch_idx, (X, y) in enumerate(train_loader):
             self._callback_container.on_batch_begin(batch_idx)
-            X = X.to(self.device, non_blocking=True)
-            y = y.to(self.device, non_blocking=True)
+            X = X.to(
+                self.device,
+            )
+            y = y.to(
+                self.device,
+            )
 
             batch_logs = self._train_batch(X, y)
 
@@ -561,7 +562,7 @@ class TabModel(BaseEstimator):
         list_y_score = []
         with torch.no_grad():
             # Main loop
-            for _batch_idx, (X, y) in enumerate(loader):  # todo: replace loader
+            for _batch_idx, (X, y) in enumerate(loader):
                 scores = self._predict_batch(X.to(self.device, non_blocking=True).float())
                 list_y_true.append(y.to(self.device, non_blocking=True))
                 list_y_score.append(scores)
@@ -573,7 +574,7 @@ class TabModel(BaseEstimator):
         self.history.epoch_metrics.update(metrics_logs)
         return
 
-    def _predict_batch(self, X: torch.Tensor) -> torch.Tensor:  # todo: switch to from numpy to torch
+    def _predict_batch(self, X: torch.Tensor) -> torch.Tensor:
         """
         Predict one batch of data.
 
@@ -705,7 +706,7 @@ class TabModel(BaseEstimator):
         """Setup optimizer."""
         self._optimizer = self.optimizer_fn(self.network.parameters(), **self.optimizer_params)
 
-    def _construct_loaders(  # todo: replace loader
+    def _construct_loaders(
         self,
         X_train: np.ndarray,
         y_train: np.ndarray,

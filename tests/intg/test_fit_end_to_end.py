@@ -4,7 +4,8 @@ import scipy
 
 from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
 from pytorch_tabnet.pretraining import TabNetPretrainer
-from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
+from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor, MultiTabNetRegressor
+
 
 # compile_backends = [
 #     "no-compile",
@@ -77,7 +78,25 @@ from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
 # @pytest.mark.parametrize("compile_backend", compile_backends)
 @pytest.mark.parametrize("pin_memory", [True, False])
 @pytest.mark.parametrize("num_workers", [0, 2])
-def test_pretrainer_fit(model_params, fit_params, X_train, X_valid, mask_type, pin_memory, num_workers):
+@pytest.mark.parametrize("final_model", [
+    TabNetClassifier,
+    TabNetMultiTaskClassifier,
+    TabNetRegressor,
+    MultiTabNetRegressor,
+
+
+]
+)
+def test_pretrainer_fit(
+    model_params,
+    fit_params,
+    X_train,
+    X_valid,
+    mask_type,
+    pin_memory,
+    num_workers,
+    final_model,
+):
     """Test TabNetPretrainer fit method."""
     unsupervised_model = TabNetPretrainer(
         **model_params,
@@ -94,31 +113,48 @@ def test_pretrainer_fit(model_params, fit_params, X_train, X_valid, mask_type, p
     assert not np.isnan(pred).any()
     # if not sparse
     if not scipy.sparse.issparse(X_train):
-        tab_class = TabNetClassifier()
-        tab_class.fit(
+        # tab_class = TabNetClassifier()
+        # tab_class.fit(
+        #     y_train=np.random.randint(0, 2, size=X_train.shape[0]),
+        #     X_train=X_train,
+        #     from_unsupervised=unsupervised_model,
+        #     **fit_params,
+        # )
+        # multi_tab_class = TabNetMultiTaskClassifier()
+        # multi_tab_class.fit(
+        #     y_train=np.random.randint(0, 2, size=(X_train.shape[0], 2)),
+        #     X_train=X_train,
+        #     from_unsupervised=unsupervised_model,
+        #     **fit_params,
+        # )
+        # tab_reg = TabNetRegressor()
+        # tab_reg.fit(
+        #     y_train=np.random.rand(X_train.shape[0]).reshape(-1, 1),
+        #     X_train=X_train,
+        #     from_unsupervised=unsupervised_model,
+        #     **fit_params,
+        # )
+        # multi_tab_reg = TabNetRegressor()
+        # multi_tab_reg.fit(
+        #     y_train=np.random.rand(X_train.shape[0] * 3).reshape(-1, 3),
+        #     X_train=X_train,
+        #     from_unsupervised=unsupervised_model,
+        #     **fit_params,
+        # )
+        y_train= None
+        if final_model == TabNetClassifier:
+            y_train = np.random.randint(0, 2, size=X_train.shape[0])
+        elif final_model == TabNetMultiTaskClassifier:
+            y_train = np.random.randint(0, 2, size=(X_train.shape[0], 2))
+        elif final_model == TabNetRegressor:
+            y_train = np.random.rand(X_train.shape[0]).reshape(-1, 1)
+        else:
+            y_train = np.random.rand(X_train.shape[0] * 3).reshape(-1, 3)
+        final_model_instance = final_model()
+        final_model_instance.fit(
+            y_train=y_train,
             X_train=X_train,
-            y_train=np.random.randint(0, 2, size=X_train.shape[0]),
             from_unsupervised=unsupervised_model,
             **fit_params,
-        )
-        multi_tab_class = TabNetMultiTaskClassifier()
-        multi_tab_class.fit(
-            X_train=X_train,
-            y_train=np.random.randint(0, 2, size=(X_train.shape[0], 2)),
-            from_unsupervised=unsupervised_model,
-            **fit_params,
-        )
-        tab_reg = TabNetRegressor()
-        tab_reg.fit(
-            X_train=X_train,
-            y_train=np.random.rand(X_train.shape[0]).reshape(-1, 1),
-            from_unsupervised=unsupervised_model,
-            **fit_params,
-        )
-        multi_tab_reg = TabNetRegressor()
-        multi_tab_reg.fit(
-            X_train=X_train,
-            y_train=np.random.rand(X_train.shape[0] * 3).reshape(-1, 3),
-            from_unsupervised=unsupervised_model,
-            **fit_params,
+            # num_workers=num_workers,
         )

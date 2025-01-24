@@ -120,29 +120,34 @@ class TBDataLoader:
     all_at_once: bool = False
 
     def __iter__(self):
-        ds_len = len(self.dataset)
-        perm = torch.randperm(ds_len, pin_memory=self.pin_memory)
-        batched_starts = [i for i in range(0, ds_len, self.batch_size)]
-        batched_starts += [0] if len(batched_starts) == 0 else []
         if self.all_at_once:
             if self.pre_training or isinstance(self.dataset, PredictDataset) or isinstance(self.dataset, SparsePredictDataset):
                 yield self.dataset.x
             else:
                 yield self.dataset.x, self.dataset.y
             return
+        ds_len = len(self.dataset)
+        perm = None
+        if not self.predict:
+            perm = torch.randperm(ds_len, pin_memory=self.pin_memory)
+        batched_starts = [i for i in range(0, ds_len, self.batch_size)]
+        batched_starts += [0] if len(batched_starts) == 0 else []
         for start in batched_starts[: len(self)]:
             if self.predict:
-                end_at = start + self.batch_size
-                if end_at > ds_len:
-                    end_at = ds_len
-                if self.pre_training or isinstance(self.dataset, PredictDataset) or isinstance(self.dataset, SparsePredictDataset):
-                    yield self.dataset.x[start:end_at]
-                else:
-                    yield self.dataset.x[start:end_at], self.dataset.y[start:end_at]
+                yield from self.make_predict_batch(ds_len, start)
             else:
-                yield from self.make_batch(ds_len, perm, start)
+                yield from self.make_train_batch(ds_len, perm, start)
 
-    def make_batch(self, ds_len, perm, start):
+    def make_predict_batch(self, ds_len, start):
+        end_at = start + self.batch_size
+        if end_at > ds_len:
+            end_at = ds_len
+        if self.pre_training or isinstance(self.dataset, PredictDataset) or isinstance(self.dataset, SparsePredictDataset):
+            yield self.dataset.x[start:end_at]
+        else:
+            yield self.dataset.x[start:end_at], self.dataset.y[start:end_at]
+
+    def make_train_batch(self, ds_len, perm, start):
         end_at = start + self.batch_size
         left_over = None
         if end_at > ds_len:
@@ -247,7 +252,7 @@ def create_dataloaders(
                     # num_workers=num_workers,
                     pin_memory=pin_memory,
                     predict=True,
-                    all_at_once=True,
+                    # all_at_once=True,
                 )
             )
         else:
@@ -259,7 +264,7 @@ def create_dataloaders(
                     # num_workers=num_workers,
                     pin_memory=pin_memory,
                     predict=True,
-                    all_at_once=True,
+                    # all_at_once=True,
                 )
             )
 
@@ -392,7 +397,7 @@ def create_dataloaders_pt(
                     drop_last=drop_last,
                     pin_memory=pin_memory,
                     predict=True,
-                    all_at_once=True,
+                    # all_at_once=True,
                 )
             )
         else:
@@ -406,7 +411,7 @@ def create_dataloaders_pt(
                     drop_last=drop_last,
                     pin_memory=pin_memory,
                     predict=True,
-                    all_at_once=True,
+                    # all_at_once=True,
                 )
             )
 

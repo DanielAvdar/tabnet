@@ -130,8 +130,7 @@ class TabNetMultiTaskClassifier(TabModel):
                 data = data.to(self.device).float()
                 output, _ = self.network(data)
                 predictions = [
-                    torch.argmax(torch.nn.Softmax(dim=1)(task_output), dim=1).cpu().detach().numpy().reshape(-1)
-                    for task_output in output  # todo: replace with pytorch's torch.vstack
+                    torch.argmax(torch.nn.Softmax(dim=1)(task_output), dim=1).cpu().detach().numpy().reshape(-1) for task_output in output
                 ]
 
                 for task_idx in range(len(self.output_dim)):
