@@ -34,7 +34,13 @@ class TabNetPretrainer(TabModel):
     def prepare_target(self, y: np.ndarray) -> np.ndarray:
         return y
 
-    def compute_loss(self, output: torch.Tensor, embedded_x: torch.Tensor, obf_vars: torch.Tensor) -> torch.Tensor:
+    def compute_loss(
+        self,
+        output: torch.Tensor,
+        embedded_x: torch.Tensor,
+        obf_vars: torch.Tensor,
+        w: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
         return self.loss_fn(output, embedded_x, obf_vars)
 
     def update_fit_params(  # type: ignore[override]
@@ -296,7 +302,7 @@ class TabNetPretrainer(TabModel):
 
         return
 
-    def _train_batch(self, X: torch.Tensor) -> dict:  # type: ignore[override]
+    def _train_batch(self, X: torch.Tensor, w: Optional[torch.Tensor] = None) -> dict:  # type: ignore[override]
         """
         Trains one batch of data
 

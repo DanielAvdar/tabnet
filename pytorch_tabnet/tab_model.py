@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import scipy
@@ -33,8 +33,13 @@ class TabNetClassifier(TabModel):
     def prepare_target(self, y: np.ndarray) -> np.ndarray:
         return np.vectorize(self.target_mapper.get)(y)
 
-    def compute_loss(self, y_pred: torch.Tensor, y_true: torch.Tensor) -> torch.Tensor:
-        return self.loss_fn(y_pred, y_true.long())
+    def compute_loss(
+        self,
+        y_pred: torch.Tensor,
+        y_true: torch.Tensor,
+        w: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        return self.loss_fn(y_pred, y_true.long(), weight=w)
 
     def update_fit_params(  # type: ignore[override]
         self,
@@ -125,8 +130,19 @@ class TabNetRegressor(TabModel):
     def prepare_target(self, y: np.ndarray) -> np.ndarray:
         return y
 
-    def compute_loss(self, y_pred: torch.Tensor, y_true: torch.Tensor) -> torch.Tensor:
-        return self.loss_fn(y_pred, y_true)
+    def compute_loss(
+        self,
+        y_pred: torch.Tensor,
+        y_true: torch.Tensor,
+        w: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        loss = self.loss_fn(
+            y_pred,
+            y_true,
+        )
+        if w is not None:
+            loss = loss * w
+        return loss
 
     def update_fit_params(
         self,

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import scipy
@@ -29,7 +29,12 @@ class TabNetMultiTaskClassifier(TabModel):
             y_mapped[:, task_idx] = np.vectorize(task_mapper.get)(y[:, task_idx])
         return y_mapped
 
-    def compute_loss(self, y_pred: List[torch.Tensor], y_true: torch.Tensor) -> torch.Tensor:
+    def compute_loss(
+        self,
+        y_pred: List[torch.Tensor],
+        y_true: torch.Tensor,
+        w: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
         """
         Computes the loss according to network output and targets
 

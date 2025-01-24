@@ -25,8 +25,8 @@ class MockTabModel(TabModel):  # Create a Mock model for testing
         # self.updated_weights = weights
         self.preds_mapper = lambda x: x  # Identity mapper for simplicity
 
-    def compute_loss(self, y_score, y_true):
-        return self._default_loss(y_score, y_true)  # Example
+    def compute_loss(self, y_score, y_true, weights=None):
+        return self._default_loss(y_score, y_true, weights)
 
     def prepare_target(self, y):
         return y  # Simple identity mapping

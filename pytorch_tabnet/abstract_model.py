@@ -7,7 +7,7 @@ import zipfile
 from abc import abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import scipy
@@ -488,7 +488,7 @@ class TabModel(BaseEstimator):
         """
         self.network.train()
 
-        for batch_idx, (X, y, _) in enumerate(train_loader):
+        for batch_idx, (X, y, w) in enumerate(train_loader):
             self._callback_container.on_batch_begin(batch_idx)
             X = X.to(
                 self.device,
@@ -496,8 +496,12 @@ class TabModel(BaseEstimator):
             y = y.to(
                 self.device,
             )
+            if w is not None:
+                w = w.to(
+                    self.device,
+                )
 
-            batch_logs = self._train_batch(X, y)
+            batch_logs = self._train_batch(X, y, w)
 
             self._callback_container.on_batch_end(batch_idx, batch_logs)
 
@@ -506,7 +510,7 @@ class TabModel(BaseEstimator):
 
         return
 
-    def _train_batch(self, X: torch.Tensor, y: torch.Tensor) -> Dict:
+    def _train_batch(self, X: torch.Tensor, y: torch.Tensor, w: Optional[torch.Tensor] = None) -> Dict:
         """
         Trains one batch of data
 
@@ -534,7 +538,7 @@ class TabModel(BaseEstimator):
 
         output, M_loss = self.network(X)
 
-        loss = self.compute_loss(output, y)
+        loss = self.compute_loss(output, y, w)
         # Add the overall sparsity loss
         loss = loss - self.lambda_sparse * M_loss
 
