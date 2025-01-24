@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 from pytorch_tabnet.utils import check_input
 
 X_type = Union[np.ndarray, scipy.sparse.csr_matrix]
+tn_type = Union[torch.Tensor, None]
 
 
 class TorchDataset(Dataset):
@@ -119,12 +120,12 @@ class TBDataLoader:
     predict: bool = False
     all_at_once: bool = False
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[Tuple[torch.Tensor, tn_type, tn_type]]:
         if self.all_at_once:
             if self.pre_training or isinstance(self.dataset, PredictDataset) or isinstance(self.dataset, SparsePredictDataset):
-                yield self.dataset.x
+                yield self.dataset.x, None, None
             else:
-                yield self.dataset.x, self.dataset.y
+                yield self.dataset.x, self.dataset.y, None
             return
         ds_len = len(self.dataset)
         perm = None
@@ -134,26 +135,25 @@ class TBDataLoader:
         batched_starts += [0] if len(batched_starts) == 0 else []
         for start in batched_starts[: len(self)]:
             if self.predict:
-                yield from self.make_predict_batch(ds_len, start)
+                yield self.make_predict_batch(ds_len, start)
             else:
-                yield from self.make_train_batch(ds_len, perm, start)
+                yield self.make_train_batch(ds_len, perm, start)
 
-    def make_predict_batch(self, ds_len, start):
+    def make_predict_batch(self, ds_len: int, start: int) -> Tuple[torch.Tensor, tn_type, tn_type]:
         end_at = start + self.batch_size
         if end_at > ds_len:
             end_at = ds_len
         if self.pre_training or isinstance(self.dataset, PredictDataset) or isinstance(self.dataset, SparsePredictDataset):
-            yield self.dataset.x[start:end_at]
+            return self.dataset.x[start:end_at], None, None
         else:
-            yield self.dataset.x[start:end_at], self.dataset.y[start:end_at]
+            return self.dataset.x[start:end_at], self.dataset.y[start:end_at], None
 
-    def make_train_batch(self, ds_len, perm, start):
+    def make_train_batch(self, ds_len: int, perm: Optional[torch.Tensor], start: int) -> Tuple[torch.Tensor, tn_type, tn_type]:
         end_at = start + self.batch_size
         left_over = None
         if end_at > ds_len:
             left_over = end_at - ds_len
             end_at = ds_len
-        batch = None
 
         if self.pre_training:
             batch = self.dataset.x[perm[start:end_at]]
@@ -164,9 +164,16 @@ class TBDataLoader:
                 batch = torch.cat((batch, self.dataset.x[perm[:left_over]]))
             else:
                 batch = torch.cat((batch[0], self.dataset.x[:left_over])), torch.cat((batch[1], self.dataset.y[:left_over]))
-        yield batch
+        if isinstance(batch, tuple):
+            if len(batch) == 3:
+                return batch
+            if len(batch) == 2:
+                return batch[0], batch[1], None
+            if len(batch) == 1:
+                return batch[0], None, None
+        return batch, None, None
 
-    def __len__(self):
+    def __len__(self) -> int:
         res = math.ceil(len(self.dataset) / self.batch_size)
         need_to_drop_last = self.drop_last and not self.predict
         need_to_drop_last = need_to_drop_last and (res > 1)

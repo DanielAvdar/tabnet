@@ -311,7 +311,7 @@ class TabModel(BaseEstimator):
 
         results = []
         with torch.no_grad():
-            for _batch_nb, data in enumerate(dataloader):
+            for _batch_nb, (data, _, _) in enumerate(iter(dataloader)):
                 data = data.to(self.device, non_blocking=True).float()
                 output, _M_loss = self.network(data)
                 predictions = output.cpu().detach().numpy()
@@ -356,7 +356,7 @@ class TabModel(BaseEstimator):
 
         res_explain = []
         with torch.no_grad():
-            for batch_nb, data in enumerate(dataloader):
+            for batch_nb, (data, _, _) in enumerate(dataloader):
                 data = data.to(self.device, non_blocking=True).float()
 
                 M_explain, masks = self.network.forward_masks(data)
@@ -484,7 +484,7 @@ class TabModel(BaseEstimator):
         """
         self.network.train()
 
-        for batch_idx, (X, y) in enumerate(train_loader):
+        for batch_idx, (X, y, _) in enumerate(train_loader):
             self._callback_container.on_batch_begin(batch_idx)
             X = X.to(
                 self.device,
@@ -562,7 +562,7 @@ class TabModel(BaseEstimator):
         list_y_score = []
         with torch.no_grad():
             # Main loop
-            for _batch_idx, (X, y) in enumerate(loader):
+            for _batch_idx, (X, y, _) in enumerate(loader):
                 scores = self._predict_batch(X.to(self.device, non_blocking=True).float())
                 list_y_true.append(y.to(self.device, non_blocking=True))
                 list_y_score.append(scores)

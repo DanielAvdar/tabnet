@@ -96,7 +96,7 @@ class TabNetClassifier(TabModel):
 
         results: List[np.ndarray] = []
         with torch.no_grad():
-            for _batch_nb, data in enumerate(dataloader):
+            for _batch_nb, (data, _, _) in enumerate(dataloader):
                 data = data.to(self.device).float()
 
                 output: torch.Tensor

@@ -126,7 +126,7 @@ class TabNetMultiTaskClassifier(TabModel):
 
         results: dict = {}
         with torch.no_grad():
-            for data in dataloader:
+            for data, _, _ in dataloader:
                 data = data.to(self.device).float()
                 output, _ = self.network(data)
                 predictions = [
@@ -173,7 +173,7 @@ class TabNetMultiTaskClassifier(TabModel):
             )
 
         results: dict = {}
-        for data in dataloader:
+        for data, _, _ in dataloader:
             data = data.to(self.device).float()
             output, _ = self.network(data)
             predictions = [torch.nn.Softmax(dim=1)(task_output).cpu().detach().numpy() for task_output in output]

@@ -283,7 +283,7 @@ class TabNetPretrainer(TabModel):
         """
         self.network.train()
 
-        for batch_idx, X in enumerate(train_loader):  # todo: replace loader
+        for batch_idx, (X, _, _) in enumerate(train_loader):  # todo: replace loader
             self._callback_container.on_batch_begin(batch_idx)
             X = X.to(self.device, non_blocking=True)
 
@@ -350,7 +350,7 @@ class TabNetPretrainer(TabModel):
         list_embedded_x = []
         list_obfuscation = []
         # Main loop
-        for _batch_idx, X in enumerate(loader):  # todo: replace loader
+        for _batch_idx, (X, _, _) in enumerate(loader):  # todo: replace loader
             output, embedded_x, obf_vars = self._predict_batch(X)
             list_output.append(output)
             list_embedded_x.append(embedded_x)
