@@ -56,11 +56,18 @@ class TabNetMultiTaskClassifier(TabModel):
         if isinstance(self.loss_fn, list):
             # if you specify a different loss for each task
             for task_loss, task_output, task_id in zip(self.loss_fn, y_pred, range(len(self.loss_fn)), strict=False):
-                loss += task_loss(task_output, y_true[:, task_id])
+                # loss += task_loss(task_output, y_true[:, task_id])
+                t_loss = task_loss(task_output, y_true[:, task_id])
+                if w is not None:
+                    t_loss *= w
+                loss += t_loss
         else:
             # same loss function is applied to all tasks
             for task_id, task_output in enumerate(y_pred):
-                loss += self.loss_fn(task_output, y_true[:, task_id])
+                t_loss = self.loss_fn(task_output, y_true[:, task_id])
+                if w is not None:
+                    t_loss *= w
+                loss += t_loss
 
         loss /= len(y_pred)
         return loss

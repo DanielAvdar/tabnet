@@ -81,11 +81,11 @@ def test_customizing():
     X_test = train[features].values[test_indices]
     y_test = train[target].values[test_indices]
 
-    def my_loss_fn(y_pred, y_true):
+    def my_loss_fn(y_pred, y_true,**kwargs):
         softmax_pred = torch.nn.Softmax(dim=-1)(y_pred)
         logloss = (1 - y_true) * torch.log(softmax_pred[:, 0])
         logloss += y_true * torch.log(softmax_pred[:, 1])
-        return -torch.mean(logloss)
+        return -logloss
 
     from pytorch_tabnet.metrics import Metric
     class my_metric(Metric):

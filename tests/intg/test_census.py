@@ -114,7 +114,7 @@ def test_census():
         num_workers=0,
         weights=1,
         drop_last=False,
-        augmentations=aug,
+        # augmentations=aug,
     )
 
     save_history = []

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from functools import partial
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -19,7 +20,10 @@ class TabNetClassifier(TabModel):
     def __post_init__(self) -> None:
         super(TabNetClassifier, self).__post_init__()
         self._task: str = "classification"
-        self._default_loss: Any = torch.nn.functional.cross_entropy
+        self._default_loss: Any = partial(
+            torch.nn.functional.cross_entropy,
+            reduction="none",
+        )
         self._default_metric: str = "accuracy"
 
     def weight_updater(self, weights: Union[bool, Dict[Union[str, int], Any], Any]) -> Union[bool, Dict[Union[str, int], Any]]:
@@ -39,7 +43,13 @@ class TabNetClassifier(TabModel):
         y_true: torch.Tensor,
         w: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        return self.loss_fn(y_pred, y_true.long(), weight=w)
+        loss = self.loss_fn(
+            y_pred,
+            y_true.long(),
+        )
+        if w is not None:
+            loss = loss * w
+        return loss.mean()
 
     def update_fit_params(  # type: ignore[override]
         self,
@@ -124,7 +134,11 @@ class TabNetRegressor(TabModel):
     def __post_init__(self) -> None:
         super(TabNetRegressor, self).__post_init__()
         self._task: str = "regression"
-        self._default_loss: Any = torch.nn.functional.mse_loss
+        # self._default_loss: Any = torch.nn.functional.mse_loss
+        self._default_loss: Any = partial(
+            torch.nn.functional.mse_loss,
+            reduction="none",
+        )
         self._default_metric: str = "mse"
 
     def prepare_target(self, y: np.ndarray) -> np.ndarray:
@@ -142,7 +156,7 @@ class TabNetRegressor(TabModel):
         )
         if w is not None:
             loss = loss * w
-        return loss
+        return loss.mean()
 
     def update_fit_params(
         self,

@@ -41,7 +41,10 @@ class TabNetPretrainer(TabModel):
         obf_vars: torch.Tensor,
         w: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        return self.loss_fn(output, embedded_x, obf_vars)
+        loss = self.loss_fn(output, embedded_x, obf_vars)
+        if w is not None:
+            loss = loss * w
+        return loss
 
     def update_fit_params(  # type: ignore[override]
         self,

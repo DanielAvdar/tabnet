@@ -7,9 +7,12 @@ from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
 
 
 @pytest.mark.parametrize(
-    "model_params, fit_params, X_train, X_valid",
+    " X_train, X_valid,weights,model_params, fit_params",
     [
         (
+            np.random.rand(1000, 10),
+            np.random.rand(50, 10),
+            0,
             dict(),
             dict(
                 pretraining_ratio=0.8,
@@ -17,10 +20,11 @@ from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
                 batch_size=128,
                 # virtual_batch_size=16,
             ),
-            np.random.rand(1000, 10),
-            np.random.rand(50, 10),
         ),
         (
+            np.random.rand(50, 10),
+            np.random.rand(1000, 10),
+            0,
             dict(
                 cat_idxs=[0, 1, 2, 3, 4],
                 cat_dims=[5, 5, 5, 5, 5],
@@ -31,29 +35,27 @@ from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
                 batch_size=128,
                 # virtual_batch_size=128,
             ),
-            np.random.rand(1000, 10),
-            np.random.rand(50, 10),
         ),
         (
+            np.random.rand(100, 10),
+            np.random.rand(200, 10),
+            np.ones(100),
             dict(cat_idxs=[0, 1, 2, 3, 4], cat_dims=[5, 5, 5, 5, 5], cat_emb_dim=5),
             dict(
                 pretraining_ratio=0.8,
                 max_epochs=2,
                 batch_size=128,
-                # virtual_batch_size=128,
-                weights=np.ones(100),  # todo fix bug in TabNetPretrainer for 1000 samples
             ),
-            np.random.rand(100, 10),
-            np.random.rand(200, 10),
         ),
     ],
 )
 @pytest.mark.parametrize("mask_type", ["sparsemax", "entmax"])
 def test_pretrainer_fit(
-    model_params,
-    fit_params,
     X_train,
     X_valid,
+    weights,
+    model_params,
+    fit_params,
     mask_type,
     # pin_memory,
 ):
@@ -65,6 +67,7 @@ def test_pretrainer_fit(
     unsupervised_model.fit(
         X_train=X_train,
         eval_set=[X_valid],
+        weights=weights,
         **fit_params,
     )
     assert hasattr(unsupervised_model, "network")
@@ -79,6 +82,7 @@ def test_pretrainer_fit(
     tab_class.fit(
         y_train=np.random.randint(0, 2, size=X_train.shape[0]),
         X_train=X_train,
+        weights=weights,
         from_unsupervised=unsupervised_model,
         **fit_params,
     )
@@ -86,6 +90,7 @@ def test_pretrainer_fit(
     multi_tab_class.fit(
         y_train=np.random.randint(0, 2, size=(X_train.shape[0], 2)),
         X_train=X_train,
+        weights=weights,
         from_unsupervised=unsupervised_model,
         **fit_params,
     )
@@ -93,6 +98,7 @@ def test_pretrainer_fit(
     tab_reg.fit(
         y_train=np.random.rand(X_train.shape[0]).reshape(-1, 1),
         X_train=X_train,
+        weights=weights,
         from_unsupervised=unsupervised_model,
         **fit_params,
     )
@@ -100,6 +106,7 @@ def test_pretrainer_fit(
     multi_tab_reg.fit(
         y_train=np.random.rand(X_train.shape[0] * 3).reshape(-1, 3),
         X_train=X_train,
+        weights=weights,
         from_unsupervised=unsupervised_model,
         **fit_params,
     )
