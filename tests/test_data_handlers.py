@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 import numpy as np
 import pytest
+import torch
 from scipy import sparse as sparse
 from scipy.sparse import csr_matrix
 from torch.utils.data import WeightedRandomSampler
@@ -334,6 +335,83 @@ def test_check_embedding_parameters_invalid(cat_dims, cat_idxs, cat_emb_dim, err
             np.random.rand(10000, 10),
             [np.random.rand(500, 10), np.random.rand(500, 10), np.random.rand(3000, 10)],
         ),
+        (
+            np.random.rand(10000, 10),
+            [],
+        ),
+    ],
+)
+@pytest.mark.parametrize(
+    "batch_size",
+    [128, 1000, 2000, 64, 32, 600],
+)
+@pytest.mark.parametrize(
+    "num_workers,pin_memory",
+    [
+        (
+            0,
+            False,
+        )
+    ],
+)
+@pytest.mark.parametrize(
+    "drop_last",
+    [
+        True,
+        False,
+    ],
+)
+def test_create_dataloaders_pt(
+    x_train,
+    eval_set,
+    batch_size,
+    num_workers,
+    drop_last,
+    pin_memory,
+):
+    train_dataloader, valid_dataloaders = create_dataloaders_pt(x_train, eval_set, 0, batch_size, num_workers, drop_last, pin_memory)
+    assert len(train_dataloader) > 0
+    assert len(valid_dataloaders) == len(eval_set)
+
+    assert isinstance(valid_dataloaders, list)
+    loaded_data = [d for d in train_dataloader]
+    ceil_div = math.ceil(len(x_train) / batch_size)
+    assert len(loaded_data) == len(train_dataloader)
+    assert len(loaded_data) == ceil_div if not drop_last else True
+    assert len(loaded_data) == ceil_div - 1 if drop_last and ceil_div > 1 else True
+    for i, vda in enumerate(valid_dataloaders):
+        v_loaded_data = [v[0] for v in vda]
+        cat_data = torch.cat(v_loaded_data)
+        assert len(cat_data) == len(vda.dataset.x)
+        assert torch.equal(cat_data, vda.dataset.x)
+
+
+@pytest.mark.parametrize(
+    "x_train,y_train,eval_set",
+    [
+        (
+            np.random.rand(1000, 10),
+            np.random.rand(1000, 1),
+            [
+                (np.random.rand(50, 10), np.random.rand(50, 1)),
+                (np.random.rand(50, 10), np.random.rand(50, 1)),
+                (np.random.rand(300, 10), np.random.rand(300, 1)),
+            ],
+        ),
+        (
+            np.random.rand(10000, 10),
+            np.random.rand(10000, 1),
+            [
+                (np.random.rand(500, 10), np.random.rand(500, 1)),
+                (np.random.rand(500, 10), np.random.rand(500, 1)),
+                (np.random.rand(3000, 10), np.random.rand(3000, 1)),
+            ],
+        ),
+        (
+            np.random.rand(10000, 10),
+            np.random.rand(10000, 1),
+            [],
+        ),
     ],
 )
 @pytest.mark.parametrize(
@@ -357,30 +435,27 @@ def test_check_embedding_parameters_invalid(cat_dims, cat_idxs, cat_emb_dim, err
     ],
 )
 # @pytest.mark.skip("flaky")
-def test_create_dataloaders_pt(
+def test_create_dataloaders(
     x_train,
+    y_train,
     eval_set,
-    # weights,
     batch_size,
     num_workers,
     drop_last,
     pin_memory,
-    # monkeypatch,
 ):
-    train_dataloader, valid_dataloaders = create_dataloaders_pt(x_train, eval_set, 0, batch_size, num_workers, drop_last, pin_memory)
+    train_dataloader, valid_dataloaders = create_dataloaders(x_train, y_train, eval_set, 0, batch_size, num_workers, drop_last, pin_memory)
     assert len(train_dataloader) > 0
-    assert len(valid_dataloaders) > 0
+    assert len(valid_dataloaders) == len(eval_set)
 
     assert isinstance(valid_dataloaders, list)
     loaded_data = [d for d in train_dataloader]
-    # valid_loaded_data = [v for v in d for d in valid_dataloaders]
     ceil_div = math.ceil(len(x_train) / batch_size)
     assert len(loaded_data) == len(train_dataloader)
     assert len(loaded_data) == ceil_div if not drop_last else True
     assert len(loaded_data) == ceil_div - 1 if drop_last and ceil_div > 1 else True
-
-    # if batch_size<len(x_train):
-    #     for i, data in enumerate(loaded_data):
-    #         assert data.shape[0] == batch_size if batch_size<len(x_train) else data.shape[0] ==
-    #         len(x_train),f"Batch size should be consistent at {i}th batch"
-    # else:
+    for i, vda in enumerate(valid_dataloaders):
+        v_loaded_data = [v[0] for v in vda]
+        cat_data = torch.cat(v_loaded_data)
+        assert len(cat_data) == len(vda.dataset.x)
+        assert torch.equal(cat_data, vda.dataset.x)

@@ -112,8 +112,10 @@ class SparsePredictDataset(Dataset):
 
 @dataclass
 class TBDataLoader:
+    name: str
     dataset: Union[PredictDataset, TorchDataset]
     batch_size: int
+    weights: Optional[torch.Tensor] = None
     pre_training: bool = False
     drop_last: bool = False
     pin_memory: bool = False
@@ -139,14 +141,17 @@ class TBDataLoader:
             else:
                 yield self.make_train_batch(ds_len, perm, start)
 
-    def make_predict_batch(self, ds_len: int, start: int) -> Tuple[torch.Tensor, tn_type, tn_type]:
+    def make_predict_batch(self, ds_len: int, start: int) -> Tuple[torch.Tensor, tn_type, None]:
         end_at = start + self.batch_size
         if end_at > ds_len:
             end_at = ds_len
+        x, y = None, None
         if self.pre_training or isinstance(self.dataset, PredictDataset) or isinstance(self.dataset, SparsePredictDataset):
-            return self.dataset.x[start:end_at], None, None
+            # return self.dataset.x[start:end_at], None, None
+            x = self.dataset.x[start:end_at]
         else:
-            return self.dataset.x[start:end_at], self.dataset.y[start:end_at], None
+            x, y = self.dataset.x[start:end_at], self.dataset.y[start:end_at]
+        return x, y, None
 
     def make_train_batch(self, ds_len: int, perm: Optional[torch.Tensor], start: int) -> Tuple[torch.Tensor, tn_type, tn_type]:
         end_at = start + self.batch_size
@@ -154,24 +159,23 @@ class TBDataLoader:
         if end_at > ds_len:
             left_over = end_at - ds_len
             end_at = ds_len
-
+        indexes = perm[start:end_at]
+        x, y, w = None, None, None
         if self.pre_training:
-            batch = self.dataset.x[perm[start:end_at]]
+            x = self.dataset.x[indexes]
         else:
-            batch = self.dataset.x[start:end_at], self.dataset.y[start:end_at]
+            x, y, w = self.dataset.x[indexes], self.dataset.y[indexes], self.get_weights(indexes)
         if left_over is not None:
+            lo_indexes = perm[:left_over]
+
             if self.pre_training:
-                batch = torch.cat((batch, self.dataset.x[perm[:left_over]]))
+                x = torch.cat((x, self.dataset.x[lo_indexes]))
+                w = self.get_weights(lo_indexes)
             else:
-                batch = torch.cat((batch[0], self.dataset.x[:left_over])), torch.cat((batch[1], self.dataset.y[:left_over]))
-        if isinstance(batch, tuple):
-            if len(batch) == 3:
-                return batch
-            if len(batch) == 2:
-                return batch[0], batch[1], None
-            if len(batch) == 1:
-                return batch[0], None, None
-        return batch, None, None
+                x = torch.cat((x, self.dataset.x[lo_indexes]))
+                y = torch.cat((y, self.dataset.y[lo_indexes]))
+                w = None if w is None else torch.cat((w, self.get_weights(lo_indexes)))
+        return x, y, w
 
     def __len__(self) -> int:
         res = math.ceil(len(self.dataset) / self.batch_size)
@@ -179,6 +183,13 @@ class TBDataLoader:
         need_to_drop_last = need_to_drop_last and (res > 1)
         res -= need_to_drop_last
         return res
+
+    def get_weights(self, i: torch.Tensor = None) -> Union[torch.Tensor, None]:
+        if self.weights is None:
+            return None
+        if i is None:
+            return self.weights
+        return self.weights[i]
 
 
 def create_dataloaders(
@@ -226,21 +237,25 @@ def create_dataloaders(
         Training and validation dataloaders
     """
     _need_shuffle, _sampler = create_sampler(weights, y_train)
+    t_weights = None
+    if isinstance(weights, int) and weights == 1:
+        t_weights = create_class_weights(y_train)
 
     if scipy.sparse.issparse(X_train):
         train_dataloader = TBDataLoader(
-            SparseTorchDataset(X_train.astype(np.float32), y_train),
+            name="train-data",
+            dataset=SparseTorchDataset(X_train.astype(np.float32), y_train),
             batch_size=batch_size,
-            # sampler=sampler,
-            # shuffle=need_shuffle,
-            # num_workers=num_workers,
+            weights=t_weights,
             drop_last=drop_last,
             pin_memory=pin_memory,
         )
     else:
         train_dataloader = TBDataLoader(
-            TorchDataset(X_train.astype(np.float32), y_train),
+            name="train-data",
+            dataset=TorchDataset(X_train.astype(np.float32), y_train),
             batch_size=batch_size,
+            weights=t_weights,
             # sampler=sampler,
             # shuffle=need_shuffle,
             # num_workers=num_workers,
@@ -250,13 +265,16 @@ def create_dataloaders(
 
     valid_dataloaders = []
     for X, y in eval_set:
+        v_t_weights = None
+        if isinstance(weights, int) and weights == 1:
+            v_t_weights = create_class_weights(y)
         if scipy.sparse.issparse(X):
             valid_dataloaders.append(
                 TBDataLoader(
-                    SparseTorchDataset(X.astype(np.float32), y),
+                    name="val-data",
+                    dataset=SparseTorchDataset(X.astype(np.float32), y),
                     batch_size=batch_size,
-                    # shuffle=False,
-                    # num_workers=num_workers,
+                    weights=v_t_weights,
                     pin_memory=pin_memory,
                     predict=True,
                     # all_at_once=True,
@@ -265,10 +283,10 @@ def create_dataloaders(
         else:
             valid_dataloaders.append(
                 TBDataLoader(
-                    TorchDataset(X.astype(np.float32), y),
+                    name="val-data",
+                    dataset=TorchDataset(X.astype(np.float32), y),
                     batch_size=batch_size,
-                    # shuffle=False,
-                    # num_workers=num_workers,
+                    weights=v_t_weights,
                     pin_memory=pin_memory,
                     predict=True,
                     # all_at_once=True,
@@ -299,14 +317,7 @@ def create_sampler(weights: Union[int, Dict, Iterable], y_train: np.ndarray) -> 
             sampler = None
         elif weights == 1:
             need_shuffle = False
-            class_sample_count = np.array([len(np.where(y_train == t)[0]) for t in np.unique(y_train)])
-
-            weights_ = 1.0 / class_sample_count
-
-            samples_weight = np.array([weights_[t] for t in y_train])
-
-            samples_weight = torch.from_numpy(samples_weight)
-            samples_weight = samples_weight.double()
+            samples_weight = create_class_weights(y_train)
             sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
         else:
             raise ValueError("Weights should be either 0, 1, dictionnary or list.")
@@ -323,6 +334,15 @@ def create_sampler(weights: Union[int, Dict, Iterable], y_train: np.ndarray) -> 
         samples_weight = np.array(weights)
         sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
     return need_shuffle, sampler
+
+
+def create_class_weights(y_train):
+    class_sample_count = np.array([len(np.where(y_train == t)[0]) for t in np.unique(y_train)])
+    weights_ = 1.0 / class_sample_count
+    samples_weight = np.array([weights_[t] for t in y_train])
+    samples_weight = torch.from_numpy(samples_weight)
+    samples_weight = samples_weight.double()
+    return samples_weight
 
 
 def create_dataloaders_pt(
@@ -370,7 +390,8 @@ def create_dataloaders_pt(
 
     if scipy.sparse.issparse(X_train):
         train_dataloader = TBDataLoader(
-            SparsePredictDataset(X_train),
+            name="train-data",
+            dataset=SparsePredictDataset(X_train),
             batch_size=batch_size,
             # sampler=sampler,
             # shuffle=need_shuffle,
@@ -381,7 +402,8 @@ def create_dataloaders_pt(
         )
     else:
         train_dataloader = TBDataLoader(
-            PredictDataset(X_train),
+            name="train-data",
+            dataset=PredictDataset(X_train),
             batch_size=batch_size,
             # sampler=sampler,
             # shuffle=need_shuffle,
@@ -396,7 +418,8 @@ def create_dataloaders_pt(
         if scipy.sparse.issparse(X):
             valid_dataloaders.append(
                 TBDataLoader(
-                    SparsePredictDataset(X),
+                    name="val-data",
+                    dataset=SparsePredictDataset(X),
                     batch_size=batch_size,
                     # sampler=sampler,
                     # shuffle=need_shuffle,
@@ -410,7 +433,8 @@ def create_dataloaders_pt(
         else:
             valid_dataloaders.append(
                 TBDataLoader(
-                    PredictDataset(X),
+                    name="val-data",
+                    dataset=PredictDataset(X),
                     batch_size=batch_size,
                     # sampler=sampler,
                     # shuffle=need_shuffle,

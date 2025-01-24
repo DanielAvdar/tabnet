@@ -111,16 +111,16 @@ class TabNetMultiTaskClassifier(TabModel):
 
         if scipy.sparse.issparse(X):
             dataloader = TBDataLoader(
-                SparsePredictDataset(X),
+                name="predict",
+                dataset=SparsePredictDataset(X),
                 batch_size=self.batch_size,
-                # shuffle=False,
                 predict=True,
             )
         else:
             dataloader = TBDataLoader(
-                PredictDataset(X),
+                name="predict",
+                dataset=PredictDataset(X),
                 batch_size=self.batch_size,
-                # shuffle=False,
                 predict=True,
             )
 
@@ -159,14 +159,16 @@ class TabNetMultiTaskClassifier(TabModel):
 
         if scipy.sparse.issparse(X):
             dataloader = TBDataLoader(
-                SparsePredictDataset(X),
+                name="predict",
+                dataset=SparsePredictDataset(X),
                 batch_size=self.batch_size,
                 # shuffle=False,
                 predict=True,
             )
         else:
             dataloader = TBDataLoader(
-                PredictDataset(X),
+                name="predict",
+                dataset=PredictDataset(X),
                 batch_size=self.batch_size,
                 # shuffle=False,
                 predict=True,
