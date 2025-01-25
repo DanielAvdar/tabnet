@@ -144,10 +144,10 @@ class AUC(Metric):
         weights: torch.Tensor = None,
     ) -> float:
         num_of_classes = y_score.shape[1]
-        if weights is not None:
-            weights = weights.to(y_true.device)
-            return multiclass_auroc(y_score, y_true, num_classes=num_of_classes, weights=weights).cpu().item()
-        return multiclass_auroc(y_score, y_true, num_classes=num_of_classes).cpu().item()
+        # if weights is not None:
+        #     weights = weights.to(y_true.device)
+        #     return multiclass_auroc(y_score, y_true, num_classes=num_of_classes, weights=weights).cpu().item()
+        return multiclass_auroc(y_score, y_true, num_classes=num_of_classes, average="macro").cpu().item()
 
 
 class Accuracy(Metric):

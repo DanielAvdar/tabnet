@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 import torch
-from scipy import sparse as sparse
 from scipy.sparse import csr_matrix
 from torch.utils.data import WeightedRandomSampler
 
@@ -89,6 +88,18 @@ def test_create_dataloaders_sparse_data(sparse_sample_data):
             np.random.randint(0, 2, size=100).astype(np.float32),
             [(csr_matrix(np.random.rand(20, 20).astype(np.float32)), np.random.randint(0, 2, size=20).astype(np.float32))],
         ),
+        (
+            1,
+            csr_matrix(np.random.rand(100, 20).astype(np.float32)),
+            np.random.randint(0, 2, size=100),
+            [(csr_matrix(np.random.rand(20, 20).astype(np.float32)), np.random.randint(0, 2, size=20))],
+        ),
+        (
+            1,
+            np.random.rand(100, 20).astype(np.float32),
+            np.random.randint(0, 2, size=100),
+            [(np.random.rand(20, 20).astype(np.float32), np.random.randint(0, 2, size=20))],
+        ),
     ],
 )
 def test_create_dataloaders_weights_handling_dense(weights, X_train, y_train, eval_set):
@@ -114,8 +125,11 @@ def test_create_dataloaders_weights_handling_dense(weights, X_train, y_train, ev
     assert len(data_loaded) - len(y_train) // batch_size >= 0
     assert len(data_loaded) - len(y_train) // batch_size <= 1
     assert len(data_loaded) == len(train_loader)
+    no_weights = isinstance(weights, int)
     for i, data in enumerate(data_loaded):
         assert data[1].shape[0] == batch_size, f"Batch size should be consistent at {i}th batch"
+        assert data[-1] is None if no_weights else data[-1] is not None
+        assert data[0].shape[0] == data[-1].shape[0] if not no_weights else True
 
 
 @pytest.mark.parametrize(

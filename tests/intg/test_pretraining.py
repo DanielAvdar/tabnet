@@ -85,7 +85,7 @@ def test_pretraining():
         n_shared_decoder=1,  # nb shared glu for decoding
         n_indep_decoder=1,  # nb independent glu for decoding
         #     grouped_features=[[0, 1]], # you can group features together here
-        verbose=5,
+        # verbose=5,
     )
 
 
@@ -122,7 +122,7 @@ def test_pretraining():
                                              "gamma": 0.9},
                            scheduler_fn=torch.optim.lr_scheduler.StepLR,
                            mask_type='sparsemax',  # This will be overwritten if using pretrain model
-                           verbose=5,
+                           # verbose=5,
                            )
 
     clf.fit(

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from functools import partial
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -19,7 +20,8 @@ class TabNetMultiTaskClassifier(TabModel):
     def __post_init__(self) -> None:
         super(TabNetMultiTaskClassifier, self).__post_init__()
         self._task = "classification"
-        self._default_loss = torch.nn.functional.cross_entropy
+        # self._default_loss = torch.nn.functional.cross_entropy
+        self._default_loss = partial(torch.nn.functional.cross_entropy, reduction="none")
         self._default_metric = "logloss"
 
     def prepare_target(self, y: np.ndarray) -> np.ndarray:
@@ -60,14 +62,14 @@ class TabNetMultiTaskClassifier(TabModel):
                 t_loss = task_loss(task_output, y_true[:, task_id])
                 if w is not None:
                     t_loss *= w
-                loss += t_loss
+                loss += t_loss.mean()
         else:
             # same loss function is applied to all tasks
             for task_id, task_output in enumerate(y_pred):
                 t_loss = self.loss_fn(task_output, y_true[:, task_id])
                 if w is not None:
                     t_loss *= w
-                loss += t_loss
+                loss += t_loss.mean()
 
         loss /= len(y_pred)
         return loss

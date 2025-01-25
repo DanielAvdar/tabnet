@@ -145,13 +145,16 @@ class TBDataLoader:
         end_at = start + self.batch_size
         if end_at > ds_len:
             end_at = ds_len
-        x, y = None, None
+        x, y, w = None, None, None
         if self.pre_training or isinstance(self.dataset, PredictDataset) or isinstance(self.dataset, SparsePredictDataset):
             # return self.dataset.x[start:end_at], None, None
             x = self.dataset.x[start:end_at]
+
         else:
             x, y = self.dataset.x[start:end_at], self.dataset.y[start:end_at]
-        return x, y, None
+        w = None if self.weights is None else self.weights[start:end_at]
+
+        return x, y, w
 
     def make_train_batch(self, ds_len: int, perm: Optional[torch.Tensor], start: int) -> Tuple[torch.Tensor, tn_type, tn_type]:
         end_at = start + self.batch_size
@@ -164,7 +167,9 @@ class TBDataLoader:
         if self.pre_training:
             x = self.dataset.x[indexes]
         else:
-            x, y, w = self.dataset.x[indexes], self.dataset.y[indexes], self.get_weights(indexes)
+            x, y = self.dataset.x[indexes], self.dataset.y[indexes]
+        w = self.get_weights(indexes)
+
         if left_over is not None:
             lo_indexes = perm[:left_over]
 
@@ -174,7 +179,7 @@ class TBDataLoader:
             else:
                 x = torch.cat((x, self.dataset.x[lo_indexes]))
                 y = torch.cat((y, self.dataset.y[lo_indexes]))
-                w = None if w is None else torch.cat((w, self.get_weights(lo_indexes)))
+                w = None if self.weights is None else torch.cat((w, self.get_weights(lo_indexes)))
         return x, y, w
 
     def __len__(self) -> int:
@@ -238,8 +243,10 @@ def create_dataloaders(
     """
     _need_shuffle, _sampler = create_sampler(weights, y_train)
     t_weights = None
-    if isinstance(weights, int) and weights == 1:
-        t_weights = create_class_weights(y_train) * len(y_train)
+    # if isinstance(weights, int) and weights == 1:
+    #     t_weights = create_class_weights(y_train,)
+    if isinstance(weights, np.ndarray):
+        t_weights = torch.from_numpy(weights)
 
     if scipy.sparse.issparse(X_train):
         train_dataloader = TBDataLoader(
@@ -266,8 +273,7 @@ def create_dataloaders(
     valid_dataloaders = []
     for X, y in eval_set:
         v_t_weights = None
-        if isinstance(weights, int) and weights == 1:
-            v_t_weights = create_class_weights(y)
+
         if scipy.sparse.issparse(X):
             valid_dataloaders.append(
                 TBDataLoader(
@@ -336,10 +342,13 @@ def create_sampler(weights: Union[int, Dict, Iterable], y_train: np.ndarray) -> 
     return need_shuffle, sampler
 
 
-def create_class_weights(y_train):
+def create_class_weights(y_train, base_size=1.0):
     class_sample_count = np.array([len(np.where(y_train == t)[0]) for t in np.unique(y_train)])
-    weights_ = 1.0 / class_sample_count
-    samples_weight = np.array([weights_[t] for t in y_train])
+    weights_ = base_size / class_sample_count
+    samples_weight = np.zeros(len(y_train))
+    for i, t in enumerate(np.unique(y_train)):
+        samples_weight[y_train == t] = weights_[i]
+    # samples_weight = np.array([weights_[t] for t in y_train])
     samples_weight = torch.from_numpy(samples_weight)
     samples_weight = samples_weight.double()
     return samples_weight

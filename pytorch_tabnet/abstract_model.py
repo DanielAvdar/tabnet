@@ -568,16 +568,23 @@ class TabModel(BaseEstimator):
 
         list_y_true = []
         list_y_score = []
+        list_w_ture = []
         with torch.no_grad():
             # Main loop
-            for _batch_idx, (X, y, _) in enumerate(loader):
+            for _batch_idx, (X, y, w) in enumerate(loader):
                 scores = self._predict_batch(X.to(self.device, non_blocking=True).float())
                 list_y_true.append(y.to(self.device, non_blocking=True))
-                list_y_score.append(scores)
+
+                list_y_score.append(scores)  # todo: weighted scores
+                if w is not None:
+                    list_w_ture.append(w.to(self.device, non_blocking=True))
+        w_true = None
+        if list_w_ture:
+            w_true = torch.cat(list_w_ture, dim=0)
 
         y_true, scores = self.stack_batches(list_y_true, list_y_score)
 
-        metrics_logs = self._metric_container_dict[name](y_true, scores)
+        metrics_logs = self._metric_container_dict[name](y_true, scores, w_true)
         self.network.train()
         self.history.epoch_metrics.update(metrics_logs)
         return
