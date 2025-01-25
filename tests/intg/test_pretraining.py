@@ -89,7 +89,7 @@ def test_pretraining():
     )
 
 
-    max_epochs =  2  # 1000
+    max_epochs =  3  # 1000
     unsupervised_model.fit(
         X_train=X_train,
         eval_set=[X_valid],
