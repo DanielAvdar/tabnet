@@ -168,10 +168,10 @@ class Accuracy(Metric):
             y_score,
             y_true,
         )
-        if weights is not None:
-            weights = weights.to(y_true.device)
-            res *= weights
-        return res
+        # if weights is not None:
+        #     weights = weights.to(y_true.device)
+        #     res *= weights
+        return res.cpu()
 
 
 class BalancedAccuracy(Metric):
@@ -189,9 +189,9 @@ class BalancedAccuracy(Metric):
         weights: torch.Tensor = None,
     ) -> float:
         num_of_classes = y_score.shape[1]
-        if weights is not None:
-            weights = weights.to(y_true.device)
-            return multiclass_accuracy(y_score, y_true, average="macro", num_classes=num_of_classes, weights=weights).cpu().item()
+        # if weights is not None:
+        #     weights = weights.to(y_true.device)
+        #     return multiclass_accuracy(y_score, y_true, average="macro", num_classes=num_of_classes, weights=weights).cpu().item()
         return multiclass_accuracy(y_score, y_true, average="macro", num_classes=num_of_classes).cpu().item()
 
 
