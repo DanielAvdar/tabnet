@@ -313,7 +313,7 @@ class TabModel(BaseEstimator):
 
         results = []
         with torch.no_grad():
-            for _batch_nb, (data, _, _) in enumerate(iter(dataloader)):
+            for _batch_nb, (data, _, _) in enumerate(iter(dataloader)):  # type: ignore
                 data = data.to(self.device, non_blocking=True).float()
                 output, _M_loss = self.network(data)
                 predictions = output.cpu().detach().numpy()
@@ -360,8 +360,8 @@ class TabModel(BaseEstimator):
 
         res_explain = []
         with torch.no_grad():
-            for batch_nb, (data, _, _) in enumerate(dataloader):
-                data = data.to(self.device, non_blocking=True).float()
+            for batch_nb, (data, _, _) in enumerate(dataloader):  # type: ignore
+                data = data.to(self.device, non_blocking=True).float()  # type: ignore
 
                 M_explain, masks = self.network.forward_masks(data)
                 for key, value in masks.items():
@@ -488,16 +488,16 @@ class TabModel(BaseEstimator):
         """
         self.network.train()
 
-        for batch_idx, (X, y, w) in enumerate(train_loader):
+        for batch_idx, (X, y, w) in enumerate(train_loader):  # type: ignore
             self._callback_container.on_batch_begin(batch_idx)
-            X = X.to(
+            X = X.to(  # type: ignore
                 self.device,
             )
-            y = y.to(
+            y = y.to(  # type: ignore
                 self.device,
             )
-            if w is not None:
-                w = w.to(
+            if w is not None:  # type: ignore
+                w = w.to(  # type: ignore
                     self.device,
                 )
 
@@ -571,13 +571,13 @@ class TabModel(BaseEstimator):
         list_w_ture = []
         with torch.no_grad():
             # Main loop
-            for _batch_idx, (X, y, w) in enumerate(loader):
-                scores = self._predict_batch(X.to(self.device, non_blocking=True).float())
-                list_y_true.append(y.to(self.device, non_blocking=True))
+            for _batch_idx, (X, y, w) in enumerate(loader):  # type: ignore
+                scores = self._predict_batch(X.to(self.device, non_blocking=True).float())  # type: ignore
+                list_y_true.append(y.to(self.device, non_blocking=True))  # type: ignore
 
                 list_y_score.append(scores)  # todo: weighted scores
-                if w is not None:
-                    list_w_ture.append(w.to(self.device, non_blocking=True))
+                if w is not None:  # type: ignore
+                    list_w_ture.append(w.to(self.device, non_blocking=True))  # type: ignore
         w_true = None
         if list_w_ture:
             w_true = torch.cat(list_w_ture, dim=0)

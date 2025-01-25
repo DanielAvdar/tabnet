@@ -342,7 +342,7 @@ def create_sampler(weights: Union[int, Dict, Iterable], y_train: np.ndarray) -> 
     return need_shuffle, sampler
 
 
-def create_class_weights(y_train, base_size=1.0):
+def create_class_weights(y_train: torch.Tensor, base_size: float = 1.0) -> torch.Tensor:
     class_sample_count = np.array([len(np.where(y_train == t)[0]) for t in np.unique(y_train)])
     weights_ = base_size / class_sample_count
     samples_weight = np.zeros(len(y_train))

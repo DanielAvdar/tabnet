@@ -359,7 +359,7 @@ class TabNetPretrainer(TabModel):
         list_embedded_x = []
         list_obfuscation = []
         # Main loop
-        for _batch_idx, (X, _, _) in enumerate(loader):  # todo: replace loader
+        for _batch_idx, (X, _, _) in enumerate(loader):
             output, embedded_x, obf_vars = self._predict_batch(X)
             list_output.append(output)
             list_embedded_x.append(embedded_x)
@@ -367,7 +367,7 @@ class TabNetPretrainer(TabModel):
 
         output, embedded_x, obf_vars = self.stack_batches(list_output, list_embedded_x, list_obfuscation)
 
-        metrics_logs = self._metric_container_dict[name](output, embedded_x, obf_vars)  # type: ignore
+        metrics_logs = self._metric_container_dict[name](output, embedded_x, obf_vars)
         self.network.train()
         self.history.epoch_metrics.update(metrics_logs)
         return

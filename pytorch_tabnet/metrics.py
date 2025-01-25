@@ -284,7 +284,7 @@ class UnsupervisedMetric(Metric):
     _name: str = "unsup_loss"
     _maximize: bool = False
 
-    def __call__(
+    def __call__(  # type: ignore
         self,
         y_pred: torch.Tensor,
         embedded_x: torch.Tensor,
