@@ -171,7 +171,7 @@ class Accuracy(Metric):
         # if weights is not None:
         #     weights = weights.to(y_true.device)
         #     res *= weights
-        return res.cpu()
+        return res.cpu().item()
 
 
 class BalancedAccuracy(Metric):
