@@ -57,7 +57,7 @@ def test_customizing():
 
     cat_dims = [categorical_dims[f] for i, f in enumerate(features) if f in categorical_columns]
 
-    max_epochs =  4
+    max_epochs = 6
     batch_size = 1024
     clf = TabNetClassifier(cat_idxs=cat_idxs,
                            cat_dims=cat_dims,
@@ -81,11 +81,11 @@ def test_customizing():
     X_test = train[features].values[test_indices]
     y_test = train[target].values[test_indices]
 
-    def my_loss_fn(y_pred, y_true):
+    def my_loss_fn(y_pred, y_true,**kwargs):
         softmax_pred = torch.nn.Softmax(dim=-1)(y_pred)
         logloss = (1 - y_true) * torch.log(softmax_pred[:, 0])
         logloss += y_true * torch.log(softmax_pred[:, 1])
-        return -torch.mean(logloss)
+        return -logloss
 
     from pytorch_tabnet.metrics import Metric
     class my_metric(Metric):
@@ -94,7 +94,7 @@ def test_customizing():
             self._name = "custom"
             self._maximize = True
 
-        def __call__(self, y_true, y_score):
+        def __call__(self, y_true, y_score,w):
             return 2 * roc_auc_score(y_true.cpu(), y_score[:, 1].cpu())
 
     # %%
@@ -105,7 +105,7 @@ def test_customizing():
         eval_metric=["auc", my_metric],
         max_epochs=max_epochs, patience=0,
         batch_size=batch_size,
-        virtual_batch_size=128,
+        # virtual_batch_size=128,
         num_workers=0,
         weights=1,
         drop_last=False,
@@ -138,7 +138,7 @@ def test_customizing():
     print(f"FINAL TEST SCORE FOR {dataset_name} : {loaded_test_auc}")
     assert (test_auc == loaded_test_auc)
 
-    clf.feature_importances_
+    # clf.feature_importances_
 
     explain_matrix, masks = clf.explain(X_test)
     fig, axs = plt.subplots(1, 3, figsize=(20, 20))

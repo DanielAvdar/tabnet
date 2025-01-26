@@ -7,7 +7,7 @@ import zipfile
 from abc import abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import scipy
@@ -15,8 +15,8 @@ import torch
 from scipy.sparse import csc_matrix
 from sklearn.base import BaseEstimator
 from torch.nn.utils import clip_grad_norm_
-from torch.utils.data import DataLoader
 
+# from torch.utils.data import DataLoader
 from pytorch_tabnet import tab_network
 from pytorch_tabnet.callbacks import (
     Callback,
@@ -25,15 +25,13 @@ from pytorch_tabnet.callbacks import (
     History,
     LRSchedulerCallback,
 )
+from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, TBDataLoader, create_dataloaders
 from pytorch_tabnet.metrics import MetricContainer, check_metrics
 from pytorch_tabnet.utils import (
     ComplexEncoder,
-    PredictDataset,
-    SparsePredictDataset,
     check_embedding_parameters,
     check_input,
     check_warm_start,
-    create_dataloaders,
     create_explain_matrix,
     create_group_matrix,
     define_device,
@@ -132,11 +130,11 @@ class TabModel(BaseEstimator):
         eval_name: Union[None, List[str]] = None,
         eval_metric: Union[None, List[str]] = None,
         loss_fn: Union[None, Callable] = None,
-        weights: Union[int, Dict] = 0,
+        weights: Union[int, Dict, np.array] = 0,
         max_epochs: int = 100,
         patience: int = 10,
         batch_size: int = 1024,
-        virtual_batch_size: int = 128,
+        virtual_batch_size: int = None,
         num_workers: int = 0,
         drop_last: bool = True,
         callbacks: Union[None, List] = None,
@@ -144,7 +142,7 @@ class TabModel(BaseEstimator):
         from_unsupervised: Union[None, "TabModel"] = None,
         warm_start: bool = False,
         augmentations: Union[None, Any] = None,
-        compute_importance: bool = True,
+        compute_importance: bool = False,
         *args: Any,
         **kwargs: Any,
     ) -> None:
@@ -200,7 +198,7 @@ class TabModel(BaseEstimator):
         self.max_epochs: int = max_epochs
         self.patience: int = patience
         self.batch_size = batch_size
-        self.virtual_batch_size = virtual_batch_size
+        self.virtual_batch_size = virtual_batch_size or batch_size
         self.num_workers: int = num_workers
         self.drop_last: bool = drop_last
         self.input_dim: int = X_train.shape[1]
@@ -233,7 +231,12 @@ class TabModel(BaseEstimator):
         # Validate and reformat eval set depending on training data
         eval_names, eval_set = validate_eval_set(eval_set, eval_name, X_train, y_train)
 
-        train_dataloader, valid_dataloaders = self._construct_loaders(X_train, y_train, eval_set)
+        train_dataloader, valid_dataloaders = self._construct_loaders(
+            X_train,
+            y_train,
+            eval_set,
+            self.weight_updater(weights=weights),
+        )
 
         if from_unsupervised is not None:
             # Update parameters to match self pretraining
@@ -257,13 +260,10 @@ class TabModel(BaseEstimator):
         for epoch_idx in range(self.max_epochs):
             # Call method on_epoch_begin for all callbacks
             self._callback_container.on_epoch_begin(epoch_idx)
-
             self._train_epoch(train_dataloader)
-
             # Apply predict epoch to all eval sets
             for eval_name_, valid_dataloader in zip(eval_names, valid_dataloaders, strict=False):
                 self._predict_epoch(eval_name_, valid_dataloader)
-
             # Call method on_epoch_end for all callbacks
             self._callback_container.on_epoch_end(epoch_idx, logs=self.history.epoch_metrics)
 
@@ -295,22 +295,26 @@ class TabModel(BaseEstimator):
         self.network.eval()
 
         if scipy.sparse.issparse(X):
-            dataloader = DataLoader(
-                SparsePredictDataset(X),
+            dataloader = TBDataLoader(
+                name="predict",
+                dataset=SparsePredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                # shuffle=False,
+                predict=True,
             )
         else:
-            dataloader = DataLoader(
-                PredictDataset(X),
+            dataloader = TBDataLoader(
+                name="predict",
+                dataset=PredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                # shuffle=False,
+                predict=True,
             )
 
         results = []
         with torch.no_grad():
-            for _batch_nb, data in enumerate(dataloader):
-                data = data.to(self.device).float()
+            for _batch_nb, (data, _, _) in enumerate(iter(dataloader)):  # type: ignore
+                data = data.to(self.device, non_blocking=True).float()
                 output, _M_loss = self.network(data)
                 predictions = output.cpu().detach().numpy()
                 results.append(predictions)
@@ -338,34 +342,38 @@ class TabModel(BaseEstimator):
         self.network.eval()
 
         if scipy.sparse.issparse(X):
-            dataloader = DataLoader(
-                SparsePredictDataset(X),
+            dataloader = TBDataLoader(
+                name="predict",
+                dataset=SparsePredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                # shuffle=False,
+                predict=True,
             )
         else:
-            dataloader = DataLoader(
-                PredictDataset(X),
+            dataloader = TBDataLoader(
+                name="predict",
+                dataset=PredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                # shuffle=False,
+                predict=True,
             )
 
         res_explain = []
+        with torch.no_grad():
+            for batch_nb, (data, _, _) in enumerate(dataloader):  # type: ignore
+                data = data.to(self.device, non_blocking=True).float()  # type: ignore
 
-        for batch_nb, data in enumerate(dataloader):
-            data = data.to(self.device).float()
-
-            M_explain, masks = self.network.forward_masks(data)
-            for key, value in masks.items():
-                masks[key] = csc_matrix.dot(value.cpu().detach().numpy(), self.reducing_matrix)
-            original_feat_explain = csc_matrix.dot(M_explain.cpu().detach().numpy(), self.reducing_matrix)
-            res_explain.append(original_feat_explain)
-
-            if batch_nb == 0:
-                res_masks = masks
-            else:
+                M_explain, masks = self.network.forward_masks(data)
                 for key, value in masks.items():
-                    res_masks[key] = np.vstack([res_masks[key], value])
+                    masks[key] = csc_matrix.dot(value.cpu().detach().numpy(), self.reducing_matrix)
+                original_feat_explain = csc_matrix.dot(M_explain.cpu().detach().numpy(), self.reducing_matrix)
+                res_explain.append(original_feat_explain)
+
+                if batch_nb == 0:
+                    res_masks = masks
+                else:
+                    for key, value in masks.items():
+                        res_masks[key] = np.vstack([res_masks[key], value])
 
         res_explain = np.vstack(res_explain)
 
@@ -469,7 +477,7 @@ class TabModel(BaseEstimator):
 
         return
 
-    def _train_epoch(self, train_loader: DataLoader) -> None:
+    def _train_epoch(self, train_loader: TBDataLoader) -> None:
         """
         Trains one epoch of the network in self.network
 
@@ -480,10 +488,20 @@ class TabModel(BaseEstimator):
         """
         self.network.train()
 
-        for batch_idx, (X, y) in enumerate(train_loader):
+        for batch_idx, (X, y, w) in enumerate(train_loader):  # type: ignore
             self._callback_container.on_batch_begin(batch_idx)
+            X = X.to(  # type: ignore
+                self.device,
+            )
+            y = y.to(  # type: ignore
+                self.device,
+            )
+            if w is not None:  # type: ignore
+                w = w.to(  # type: ignore
+                    self.device,
+                )
 
-            batch_logs = self._train_batch(X, y)
+            batch_logs = self._train_batch(X, y, w)
 
             self._callback_container.on_batch_end(batch_idx, batch_logs)
 
@@ -492,7 +510,7 @@ class TabModel(BaseEstimator):
 
         return
 
-    def _train_batch(self, X: torch.Tensor, y: torch.Tensor) -> Dict:
+    def _train_batch(self, X: torch.Tensor, y: torch.Tensor, w: Optional[torch.Tensor] = None) -> Dict:
         """
         Trains one batch of data
 
@@ -512,9 +530,6 @@ class TabModel(BaseEstimator):
         """
         batch_logs = {"batch_size": X.shape[0]}
 
-        X = X.to(self.device).float()
-        y = y.to(self.device).float()
-
         if self.augmentations is not None:
             X, y = self.augmentations(X, y)
 
@@ -523,7 +538,7 @@ class TabModel(BaseEstimator):
 
         output, M_loss = self.network(X)
 
-        loss = self.compute_loss(output, y)
+        loss = self.compute_loss(output, y, w)
         # Add the overall sparsity loss
         loss = loss - self.lambda_sparse * M_loss
 
@@ -533,11 +548,11 @@ class TabModel(BaseEstimator):
             clip_grad_norm_(self.network.parameters(), self.clip_value)
         self._optimizer.step()
 
-        batch_logs["loss"] = loss.cpu().detach().numpy().item()
+        batch_logs["loss"] = loss.item()
 
         return batch_logs
 
-    def _predict_epoch(self, name: str, loader: DataLoader) -> None:
+    def _predict_epoch(self, name: str, loader: TBDataLoader) -> None:  # todo: replace loader
         """
         Predict an epoch and update metrics.
 
@@ -553,21 +568,28 @@ class TabModel(BaseEstimator):
 
         list_y_true = []
         list_y_score = []
+        list_w_ture = []
         with torch.no_grad():
             # Main loop
-            for _batch_idx, (X, y) in enumerate(loader):
-                scores = self._predict_batch(X.to(self.device))
-                list_y_true.append(y.to(self.device))
-                list_y_score.append(scores)
+            for _batch_idx, (X, y, w) in enumerate(loader):  # type: ignore
+                scores = self._predict_batch(X.to(self.device, non_blocking=True).float())  # type: ignore
+                list_y_true.append(y.to(self.device, non_blocking=True))  # type: ignore
+
+                list_y_score.append(scores)  # todo: weighted scores
+                if w is not None:  # type: ignore
+                    list_w_ture.append(w.to(self.device, non_blocking=True))  # type: ignore
+        w_true = None
+        if list_w_ture:
+            w_true = torch.cat(list_w_ture, dim=0)
 
         y_true, scores = self.stack_batches(list_y_true, list_y_score)
 
-        metrics_logs = self._metric_container_dict[name](y_true, scores)
+        metrics_logs = self._metric_container_dict[name](y_true, scores, w_true)
         self.network.train()
         self.history.epoch_metrics.update(metrics_logs)
         return
 
-    def _predict_batch(self, X: torch.Tensor) -> torch.Tensor:  # todo: switch to from numpy to torch
+    def _predict_batch(self, X: torch.Tensor) -> torch.Tensor:
         """
         Predict one batch of data.
 
@@ -581,7 +603,6 @@ class TabModel(BaseEstimator):
         np.array
             model scores
         """
-        X = X.to(self.device).float()
 
         # compute model output
         scores, _ = self.network(X)
@@ -705,7 +726,8 @@ class TabModel(BaseEstimator):
         X_train: np.ndarray,
         y_train: np.ndarray,
         eval_set: List[Tuple[np.ndarray, np.ndarray]],
-    ) -> Tuple[DataLoader, List[DataLoader]]:
+        weights: Union[int, Dict, np.array],
+    ) -> Tuple[TBDataLoader, List[TBDataLoader]]:
         """Generate dataloaders for train and eval set.
 
         Parameters
@@ -735,7 +757,7 @@ class TabModel(BaseEstimator):
             X_train,
             y_train_mapped,
             eval_set,
-            self.updated_weights,
+            weights,
             self.batch_size,
             self.num_workers,
             self.drop_last,
@@ -759,6 +781,9 @@ class TabModel(BaseEstimator):
 
     def _update_network_params(self) -> None:
         self.network.virtual_batch_size = self.virtual_batch_size
+
+    def weight_updater(self, weights: Union[bool, Dict[Union[str, int], Any], Any]) -> Union[bool, Dict[Union[str, int], Any]]:
+        return weights
 
     @abstractmethod
     def update_fit_params(

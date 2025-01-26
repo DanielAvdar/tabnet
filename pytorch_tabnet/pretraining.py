@@ -9,18 +9,13 @@ from torch.utils.data import DataLoader
 
 from pytorch_tabnet import tab_network
 from pytorch_tabnet.abstract_model import TabModel
+from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, create_dataloaders_pt, validate_eval_set
 from pytorch_tabnet.metrics import (
     UnsupervisedLoss,
     UnsupMetricContainer,
     check_metrics,
 )
-from pytorch_tabnet.pretraining_utils import (
-    create_dataloaders,
-    validate_eval_set,
-)
 from pytorch_tabnet.utils import (
-    PredictDataset,
-    SparsePredictDataset,
     check_input,
     create_explain_matrix,
     create_group_matrix,
@@ -39,15 +34,24 @@ class TabNetPretrainer(TabModel):
     def prepare_target(self, y: np.ndarray) -> np.ndarray:
         return y
 
-    def compute_loss(self, output: torch.Tensor, embedded_x: torch.Tensor, obf_vars: torch.Tensor) -> torch.Tensor:
-        return self.loss_fn(output, embedded_x, obf_vars)
+    def compute_loss(
+        self,
+        output: torch.Tensor,
+        embedded_x: torch.Tensor,
+        obf_vars: torch.Tensor,
+        w: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        loss = self.loss_fn(output, embedded_x, obf_vars)
+        if w is not None:
+            loss = loss * w
+        return loss
 
     def update_fit_params(  # type: ignore[override]
         self,
         weights: np.ndarray,
     ) -> None:
-        self.updated_weights = weights
-        filter_weights(self.updated_weights)
+        # self.updated_weights = weights
+        filter_weights(weights)
         self.preds_mapper = None
 
     def fit(  # type: ignore[override]
@@ -137,7 +141,7 @@ class TabNetPretrainer(TabModel):
 
         # Validate and reformat eval set depending on training data
         eval_names = validate_eval_set(eval_set, eval_name, X_train)
-        train_dataloader, valid_dataloaders = self._construct_loaders(X_train, eval_set)
+        train_dataloader, valid_dataloaders = self._construct_loaders(X_train, eval_set, weights=weights)
 
         if not hasattr(self, "network") or not warm_start:
             # model has never been fitted before of warm_start is False
@@ -244,8 +248,11 @@ class TabNetPretrainer(TabModel):
         self.early_stopping_metric = self._metrics_names[-1] if len(self._metrics_names) > 0 else None
 
     def _construct_loaders(  # type: ignore[override]
-        self, X_train: np.ndarray, eval_set: List[Union[np.ndarray, List[np.ndarray]]]
-    ) -> tuple[DataLoader, List[DataLoader]]:
+        self,
+        X_train: np.ndarray,
+        eval_set: List[Union[np.ndarray, List[np.ndarray]]],
+        weights: Union[int, Dict, np.array],
+    ) -> tuple[DataLoader, List[DataLoader]]:  # todo: replace loader
         """Generate dataloaders for unsupervised train and eval set.
 
         Parameters
@@ -263,10 +270,10 @@ class TabNetPretrainer(TabModel):
             List of validation dataloaders.
 
         """
-        train_dataloader, valid_dataloaders = create_dataloaders(
+        train_dataloader, valid_dataloaders = create_dataloaders_pt(
             X_train,
             eval_set,
-            self.updated_weights,
+            weights,
             self.batch_size,
             self.num_workers,
             self.drop_last,
@@ -274,7 +281,7 @@ class TabNetPretrainer(TabModel):
         )
         return train_dataloader, valid_dataloaders
 
-    def _train_epoch(self, train_loader: DataLoader) -> None:
+    def _train_epoch(self, train_loader: DataLoader) -> None:  # todo: replace loader
         """
         Trains one epoch of the network in self.network
 
@@ -285,8 +292,9 @@ class TabNetPretrainer(TabModel):
         """
         self.network.train()
 
-        for batch_idx, X in enumerate(train_loader):
+        for batch_idx, (X, _, _) in enumerate(train_loader):  # todo: replace loader
             self._callback_container.on_batch_begin(batch_idx)
+            X = X.to(self.device, non_blocking=True)
 
             batch_logs = self._train_batch(X)
 
@@ -297,7 +305,7 @@ class TabNetPretrainer(TabModel):
 
         return
 
-    def _train_batch(self, X: torch.Tensor) -> dict:  # type: ignore[override]
+    def _train_batch(self, X: torch.Tensor, w: Optional[torch.Tensor] = None) -> dict:  # type: ignore[override]
         """
         Trains one batch of data
 
@@ -315,7 +323,7 @@ class TabNetPretrainer(TabModel):
         """
         batch_logs = {"batch_size": X.shape[0]}
 
-        X = X.to(self.device).float()
+        # X = X.to(self.device).float()
 
         for param in self.network.parameters():
             param.grad = None
@@ -333,7 +341,7 @@ class TabNetPretrainer(TabModel):
 
         return batch_logs
 
-    def _predict_epoch(self, name: str, loader: DataLoader) -> None:
+    def _predict_epoch(self, name: str, loader: DataLoader) -> None:  # todo: replace loader
         """
         Predict an epoch and update metrics.
 
@@ -351,7 +359,7 @@ class TabNetPretrainer(TabModel):
         list_embedded_x = []
         list_obfuscation = []
         # Main loop
-        for _batch_idx, X in enumerate(loader):
+        for _batch_idx, (X, _, _) in enumerate(loader):
             output, embedded_x, obf_vars = self._predict_batch(X)
             list_output.append(output)
             list_embedded_x.append(embedded_x)
@@ -359,7 +367,7 @@ class TabNetPretrainer(TabModel):
 
         output, embedded_x, obf_vars = self.stack_batches(list_output, list_embedded_x, list_obfuscation)
 
-        metrics_logs = self._metric_container_dict[name](output, embedded_x, obf_vars)  # type: ignore
+        metrics_logs = self._metric_container_dict[name](output, embedded_x, obf_vars)
         self.network.train()
         self.history.epoch_metrics.update(metrics_logs)
         return

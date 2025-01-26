@@ -1,14 +1,16 @@
 from dataclasses import dataclass
-from typing import List, Tuple, Union
+from functools import partial
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import scipy
 import torch
-from torch.utils.data import DataLoader
 
+# from torch.utils.data import DataLoader
 from pytorch_tabnet.abstract_model import TabModel
+from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, TBDataLoader
 from pytorch_tabnet.multiclass_utils import check_output_dim, infer_multitask_output
-from pytorch_tabnet.utils import PredictDataset, SparsePredictDataset, filter_weights
+from pytorch_tabnet.utils import filter_weights
 
 
 @dataclass
@@ -18,7 +20,8 @@ class TabNetMultiTaskClassifier(TabModel):
     def __post_init__(self) -> None:
         super(TabNetMultiTaskClassifier, self).__post_init__()
         self._task = "classification"
-        self._default_loss = torch.nn.functional.cross_entropy
+        # self._default_loss = torch.nn.functional.cross_entropy
+        self._default_loss = partial(torch.nn.functional.cross_entropy, reduction="none")
         self._default_metric = "logloss"
 
     def prepare_target(self, y: np.ndarray) -> np.ndarray:
@@ -28,7 +31,12 @@ class TabNetMultiTaskClassifier(TabModel):
             y_mapped[:, task_idx] = np.vectorize(task_mapper.get)(y[:, task_idx])
         return y_mapped
 
-    def compute_loss(self, y_pred: List[torch.Tensor], y_true: torch.Tensor) -> torch.Tensor:
+    def compute_loss(
+        self,
+        y_pred: List[torch.Tensor],
+        y_true: torch.Tensor,
+        w: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
         """
         Computes the loss according to network output and targets
 
@@ -50,11 +58,18 @@ class TabNetMultiTaskClassifier(TabModel):
         if isinstance(self.loss_fn, list):
             # if you specify a different loss for each task
             for task_loss, task_output, task_id in zip(self.loss_fn, y_pred, range(len(self.loss_fn)), strict=False):
-                loss += task_loss(task_output, y_true[:, task_id])
+                # loss += task_loss(task_output, y_true[:, task_id])
+                t_loss = task_loss(task_output, y_true[:, task_id])
+                if w is not None:
+                    t_loss *= w
+                loss += t_loss.mean()
         else:
             # same loss function is applied to all tasks
             for task_id, task_output in enumerate(y_pred):
-                loss += self.loss_fn(task_output, y_true[:, task_id])
+                t_loss = self.loss_fn(task_output, y_true[:, task_id])
+                if w is not None:
+                    t_loss *= w
+                loss += t_loss.mean()
 
         loss /= len(y_pred)
         return loss
@@ -87,8 +102,10 @@ class TabNetMultiTaskClassifier(TabModel):
         self.classes_ = train_labels
         self.target_mapper = [{class_label: index for index, class_label in enumerate(classes)} for classes in self.classes_]
         self.preds_mapper = [{str(index): str(class_label) for index, class_label in enumerate(classes)} for classes in self.classes_]
-        self.updated_weights = weights
-        filter_weights(self.updated_weights)
+        # self.updated_weights = weights
+        filter_weights(
+            weights=weights,
+        )
 
     def predict(self, X: Union[torch.Tensor, np.ndarray, scipy.sparse.csr_matrix]) -> List[np.ndarray]:
         """
@@ -107,21 +124,23 @@ class TabNetMultiTaskClassifier(TabModel):
         self.network.eval()
 
         if scipy.sparse.issparse(X):
-            dataloader = DataLoader(
-                SparsePredictDataset(X),
+            dataloader = TBDataLoader(
+                name="predict",
+                dataset=SparsePredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                predict=True,
             )
         else:
-            dataloader = DataLoader(
-                PredictDataset(X),
+            dataloader = TBDataLoader(
+                name="predict",
+                dataset=PredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                predict=True,
             )
 
         results: dict = {}
         with torch.no_grad():
-            for data in dataloader:
+            for data, _, _ in dataloader:  # type: ignore
                 data = data.to(self.device).float()
                 output, _ = self.network(data)
                 predictions = [
@@ -153,20 +172,24 @@ class TabNetMultiTaskClassifier(TabModel):
         self.network.eval()
 
         if scipy.sparse.issparse(X):
-            dataloader = DataLoader(
-                SparsePredictDataset(X),
+            dataloader = TBDataLoader(
+                name="predict",
+                dataset=SparsePredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                # shuffle=False,
+                predict=True,
             )
         else:
-            dataloader = DataLoader(
-                PredictDataset(X),
+            dataloader = TBDataLoader(
+                name="predict",
+                dataset=PredictDataset(X),
                 batch_size=self.batch_size,
-                shuffle=False,
+                # shuffle=False,
+                predict=True,
             )
 
         results: dict = {}
-        for data in dataloader:
+        for data, _, _ in dataloader:  # type: ignore
             data = data.to(self.device).float()
             output, _ = self.network(data)
             predictions = [torch.nn.Softmax(dim=1)(task_output).cpu().detach().numpy() for task_output in output]

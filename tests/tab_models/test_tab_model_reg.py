@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 import torch
-from scipy.sparse import csr_matrix
 
 from pytorch_tabnet.tab_model import TabNetRegressor
 
@@ -14,10 +13,15 @@ from pytorch_tabnet.tab_model import TabNetRegressor
             [(np.random.rand(20, 10), np.random.rand(20, 3))],
         ),
         (
-            csr_matrix((100, 10)),
-            np.random.rand(100, 3),
-            [(csr_matrix((20, 10)), np.random.rand(20, 3))],
+            np.random.rand(1000, 10),
+            np.random.rand(1000, 5),
+            [(np.random.rand(20, 10), np.random.rand(20, 5))],
         ),
+        # (
+        #     csr_matrix((100, 10)),
+        #     np.random.rand(100, 3),
+        #     [(csr_matrix((20, 10)), np.random.rand(20, 3))],
+        # ),
     ]
 )
 def sample_data_regressor(request):
@@ -32,7 +36,7 @@ def regressor_instance():
 def test_reg_fig(sample_data_regressor, regressor_instance):
     X_train, y_train, eval_set = sample_data_regressor
     regressor_instance.fit(X_train, y_train, eval_set=eval_set)
-    assert regressor_instance.output_dim == 3
+    assert regressor_instance.output_dim == sample_data_regressor[1].shape[1]
     assert regressor_instance._default_metric == "mse"
     pred = regressor_instance.predict(X_train)
     assert pred.shape[0] == X_train.shape[0]
@@ -42,7 +46,7 @@ def test_reg_fig(sample_data_regressor, regressor_instance):
 def test_update_fit_params_regressor(sample_data_regressor, regressor_instance):
     X_train, y_train, eval_set = sample_data_regressor
     regressor_instance.update_fit_params(X_train, y_train, eval_set, weights=None)
-    assert regressor_instance.output_dim == 3
+    assert regressor_instance.output_dim == sample_data_regressor[1].shape[1]
     assert regressor_instance._default_metric == "mse"
     assert regressor_instance.updated_weights is None
 

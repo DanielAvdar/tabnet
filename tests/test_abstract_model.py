@@ -22,11 +22,11 @@ class MockTabModel(TabModel):  # Create a Mock model for testing
         self.output_dim = y_train.shape[1] if len(y_train.shape) > 1 else 1
         self._default_loss = torch.nn.functional.mse_loss  # Example loss
         self._default_metric = "mse"  # Example metric
-        self.updated_weights = weights
+        # self.updated_weights = weights
         self.preds_mapper = lambda x: x  # Identity mapper for simplicity
 
-    def compute_loss(self, y_score, y_true):
-        return self._default_loss(y_score, y_true)  # Example
+    def compute_loss(self, y_score, y_true, weights=None):
+        return self._default_loss(y_score, y_true, weights)
 
     def prepare_target(self, y):
         return y  # Simple identity mapping

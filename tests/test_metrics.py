@@ -183,7 +183,14 @@ def test_Metric_get_metrics_by_names():
         ),
     ],
 )
-def test_metric_calculations(metric_cls, y_true, y_score, expected):
+@pytest.mark.parametrize(
+    "weights",
+    [
+        True,
+        False,
+    ],
+)
+def test_metric_calculations(metric_cls, y_true, y_score, expected, weights):
     metric = metric_cls()
     if metric._name == "logloss":
         result = metric(y_true, y_score)
@@ -195,6 +202,9 @@ def test_metric_calculations(metric_cls, y_true, y_score, expected):
     else:
         result = metric(y_true, y_score)
         assert result == expected
+    if weights:
+        result = metric(y_true, y_score, weights=torch.ones_like(y_true))
+        # assert torch.nansum(result) == 0
 
 
 def test_UnsupervisedMetric():

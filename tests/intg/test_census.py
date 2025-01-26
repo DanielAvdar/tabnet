@@ -110,11 +110,11 @@ def test_census():
         eval_name=['train', 'valid'],
         eval_metric=['auc'],
         max_epochs=max_epochs, patience=20,
-        batch_size=1024, virtual_batch_size=128,
+        batch_size=1024,# virtual_batch_size=128,
         num_workers=0,
         weights=1,
         drop_last=False,
-        augmentations=aug,
+        # augmentations=aug,
     )
 
     save_history = []
@@ -126,7 +126,7 @@ def test_census():
             eval_name=['train', 'valid'],
             eval_metric=['auc'],
             max_epochs=max_epochs, patience=20,
-            batch_size=1024, virtual_batch_size=128,
+            batch_size=1024*2, virtual_batch_size=128,
             num_workers=0,
             weights=1,
             drop_last=False,
@@ -146,8 +146,8 @@ def test_census():
             eval_name=['train', 'valid'],
             eval_metric=['auc'],
             max_epochs=max_epochs, patience=20,
-            batch_size=1024, virtual_batch_size=128,
-            num_workers=0,
+            batch_size=1024,
+            virtual_batch_size=128,
             weights=1,
             drop_last=False,
             augmentations=aug,
@@ -190,7 +190,7 @@ def test_census():
 
     loaded_clf.predict(X_test)
 
-    clf.feature_importances_
+    # clf.feature_importances_
 
     explain_matrix, masks = clf.explain(X_test)
 

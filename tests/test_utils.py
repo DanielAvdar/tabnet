@@ -1,18 +1,12 @@
 import numpy as np
 import pytest
 import torch
-from scipy import sparse as sparse
-from torch.utils.data import DataLoader, WeightedRandomSampler
 
-import pytorch_tabnet
-from pytorch_tabnet.pretraining_utils import create_dataloaders
 from pytorch_tabnet.utils import (
     check_list_groups,
     create_group_matrix,
-    create_sampler,
     validate_eval_set,
 )
-from tests.test_pretraining_utils import mock_create_sampler
 
 
 @pytest.mark.parametrize(
@@ -65,34 +59,6 @@ def test_validate_eval_set_valid_inputs_and_default_eval_name(eval_name, expecte
     assert len(validated_set) == len(eval_set)
     assert np.array_equal(validated_set[0][0], eval_set[0][0])
     assert np.array_equal(validated_set[0][1], eval_set[0][1])
-
-
-@pytest.mark.parametrize(
-    "X_train_sparse,eval_set_sparse,weights,batch_size,num_workers,drop_last,pin_memory",
-    [
-        (False, True, [0.2] * 100, 128, 1, False, False),
-    ],
-)
-def test_create_dataloaders(
-    X_train_sparse,
-    eval_set_sparse,
-    weights,
-    batch_size,
-    num_workers,
-    drop_last,
-    pin_memory,
-    monkeypatch,
-):
-    monkeypatch.setattr(pytorch_tabnet.utils, "create_sampler", mock_create_sampler)
-
-    X_train = sparse.random(100, 10) if X_train_sparse else np.random.rand(100, 10)
-    eval_set = [sparse.random(50, 10), sparse.random(50, 10)] if eval_set_sparse else [np.random.rand(50, 10), np.random.rand(50, 10)]
-
-    train_dataloader, valid_dataloaders = create_dataloaders(X_train, eval_set, weights, batch_size, num_workers, drop_last, pin_memory)
-
-    assert isinstance(train_dataloader, DataLoader)
-    assert isinstance(valid_dataloaders, list)
-    assert all(isinstance(loader, DataLoader) for loader in valid_dataloaders)
 
 
 @pytest.mark.parametrize(
@@ -207,82 +173,3 @@ def test_create_group_matrix_invalid_input(list_groups, input_dim):
 def test_create_group_matrix_correct_output(list_groups, input_dim, expected_matrix):
     result = create_group_matrix(list_groups, input_dim)
     assert torch.allclose(result, expected_matrix), f"Expected matrix {expected_matrix}, got {result}"
-
-
-@pytest.mark.parametrize(
-    "weights, y_train, expected_error, error_message",
-    [
-        (
-            [0.5, 0.5, 0.5],
-            [0, 1],
-            ValueError,
-            "Custom weights should match number of train samples.",
-        ),
-        (
-            2,
-            [0, 1, 0, 1],
-            ValueError,
-            "Weights should be either 0, 1, dictionnary or list.",
-        ),
-    ],
-)
-def test_create_sampler_invalid_inputs(weights, y_train, expected_error, error_message):
-    y_train = np.array(y_train)
-    with pytest.raises(expected_error, match=error_message):
-        create_sampler(weights, y_train)
-
-
-@pytest.mark.parametrize(
-    "weights, y_train, expected_need_shuffle, expected_sampler_type",
-    [
-        (0, [0, 1, 0, 1], True, type(None)),
-        (1, [0, 1, 0, 1], False, WeightedRandomSampler),
-    ],
-)
-def test_create_sampler_integer_weights(weights, y_train, expected_need_shuffle, expected_sampler_type):
-    y_train = np.array(y_train)
-    need_shuffle, sampler = create_sampler(weights, y_train)
-
-    assert need_shuffle == expected_need_shuffle
-    assert isinstance(sampler, expected_sampler_type)
-
-
-@pytest.mark.parametrize(
-    "weights, y_train, expected_weights",
-    [
-        ({0: 0.3, 1: 0.7}, [0, 1, 0, 1], [0.3, 0.7, 0.3, 0.7]),
-        ({0: 1.0, 1: 0.5}, [0, 1, 1, 0], [1.0, 0.5, 0.5, 1.0]),
-    ],
-)
-def test_create_sampler_dict_weights(weights, y_train, expected_weights):
-    y_train = np.array(y_train)
-    expected_weights = np.array(expected_weights)
-
-    need_shuffle, sampler = create_sampler(weights, y_train)
-
-    assert not need_shuffle
-    assert isinstance(sampler, WeightedRandomSampler)
-
-    samples_weight = sampler.weights.numpy()
-    np.testing.assert_array_almost_equal(samples_weight, expected_weights)
-
-
-@pytest.mark.parametrize(
-    "weights, y_train, expected_weights",
-    [
-        ([0.2, 0.8, 0.5, 0.5], [0, 1, 0, 1], [0.2, 0.8, 0.5, 0.5]),
-        ([1.0, 1.0, 1.0, 1.0], [0, 1, 0, 1], [1.0, 1.0, 1.0, 1.0]),
-    ],
-)
-def test_create_sampler_list_weights(weights, y_train, expected_weights):
-    y_train = np.array(y_train)
-    weights = np.array(weights)
-    expected_weights = np.array(expected_weights)
-
-    need_shuffle, sampler = create_sampler(weights, y_train)
-
-    assert not need_shuffle
-    assert isinstance(sampler, WeightedRandomSampler)
-
-    samples_weight = sampler.weights.numpy()
-    np.testing.assert_array_almost_equal(samples_weight, expected_weights)

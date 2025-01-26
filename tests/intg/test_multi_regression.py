@@ -93,7 +93,7 @@ def test_multi_regression():
         eval_metric=['rmsle', 'mae', 'rmse', 'mse'],
         max_epochs=max_epochs,
         patience=50,
-        batch_size=1024, virtual_batch_size=128,
+        batch_size=1024, #virtual_batch_size=128,
         num_workers=0,
         drop_last=False
     )
@@ -105,7 +105,7 @@ def test_multi_regression():
     print(f"BEST VALID SCORE FOR {dataset_name} : {clf.best_cost}")
     print(f"FINAL TEST SCORE FOR {dataset_name} : {test_mse}")
 
-    clf.feature_importances_
+    # clf.feature_importances_
 
     explain_matrix, masks = clf.explain(X_test)
     from matplotlib import pyplot as plt

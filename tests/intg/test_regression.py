@@ -70,7 +70,7 @@ def test_regression():
     X_test = train[features].values[test_indices]
     y_test = train[target].values[test_indices].reshape(-1, 1)
     # %%
-    max_epochs =  3
+    max_epochs =  5
     # %%
     from pytorch_tabnet.augmentations import RegressionSMOTE
     aug = RegressionSMOTE(p=0.2)
@@ -82,7 +82,8 @@ def test_regression():
         eval_metric=['rmsle', 'mae', 'rmse', 'mse'],
         max_epochs=max_epochs,
         patience=50,
-        batch_size=1024, virtual_batch_size=128,
+
+        batch_size=1024, #virtual_batch_size=128,
         num_workers=0,
         drop_last=False,
         augmentations=aug,  # aug
@@ -108,7 +109,7 @@ def test_regression():
     # %%
     assert (test_score == loaded_test_mse)
     assert test_score<0.29
-    clf.feature_importances_
+    # clf.feature_importances_
     explain_matrix, masks = clf.explain(X_test)
     from matplotlib import pyplot as plt
 

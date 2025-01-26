@@ -4,8 +4,6 @@ from typing import Any, List, Union
 import torch
 from torch.nn import CrossEntropyLoss
 from torcheval.metrics.functional import (
-    binary_normalized_entropy,
-    mean_squared_error,
     multiclass_accuracy,
     multiclass_auroc,
 )
@@ -16,29 +14,10 @@ def UnsupervisedLoss(
     embedded_x: torch.Tensor,
     obf_vars: torch.Tensor,
     eps: float = 1e-9,
+    weights: torch.Tensor = None,
 ) -> torch.Tensor:
     """
-    Implements unsupervised loss function.
-    This differs from orginal paper as it's scaled to be batch size independent
-    and number of features reconstructed independent (by taking the mean)
-
-    Parameters
-    ----------
-    y_pred : torch.Tensor or np.array
-        Reconstructed prediction (with embeddings)
-    embedded_x : torch.Tensor
-        Original input embedded by network
-    obf_vars : torch.Tensor
-        Binary mask for obfuscated variables.
-        1 means the variable was obfuscated so reconstruction is based on this.
-    eps : float
-        A small floating point to avoid ZeroDivisionError
-        This can happen in degenerated case when a feature has only one value
-
-    Returns
-    -------
-    loss : torch float
-        Unsupervised loss, average value over batch samples.
+    Implements unsupervised loss function with optional sample weights.
     """
     errors = y_pred - embedded_x
     reconstruction_errors = torch.mul(errors, obf_vars) ** 2
@@ -48,30 +27,19 @@ def UnsupervisedLoss(
     batch_stds = torch.std(embedded_x, dim=0) ** 2
     batch_stds[batch_stds == 0] = batch_means[batch_stds == 0]
     features_loss = torch.matmul(reconstruction_errors, 1 / batch_stds)
-    # compute the number of obfuscated variables to reconstruct
     nb_reconstructed_variables = torch.sum(obf_vars, dim=1)
-    # take the mean of the reconstructed variable errors
     features_loss = features_loss / (nb_reconstructed_variables + eps)
-    # here we take the mean per batch, contrary to the paper
+
+    if weights is not None:
+        features_loss = features_loss * weights
+
     loss = torch.mean(features_loss)
     return loss
 
 
 @dataclass
 class UnsupMetricContainer:
-    """Container holding a list of metrics.
-
-    Parameters
-    ----------
-    y_pred : torch.Tensor or np.array
-        Reconstructed prediction (with embeddings)
-    embedded_x : torch.Tensor
-        Original input embedded by network
-    obf_vars : torch.Tensor
-        Binary mask for obfuscated variables.
-        1 means the variables was obfuscated so reconstruction is based on this.
-
-    """
+    """Updated to support weights."""
 
     metric_names: List[str]
     prefix: str = ""
@@ -85,41 +53,18 @@ class UnsupMetricContainer:
         y_pred: torch.Tensor,
         embedded_x: torch.Tensor,
         obf_vars: torch.Tensor,
+        weights: torch.Tensor = None,
     ) -> dict:
-        """Compute all metrics and store into a dict.
-
-        Parameters
-        ----------
-        y_true : np.ndarray
-            Target matrix or vector
-        y_pred : np.ndarray
-            Score matrix or vector
-
-        Returns
-        -------
-        dict
-            Dict of metrics ({metric_name: metric_value}).
-
-        """
         logs = {}
         for metric in self.metrics:
-            res = metric(y_pred, embedded_x, obf_vars)
+            res = metric(y_pred, embedded_x, obf_vars, weights)
             logs[self.prefix + metric._name] = res
         return logs
 
 
 @dataclass
 class MetricContainer:
-    """Container holding a list of metrics.
-
-    Parameters
-    ----------
-    metric_names : list of str
-        List of metric names.
-    prefix : str
-        Prefix of metric names.
-
-    """
+    """Updated to support weights."""
 
     metric_names: List[str]
     prefix: str = ""
@@ -129,33 +74,17 @@ class MetricContainer:
         self.names = [self.prefix + name for name in self.metric_names]
 
     def __call__(
-        # self, y_true: np.ndarray, y_pred: np.ndarray
         self,
         y_true: torch.Tensor,
         y_pred: torch.Tensor,
+        weights: torch.Tensor = None,
     ) -> dict:
-        """Compute all metrics and store into a dict.
-
-        Parameters
-        ----------
-        y_true : np.ndarray
-            Target matrix or vector
-        y_pred : np.ndarray
-            Score matrix or vector
-
-        Returns
-        -------
-        dict
-            Dict of metrics ({metric_name: metric_value}).
-
-        """
-
         logs = {}
         for metric in self.metrics:
             if isinstance(y_pred, list):
-                res = torch.mean(torch.tensor([metric(y_true[:, i], y_pred[i]) for i in range(len(y_pred))]))
+                res = torch.mean(torch.tensor([metric(y_true[:, i], y_pred[i], weights) for i in range(len(y_pred))]))
             else:
-                res = metric(y_true, y_pred)
+                res = metric(y_true, y_pred, weights)
             logs[self.prefix + metric._name] = res
         return logs
 
@@ -165,10 +94,10 @@ class Metric:
     _maximize: bool
 
     def __call__(
-        # self, y_true: np.ndarray, y_pred: np.ndarray
         self,
         y_true: torch.Tensor,
         y_pred: torch.Tensor,
+        weights: torch.Tensor = None,
     ) -> float:
         raise NotImplementedError("Custom Metrics must implement this function")
 
@@ -209,29 +138,16 @@ class AUC(Metric):
     _maximize: bool = True
 
     def __call__(
-        # self, y_true: np.ndarray, y_score: np.ndarray
         self,
         y_true: torch.Tensor,
         y_score: torch.Tensor,
+        weights: torch.Tensor = None,
     ) -> float:
-        """
-        Compute AUC of predictions.
-
-        Parameters
-        ----------
-        y_true : np.ndarray
-            Target matrix or vector
-        y_score : np.ndarray
-            Score matrix or vector
-
-        Returns
-        -------
-        float
-            AUC of predictions vs targets.
-        """
         num_of_classes = y_score.shape[1]
-
-        return multiclass_auroc(y_score, y_true, num_classes=num_of_classes).cpu().item()
+        # if weights is not None:
+        #     weights = weights.to(y_true.device)
+        #     return multiclass_auroc(y_score, y_true, num_classes=num_of_classes, weights=weights).cpu().item()
+        return multiclass_auroc(y_score, y_true, num_classes=num_of_classes, average="macro").cpu().item()
 
 
 class Accuracy(Metric):
@@ -243,28 +159,19 @@ class Accuracy(Metric):
     _maximize: bool = True
 
     def __call__(
-        # self, y_true: np.ndarray, y_score: np.ndarray
         self,
         y_true: torch.Tensor,
         y_score: torch.Tensor,
+        weights: torch.Tensor = None,
     ) -> float:
-        """
-        Compute Accuracy of predictions.
-
-        Parameters
-        ----------
-        y_true: np.ndarray
-            Target matrix or vector
-        y_score: np.ndarray
-            Score matrix or vector
-
-        Returns
-        -------
-        float
-            Accuracy of predictions vs targets.
-        """
-
-        return multiclass_accuracy(y_score, y_true).cpu().item()
+        res = multiclass_accuracy(
+            y_score,
+            y_true,
+        )
+        # if weights is not None:
+        #     weights = weights.to(y_true.device)
+        #     res *= weights
+        return res.cpu().item()
 
 
 class BalancedAccuracy(Metric):
@@ -276,29 +183,15 @@ class BalancedAccuracy(Metric):
     _maximize: bool = True
 
     def __call__(
-        # self, y_true: np.ndarray, y_score: np.ndarray
         self,
         y_true: torch.Tensor,
         y_score: torch.Tensor,
+        weights: torch.Tensor = None,
     ) -> float:
-        """
-        Compute Accuracy of predictions.
-
-        Parameters
-        ----------
-        y_true : np.ndarray
-            Target matrix or vector
-        y_score : np.ndarray
-            Score matrix or vector
-
-        Returns
-        -------
-        float
-            Accuracy of predictions vs targets.
-        """
-
         num_of_classes = y_score.shape[1]
-
+        # if weights is not None:
+        #     weights = weights.to(y_true.device)
+        #     return multiclass_accuracy(y_score, y_true, average="macro", num_classes=num_of_classes, weights=weights).cpu().item()
         return multiclass_accuracy(y_score, y_true, average="macro", num_classes=num_of_classes).cpu().item()
 
 
@@ -311,37 +204,15 @@ class LogLoss(Metric):
     _maximize: bool = False
 
     def __call__(
-        # self, y_true: np.ndarray, y_score: np.ndarray
         self,
         y_true: torch.Tensor,
         y_score: torch.Tensor,
+        weights: torch.Tensor = None,
     ) -> float:
-        """
-        Compute LogLoss of predictions.
-
-        Parameters
-        ----------
-        y_true : np.ndarray
-            Target matrix or vector
-        y_score : np.ndarray
-            Score matrix or vector
-
-        Returns
-        -------
-        float
-            LogLoss of predictions vs targets.
-        """
-        return CrossEntropyLoss()(y_score.float(), y_true.long()).item()
-
-        y_score_positive = y_score[:, 1]
-        return (
-            binary_normalized_entropy(
-                y_score_positive.float().detach(),
-                y_true.float().detach(),
-            )
-            .cpu()
-            .item()
-        )
+        loss = CrossEntropyLoss(reduction="none")(y_score.float(), y_true.long())
+        if weights is not None:
+            loss *= weights.to(y_true.device)
+        return loss.mean().item()
 
 
 class MAE(Metric):
@@ -353,27 +224,15 @@ class MAE(Metric):
     _maximize: bool = False
 
     def __call__(
-        # self, y_true: np.ndarray, y_score: np.ndarray
         self,
         y_true: torch.Tensor,
         y_score: torch.Tensor,
+        weights: torch.Tensor = None,
     ) -> float:
-        """
-        Compute MAE (Mean Absolute Error) of predictions.
-
-        Parameters
-        ----------
-        y_true : np.ndarray
-            Target matrix or vector
-        y_score : np.ndarray
-            Score matrix or vector
-
-        Returns
-        -------
-        float
-            MAE of predictions vs targets.
-        """
-        return torch.mean(torch.abs(y_true - y_score)).cpu().item()
+        errors = torch.abs(y_true - y_score)
+        if weights is not None:
+            errors *= weights.to(y_true.device)
+        return torch.mean(errors).cpu().item()
 
 
 class MSE(Metric):
@@ -388,23 +247,12 @@ class MSE(Metric):
         self,
         y_true: torch.Tensor,
         y_score: torch.Tensor,
+        weights: torch.Tensor = None,
     ) -> float:
-        """
-        Compute MSE (Mean Squared Error) of predictions.
-
-        Parameters
-        ----------
-        y_true : np.ndarray
-            Target matrix or vector
-        y_score : np.ndarray
-            Score matrix or vector
-
-        Returns
-        -------
-        float
-            MSE of predictions vs targets.
-        """
-        return mean_squared_error(y_score, y_true).cpu().item()
+        errors = (y_true - y_score) ** 2
+        if weights is not None:
+            errors *= weights.to(y_true.device)
+        return torch.mean(errors).cpu().item()
 
 
 class RMSLE(Metric):
@@ -423,24 +271,13 @@ class RMSLE(Metric):
         self,
         y_true: torch.Tensor,
         y_score: torch.Tensor,
+        weights: torch.Tensor = None,
     ) -> float:
-        """
-        Compute RMSLE of predictions.
-
-        Parameters
-        ----------
-        y_true : np.ndarray
-            Target matrix or vector
-        y_score : np.ndarray
-            Score matrix or vector
-
-        Returns
-        -------
-        float
-            RMSLE of predictions vs targets.
-        """
         logerror = torch.log(y_score + 1) - torch.log(y_true + 1)
-        return torch.sqrt(torch.mean(logerror**2)).cpu().item()
+        squared_logerror = logerror**2
+        if weights is not None:
+            squared_logerror *= weights.to(y_true.device)
+        return torch.sqrt(torch.mean(squared_logerror)).cpu().item()
 
 
 class UnsupervisedMetric(Metric):
@@ -451,31 +288,14 @@ class UnsupervisedMetric(Metric):
     _name: str = "unsup_loss"
     _maximize: bool = False
 
-    def __call__(  # type: ignore[override]
+    def __call__(  # type: ignore
         self,
         y_pred: torch.Tensor,
         embedded_x: torch.Tensor,
         obf_vars: torch.Tensor,
+        weights: torch.Tensor = None,
     ) -> float:
-        """
-        Compute MSE (Mean Squared Error) of predictions.
-
-        Parameters
-        ----------
-        y_pred : torch.Tensor or np.array
-            Reconstructed prediction (with embeddings)
-        embedded_x : torch.Tensor
-            Original input embedded by network
-        obf_vars : torch.Tensor
-            Binary mask for obfuscated variables.
-            1 means the variables was obfuscated so reconstruction is based on this.
-
-        Returns
-        -------
-        float
-            MSE of predictions vs targets.
-        """
-        loss = UnsupervisedLoss(y_pred, embedded_x, obf_vars)
+        loss = UnsupervisedLoss(y_pred, embedded_x, obf_vars, weights=weights)
         return loss.cpu().item()
 
 
@@ -493,6 +313,7 @@ class UnsupervisedNumpyMetric(Metric):
         y_pred: torch.Tensor,
         embedded_x: torch.Tensor,
         obf_vars: torch.Tensor,
+        weights: torch.Tensor = None,
     ) -> float:
         return UnsupervisedLoss(y_pred, embedded_x, obf_vars).cpu().item()
 
@@ -509,23 +330,12 @@ class RMSE(Metric):
         self,
         y_true: torch.Tensor,
         y_score: torch.Tensor,
+        weights: torch.Tensor = None,
     ) -> float:
-        """
-        Compute RMSE (Root Mean Squared Error) of predictions.
-
-        Parameters
-        ----------
-        y_true : np.ndarray
-            Target matrix or vector
-        y_score : np.ndarray
-            Score matrix or vector
-
-        Returns
-        -------
-        float
-            RMSE of predictions vs targets.
-        """
-        return torch.sqrt(mean_squared_error(y_score, y_true)).cpu().item()
+        mse_errors = (y_true - y_score) ** 2
+        if weights is not None:
+            mse_errors *= weights.to(y_true.device)
+        return torch.sqrt(torch.mean(mse_errors)).cpu().item()
 
 
 def check_metrics(metrics: List[Union[str, Any]]) -> List[str]:
