@@ -98,7 +98,7 @@ def test_multi_task():
     y_test = np.hstack([y_test] * NB_TASKS)
     y_test[:, -1] = np.random.randint(10, 15, y_test.shape[0]).astype(str)
 
-    max_epochs =  5
+    max_epochs =  20
 
     clf.fit(
         X_train=X_train, y_train=y_train,

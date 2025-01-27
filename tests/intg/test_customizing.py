@@ -57,19 +57,19 @@ def test_customizing():
 
     cat_dims = [categorical_dims[f] for i, f in enumerate(features) if f in categorical_columns]
 
-    max_epochs = 6
-    batch_size = 1024
+    max_epochs = 75
+    batch_size = 8*1024
     clf = TabNetClassifier(cat_idxs=cat_idxs,
                            cat_dims=cat_dims,
                            cat_emb_dim=1,
                            optimizer_fn=torch.optim.Adam,  # Any optimizer works here
                            optimizer_params=dict(lr=2e-2),
-                           scheduler_fn=torch.optim.lr_scheduler.OneCycleLR,
-                           scheduler_params={"is_batch_level": True,
-                                             "max_lr": 5e-2,
-                                             "steps_per_epoch": int(train.shape[0] / batch_size) + 1,
-                                             "epochs": max_epochs
-                                             },
+                           # scheduler_fn=torch.optim.lr_scheduler.OneCycleLR,
+                           # scheduler_params={"is_batch_level": True,
+                           #                   "max_lr": 5e-2,
+                           #                   "steps_per_epoch": int(train.shape[0] / batch_size) + 1,
+                           #                   "epochs": max_epochs
+                           #                   },
                            mask_type='entmax',  # "sparsemax",
                            )
     X_train = train[features].values[train_indices]

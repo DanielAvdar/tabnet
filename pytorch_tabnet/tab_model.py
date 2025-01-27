@@ -17,6 +17,7 @@ from pytorch_tabnet.utils import filter_weights
 class TabNetClassifier(TabModel):
     output_dim: int = None
     weight: Any = field(init=False, default=0)
+    class_weights: Any = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         super(TabNetClassifier, self).__post_init__()
@@ -44,12 +45,8 @@ class TabNetClassifier(TabModel):
         y_true: torch.Tensor,
         w: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        class_count = None
-        if isinstance(self.weight, int) and self.weight == 1:
-            _class_num, class_count = y_true.long().unique(return_counts=True)
-            class_count[class_count == 0] = 1
-
-        loss = self.loss_fn(y_pred, y_true.long(), weight=1 / class_count if class_count is not None else None)
+        classes_weights = self.class_weights
+        loss = self.loss_fn(y_pred, y_true.long(), weight=classes_weights)
         if w is not None:
             loss = loss * w
         return loss.mean()

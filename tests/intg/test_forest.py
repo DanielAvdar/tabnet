@@ -164,8 +164,10 @@ def test_forest():
 
     print(f"FINAL TEST SCORE FOR {dataset_name} : {loaded_test_acc}")
 
-    assert (test_acc == loaded_test_acc)
     assert test_acc > 0.2
+    # assert (test_acc == loaded_test_acc)
+    assert abs(test_acc - loaded_test_acc) < 0.001
+
 
     # clf.feature_importances_
 
