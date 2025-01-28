@@ -113,14 +113,7 @@ class TabModel(BaseEstimator):
         ]
         for var_name, value in kwargs.items():
             if var_name in update_list:
-                try:
-                    exec(f"global previous_val; previous_val = self.{var_name}")
-                    if previous_val != value:  # type: ignore # noqa
-                        wrn_msg = f"Pretraining: {var_name} changed from {previous_val} to {value}"  # type: ignore # noqa
-                        warnings.warn(wrn_msg, stacklevel=2)
-                        exec(f"self.{var_name} = value")
-                except AttributeError:
-                    exec(f"self.{var_name} = value")
+                self.__setattr__(var_name, value)
 
     def fit(
         self,
@@ -246,7 +239,6 @@ class TabModel(BaseEstimator):
 
         if not hasattr(self, "network") or not warm_start:
             # model has never been fitted before of warm_start is False
-            print()
             self._set_network()
         self._update_network_params()
         self._set_metrics(eval_metric, eval_names)
@@ -254,8 +246,9 @@ class TabModel(BaseEstimator):
         self._set_callbacks(callbacks)
 
         if from_unsupervised is not None:
-            self.load_weights_from_unsupervised(from_unsupervised)
-            warnings.warn("Loading weights from unsupervised pretraining", stacklevel=2)
+            p_num_updated = self.load_weights_from_unsupervised(from_unsupervised)
+            # warnings.warn("Loading weights from unsupervised pretraining", stacklevel=2)
+            warnings.warn(f"Updated {p_num_updated} weights from unsupervised pretraining", stacklevel=2)
         # Call method on_train_begin for all callbacks
         self._callback_container.on_train_begin()
 
@@ -385,19 +378,23 @@ class TabModel(BaseEstimator):
 
         return res_explain, res_masks
 
-    def load_weights_from_unsupervised(self, unsupervised_model: "TabModel") -> None:
+    def load_weights_from_unsupervised(self, unsupervised_model: "TabModel") -> int:
         update_state_dict = copy.deepcopy(self.network.state_dict())
+        updated_params_counter = 0
         for param, weights in unsupervised_model.network.state_dict().items():
-            if param.startswith("encoder"):
-                # Convert encoder's layers name to match
-                new_param = "tabnet." + param
-            else:
-                new_param = param
+            new_param = "tabnet." + param
+
+            if self.network.state_dict().get(param) is not None:
+                # update only common layers
+                update_state_dict[param] = weights
+                updated_params_counter += 1
             if self.network.state_dict().get(new_param) is not None:
                 # update only common layers
                 update_state_dict[new_param] = weights
+                updated_params_counter += 1
 
         self.network.load_state_dict(update_state_dict)
+        return updated_params_counter
 
     def load_class_attrs(self, class_attrs: Dict) -> None:
         for attr_name, attr_value in class_attrs.items():
