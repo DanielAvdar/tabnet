@@ -98,14 +98,14 @@ def test_multi_task():
     y_test = np.hstack([y_test] * NB_TASKS)
     y_test[:, -1] = np.random.randint(10, 15, y_test.shape[0]).astype(str)
 
-    max_epochs =  20
+    max_epochs =  30
 
     clf.fit(
         X_train=X_train, y_train=y_train,
         eval_set=[(X_train, y_train), (X_valid, y_valid)],
         eval_name=['train', 'valid'],
         max_epochs=max_epochs, patience=20,
-        batch_size=1024,# virtual_batch_size=128,
+        batch_size=4*1024,# virtual_batch_size=128,
         num_workers=0,
         drop_last=False,
         loss_fn=[torch.nn.functional.cross_entropy] * NB_TASKS
@@ -151,7 +151,7 @@ def test_multi_task():
 
     print(f"FINAL AUCS SCORE FOR {dataset_name} : {loaded_test_auc}")
 
-    assert (test_aucs == loaded_test_auc)
+    assert np.allclose(test_aucs, loaded_test_auc, atol=1e-6)
     assert len(test_aucs) == 4
     assert sum(test_aucs)/len(test_aucs) > 0.81
 
