@@ -58,7 +58,7 @@ class TabModel(BaseEstimator):
     momentum: float = 0.02
     lambda_sparse: float = 1e-3
     seed: int = 0
-    clip_value: int = 1
+    clip_value: int = 2
     verbose: int = 1
     optimizer_fn: Any = torch.optim.Adam
     optimizer_params: Dict = field(default_factory=lambda: dict(lr=2e-2))
@@ -113,14 +113,7 @@ class TabModel(BaseEstimator):
         ]
         for var_name, value in kwargs.items():
             if var_name in update_list:
-                try:
-                    exec(f"global previous_val; previous_val = self.{var_name}")
-                    if previous_val != value:  # type: ignore # noqa
-                        wrn_msg = f"Pretraining: {var_name} changed from {previous_val} to {value}"  # type: ignore # noqa
-                        warnings.warn(wrn_msg, stacklevel=2)
-                        exec(f"self.{var_name} = value")
-                except AttributeError:
-                    exec(f"self.{var_name} = value")
+                self.__setattr__(var_name, value)
 
     def fit(
         self,
@@ -140,7 +133,7 @@ class TabModel(BaseEstimator):
         callbacks: Union[None, List] = None,
         pin_memory: bool = True,
         from_unsupervised: Union[None, "TabModel"] = None,
-        warm_start: bool = False,
+        warm_start: bool = True,
         augmentations: Union[None, Any] = None,
         compute_importance: bool = False,
         *args: Any,
@@ -237,6 +230,8 @@ class TabModel(BaseEstimator):
             eval_set,
             self.weight_updater(weights=weights),
         )
+        if isinstance(weights, int):
+            self.class_weights = self.calc_class_w(weight=weights, y_true=y_train)
 
         if from_unsupervised is not None:
             # Update parameters to match self pretraining
@@ -251,8 +246,9 @@ class TabModel(BaseEstimator):
         self._set_callbacks(callbacks)
 
         if from_unsupervised is not None:
-            self.load_weights_from_unsupervised(from_unsupervised)
-            warnings.warn("Loading weights from unsupervised pretraining", stacklevel=2)
+            p_num_updated = self.load_weights_from_unsupervised(from_unsupervised)
+            # warnings.warn("Loading weights from unsupervised pretraining", stacklevel=2)
+            warnings.warn(f"Updated {p_num_updated} weights from unsupervised pretraining", stacklevel=2)
         # Call method on_train_begin for all callbacks
         self._callback_container.on_train_begin()
 
@@ -382,19 +378,23 @@ class TabModel(BaseEstimator):
 
         return res_explain, res_masks
 
-    def load_weights_from_unsupervised(self, unsupervised_model: "TabModel") -> None:
+    def load_weights_from_unsupervised(self, unsupervised_model: "TabModel") -> int:
         update_state_dict = copy.deepcopy(self.network.state_dict())
+        updated_params_counter = 0
         for param, weights in unsupervised_model.network.state_dict().items():
-            if param.startswith("encoder"):
-                # Convert encoder's layers name to match
-                new_param = "tabnet." + param
-            else:
-                new_param = param
+            new_param = "tabnet." + param
+
+            if self.network.state_dict().get(param) is not None:
+                # update only common layers
+                update_state_dict[param] = weights
+                updated_params_counter += 1
             if self.network.state_dict().get(new_param) is not None:
                 # update only common layers
                 update_state_dict[new_param] = weights
+                updated_params_counter += 1
 
         self.network.load_state_dict(update_state_dict)
+        return updated_params_counter
 
     def load_class_attrs(self, class_attrs: Dict) -> None:
         for attr_name, attr_value in class_attrs.items():
@@ -487,7 +487,6 @@ class TabModel(BaseEstimator):
             DataLoader with train set
         """
         self.network.train()
-
         for batch_idx, (X, y, w) in enumerate(train_loader):  # type: ignore
             self._callback_container.on_batch_begin(batch_idx)
             X = X.to(  # type: ignore
@@ -501,16 +500,24 @@ class TabModel(BaseEstimator):
                     self.device,
                 )
 
-            batch_logs = self._train_batch(X, y, w)
+            loss = self._train_batch(X, y, w)
+            # losses.append(loss)
+            loss.backward()
+
+            batch_logs = {"batch_size": X.shape[0]}
+
+            batch_logs["loss"] = loss.item()
 
             self._callback_container.on_batch_end(batch_idx, batch_logs)
+        # total_loss = torch.stack(losses).mean()
+        self._optimize()
 
         epoch_logs = {"lr": self._optimizer.param_groups[-1]["lr"]}
         self.history.epoch_metrics.update(epoch_logs)
 
         return
 
-    def _train_batch(self, X: torch.Tensor, y: torch.Tensor, w: Optional[torch.Tensor] = None) -> Dict:
+    def _train_batch(self, X: torch.Tensor, y: torch.Tensor, w: Optional[torch.Tensor] = None) -> torch.Tensor:
         """
         Trains one batch of data
 
@@ -541,16 +548,23 @@ class TabModel(BaseEstimator):
         loss = self.compute_loss(output, y, w)
         # Add the overall sparsity loss
         loss = loss - self.lambda_sparse * M_loss
+        return loss
 
         # Perform backward pass and optimization
-        loss.backward()
-        if self.clip_value:
-            clip_grad_norm_(self.network.parameters(), self.clip_value)
-        self._optimizer.step()
+        self._optimize(loss)
 
         batch_logs["loss"] = loss.item()
 
         return batch_logs
+
+    def _optimize(
+        self,
+    ) -> None:
+        # loss.backward()
+        if self.clip_value:
+            clip_grad_norm_(self.network.parameters(), self.clip_value)
+        self._optimizer.step()
+        self._optimizer.zero_grad()
 
     def _predict_epoch(self, name: str, loader: TBDataLoader) -> None:  # todo: replace loader
         """
@@ -850,3 +864,22 @@ class TabModel(BaseEstimator):
     def predict_func(self, y_score: np.ndarray) -> np.ndarray: ...
 
     def stack_batches(self, *args: Any, **kwargs: Any) -> Tuple[torch.Tensor, torch.Tensor]: ...
+
+    def calc_class_w(self, weight: int, y_true: np.ndarray) -> torch.Tensor:
+        if isinstance(y_true, np.ndarray):
+            y_true = self.prepare_target(y_true)
+            y_true = torch.from_numpy(
+                y_true,
+            )
+        class_count = None
+        if isinstance(weight, int) and weight == 1:
+            _class_num, class_count = y_true.long().unique(return_counts=True)
+            class_count[class_count == 0] = 1
+
+        def calc_w(cc: torch.Tensor) -> torch.Tensor:
+            num_of_c = len(cc)
+            w = num_of_c / torch.sqrt(cc.float())
+            return w
+
+        classes_weights = calc_w(class_count).to(device=self.device) if class_count is not None else None
+        return classes_weights

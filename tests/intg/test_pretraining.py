@@ -89,7 +89,7 @@ def test_pretraining():
     )
 
 
-    max_epochs =  3  # 1000
+    max_epochs =  20  # 1000
     unsupervised_model.fit(
         X_train=X_train,
         eval_set=[X_valid],
@@ -124,6 +124,7 @@ def test_pretraining():
                            mask_type='sparsemax',  # This will be overwritten if using pretrain model
                            # verbose=5,
                            )
+    max_epochs =  5  # 1000
 
     clf.fit(
         X_train=X_train, y_train=y_train,
@@ -153,10 +154,10 @@ def test_pretraining():
     valid_auc = roc_auc_score(y_score=preds_valid[:, 1], y_true=y_valid)
 
     print(f"BEST VALID SCORE FOR {dataset_name} : {clf.best_cost}")
-    assert (clf.best_cost-0.7).__abs__() < 0.03
+    assert clf.best_cost>0.7
 
     print(f"FINAL TEST SCORE FOR {dataset_name} : {test_auc}")
-    assert (test_auc-0.71).__abs__() < 0.03
+    assert test_auc>0.7
 
     assert np.isclose(valid_auc, np.max(clf.history['valid_auc']), atol=1e-2)
 
