@@ -6,16 +6,17 @@ readme = "README.md"
 authors = []
 requires-python = ">=3.10"
 
-keywords = ["tabnet", "pytorch", "neural-networks" ]
+keywords = ["tabnet", "pytorch", "neural-networks"]
 exclude = ["tabnet/*.ipynb"]
 
 
 dependencies = [
     "numpy",
-    "torch",
+    "torch; python_version != '3.13'",
+    "torch>=2.6; python_version == '3.13'",
     "torcheval",
-    "tqdm",
-    "scikit_learn",
+    #    "tqdm",
+    "scikit-learn",
     "scipy",
 ]
 
@@ -45,9 +46,10 @@ dev = [
 name = "pytorch-cu124"
 url = "https://download.pytorch.org/whl/cu124"
 explicit = true
+
 [tool.uv.sources]
 torch = [
-  { index = "pytorch-cu124", marker = "platform_system != 'Darwin'"},
+    { index = "pytorch-cu124", marker = "platform_system != 'Darwin'" },
 ]
 
 [build-system]
@@ -71,9 +73,9 @@ source = "."
 line-length = 140
 
 # In addition to the standard set of exclusions, omit all tests, plus a specific file.
-extend-exclude = ["tests/intg/*", "intg/*", "docs/*", "release-script","docs-scripts/*", "nbs/*"]
+extend-exclude = ["tests/intg/*", "intg/*", "docs/*", "release-script", "docs-scripts/*", "nbs/*"]
 [tool.ruff.lint]
-select = ["F",  "I", "F", "W", "E", "A", ]
+select = ["F", "I", "F", "W", "E", "A", ]
 
 fixable = ["ALL"]
 [tool.mypy]
