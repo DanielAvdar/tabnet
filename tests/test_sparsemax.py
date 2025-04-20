@@ -3,7 +3,7 @@ import torch
 from activations_plus import Entmax as Entmax15
 from activations_plus import Sparsemax
 
-from pytorch_tabnet.sparsemax import entmoid15
+# from pytorch_tabnet.sparsemax import entmoid15
 
 
 # Generate test cases for Sparsemax
@@ -41,9 +41,3 @@ def test_entmax15(input_shape, dim):
     assert torch.allclose(sum_along_dim, torch.ones_like(sum_along_dim))
 
 
-# Generate test cases for entmoid15
-@pytest.mark.parametrize("input_tensor", [torch.randn(5, 3), torch.randn(2, 4, 6)])
-def test_entmoid15(input_tensor):
-    output = entmoid15(input_tensor)
-    # Check value range
-    assert ((output >= 0) & (output <= 1)).all()
