@@ -1,5 +1,4 @@
-"""
-Multi-class / multi-label utility function
+"""Multi-class / multi-label utility function.
 ==========================================
 
 """
@@ -17,7 +16,6 @@ from scipy.sparse.base import spmatrix
 
 def _assert_all_finite(X: np.ndarray, allow_nan: bool = False) -> None:
     """Like assert_all_finite, but only for ndarray."""
-
     X = np.asanyarray(X)
     # First try an O(n) time, O(1) space solution for the common case that
     # everything is finite; fall back to O(n) space np.isfinite to prevent
@@ -44,6 +42,7 @@ def assert_all_finite(X: Union[np.ndarray, spmatrix], allow_nan: bool = False) -
     ----------
     X : array or sparse matrix
     allow_nan : bool
+
     """
     _assert_all_finite(X.data if sp.issparse(X) else X, allow_nan)
 
@@ -56,9 +55,7 @@ def _unique_multiclass(y: np.ndarray) -> np.ndarray:
 
 
 def _unique_indicator(y: np.ndarray) -> np.ndarray:
-    """
-    Not implemented
-    """
+    """Not implemented."""
     raise IndexError(
         f"""Given labels are of size {y.shape} while they should be (n_samples,) \n"""
         + """If attempting multilabel classification, try using TabNetMultiTaskClassification """
@@ -74,7 +71,7 @@ _FN_UNIQUE_LABELS = {
 
 
 def unique_labels(*ys: List[np.ndarray]) -> np.ndarray:
-    """Extract an ordered array of unique labels
+    """Extract an ordered array of unique labels.
 
     We don't allow:
         - mix of multilabel and multiclass (single label) targets
@@ -103,6 +100,7 @@ def unique_labels(*ys: List[np.ndarray]) -> np.ndarray:
     array([1, 2, 3, 4])
     >>> unique_labels([1, 2, 10], [5, 11])
     array([ 1,  2,  5, 10, 11])
+
     """
     if not ys:
         raise ValueError("No argument has been passed.")
@@ -162,6 +160,7 @@ def is_multilabel(y: Union[np.ndarray, spmatrix]) -> bool:
     False
     >>> is_multilabel(np.array([[1, 0, 0]]))
     True
+
     """
     if hasattr(y, "__array__"):
         y = np.asarray(y)
@@ -196,6 +195,7 @@ def check_classification_targets(y: np.ndarray) -> None:
     Parameters
     ----------
     y : array-like
+
     """
     y_type = type_of_target(y)
     if y_type not in [
@@ -271,6 +271,7 @@ def type_of_target(y: Union[np.ndarray, spmatrix]) -> str:
     'continuous-multioutput'
     >>> type_of_target(np.array([[0, 1], [1, 1]]))
     'multilabel-indicator'
+
     """
     valid = (isinstance(y, (Sequence, spmatrix)) or hasattr(y, "__array__")) and not isinstance(y, str)
 
@@ -334,8 +335,7 @@ def check_unique_type(y: np.ndarray) -> None:
 
 
 def infer_output_dim(y_train: np.ndarray) -> tuple[int, np.ndarray]:
-    """
-    Infer output_dim from targets
+    """Infer output_dim from targets.
 
     Parameters
     ----------
@@ -348,6 +348,7 @@ def infer_output_dim(y_train: np.ndarray) -> tuple[int, np.ndarray]:
         Number of classes for output
     train_labels : list
         Sorted list of initial classes
+
     """
     check_unique_type(y_train)
     train_labels = unique_labels(y_train)
@@ -370,8 +371,7 @@ def check_output_dim(labels: np.ndarray, y: np.ndarray) -> None:
 
 
 def infer_multitask_output(y_train: np.ndarray) -> tuple[List[int], List[np.ndarray]]:
-    """
-    Infer output_dim from targets
+    """Infer output_dim from targets
     This is for multiple tasks.
 
     Parameters
@@ -385,8 +385,8 @@ def infer_multitask_output(y_train: np.ndarray) -> tuple[List[int], List[np.ndar
         Number of classes for output
     tasks_labels : list
         List of sorted list of initial classes
-    """
 
+    """
     if len(y_train.shape) < 2:
         raise ValueError("y_train should be of shape (n_examples, n_tasks)" + f"but got {y_train.shape}")
     nb_tasks = y_train.shape[1]

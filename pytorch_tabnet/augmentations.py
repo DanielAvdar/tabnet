@@ -7,8 +7,7 @@ from pytorch_tabnet.utils import define_device
 
 
 class RegressionSMOTE:
-    """
-    Apply SMOTE
+    """Apply SMOTE.
 
     This will average a percentage p of the elements in the batch with other elements.
     The target will be averaged as well (this might work with binary classification
@@ -58,8 +57,7 @@ class RegressionSMOTE:
 
 
 class ClassificationSMOTE:
-    """
-    Apply SMOTE for classification tasks.
+    """Apply SMOTE for classification tasks.
 
     This will average a percentage p of the elements in the batch with other elements.
     The target will stay unchanged and keep the value of the most important row in the mix.

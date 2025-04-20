@@ -23,9 +23,8 @@ def initialize_glu(module: torch.nn.Module, input_dim: int, output_dim: int) -> 
 
 
 class GBN(torch.nn.Module):
-    """
-    Ghost Batch Normalization
-    https://arxiv.org/abs/1705.08741
+    """Ghost Batch Normalization
+    https://arxiv.org/abs/1705.08741.
     """
 
     def __init__(self, input_dim: int, virtual_batch_size: int = 128, momentum: float = 0.01):
@@ -61,8 +60,7 @@ class TabNetEncoder(torch.nn.Module):
         mask_type: str = "sparsemax",
         group_attention_matrix: Optional[torch.Tensor] = None,
     ):
-        """
-        Defines main part of the TabNet network without the embedding layers.
+        """Defines main part of the TabNet network without the embedding layers.
 
         Parameters
         ----------
@@ -93,6 +91,7 @@ class TabNetEncoder(torch.nn.Module):
             Either "sparsemax" or "entmax" : this is the masking function to use
         group_attention_matrix : torch matrix
             Matrix of size (n_groups, input_dim), m_ij = importance within group i of feature j
+
         """
         super(TabNetEncoder, self).__init__()
         self.input_dim = input_dim
@@ -225,8 +224,7 @@ class TabNetDecoder(torch.nn.Module):
         virtual_batch_size: int = 128,
         momentum: float = 0.02,
     ):
-        """
-        Defines main part of the TabNet network without the embedding layers.
+        """Defines main part of the TabNet network without the embedding layers.
 
         Parameters
         ----------
@@ -249,6 +247,7 @@ class TabNetDecoder(torch.nn.Module):
             Batch size for Ghost Batch Normalization
         momentum : float
             Float value between 0 and 1 which will be used for momentum in all batch norm
+
         """
         super(TabNetDecoder, self).__init__()
         self.input_dim = input_dim
@@ -371,11 +370,10 @@ class TabNetPretraining(torch.nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        Returns: res, embedded_x, obf_vars
-            res : output of reconstruction
-            embedded_x : embedded input
-            obf_vars : which variable where obfuscated
+        """Returns: res, embedded_x, obf_vars
+        res : output of reconstruction
+        embedded_x : embedded input
+        obf_vars : which variable where obfuscated.
         """
         embedded_x = self.embedder(x)
         if self.training:
@@ -412,8 +410,7 @@ class TabNetNoEmbeddings(torch.nn.Module):
         mask_type: str = "sparsemax",
         group_attention_matrix: Optional[torch.Tensor] = None,
     ):
-        """
-        Defines main part of the TabNet network without the embedding layers.
+        """Defines main part of the TabNet network without the embedding layers.
 
         Parameters
         ----------
@@ -444,6 +441,7 @@ class TabNetNoEmbeddings(torch.nn.Module):
             Either "sparsemax" or "entmax" : this is the masking function to use
         group_attention_matrix : torch matrix
             Matrix of size (n_groups, input_dim), m_ij = importance within group i of feature j
+
         """
         super(TabNetNoEmbeddings, self).__init__()
         self.input_dim = input_dim
@@ -526,8 +524,7 @@ class TabNet(torch.nn.Module):
         mask_type: str = "sparsemax",
         group_attention_matrix: Optional[torch.Tensor] = None,
     ):
-        """
-        Defines TabNet network
+        """Defines TabNet network.
 
         Parameters
         ----------
@@ -566,6 +563,7 @@ class TabNet(torch.nn.Module):
             Either "sparsemax" or "entmax" : this is the masking function to use
         group_attention_matrix : torch matrix
             Matrix of size (n_groups, input_dim), m_ij = importance within group i of feature j
+
         """
         if cat_dims is None:
             cat_dims = []
@@ -631,8 +629,7 @@ class AttentiveTransformer(torch.nn.Module):
         momentum: float = 0.02,
         mask_type: str = "sparsemax",
     ):
-        """
-        Initialize an attention transformer.
+        """Initialize an attention transformer.
 
         Parameters
         ----------
@@ -646,6 +643,7 @@ class AttentiveTransformer(torch.nn.Module):
             Float value between 0 and 1 which will be used for momentum in batch norm
         mask_type : str
             Either "sparsemax" or "entmax" : this is the masking function to use
+
         """
         super(AttentiveTransformer, self).__init__()
         self.fc = Linear(input_dim, group_dim, bias=False)
@@ -740,9 +738,7 @@ class FeatTransformer(torch.nn.Module):
 
 
 class GLU_Block(torch.nn.Module):
-    """
-    Independent GLU block, specific to each step
-    """
+    """Independent GLU block, specific to each step."""
 
     def __init__(
         self,
@@ -810,9 +806,7 @@ class GLU_Layer(torch.nn.Module):
 
 
 class EmbeddingGenerator(torch.nn.Module):
-    """
-    Classical embeddings generator
-    """
+    """Classical embeddings generator."""
 
     def __init__(
         self,
@@ -822,7 +816,7 @@ class EmbeddingGenerator(torch.nn.Module):
         cat_emb_dims: Union[List[int], int],
         group_matrix: torch.Tensor,
     ):
-        """This is an embedding module for an entire set of features
+        """This is an embedding module for an entire set of features.
 
         Parameters
         ----------
@@ -838,6 +832,7 @@ class EmbeddingGenerator(torch.nn.Module):
             If int, the same embedding dimension will be used for all categorical features
         group_matrix : torch matrix
             Original group matrix before embeddings
+
         """
         super(EmbeddingGenerator, self).__init__()
 
@@ -884,10 +879,9 @@ class EmbeddingGenerator(torch.nn.Module):
                     cat_feat_counter += 1
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Apply embeddings to inputs
+        """Apply embeddings to inputs
         Inputs should be (batch_size, input_dim)
-        Outputs will be of size (batch_size, self.post_embed_dim)
+        Outputs will be of size (batch_size, self.post_embed_dim).
         """
         if self.skip_embedding:
             # no embeddings required
@@ -908,15 +902,14 @@ class EmbeddingGenerator(torch.nn.Module):
 
 
 class RandomObfuscator(torch.nn.Module):
-    """
-    Create and applies obfuscation masks.
+    """Create and applies obfuscation masks.
     The obfuscation is done at group level to match attention.
     """
 
     def __init__(self, pretraining_ratio: float, group_matrix: torch.Tensor):
-        """
-        This create random obfuscation for self suppervised pretraining
-        Parameters
+        """This create random obfuscation for self suppervised pretraining.
+
+        Parameters.
         ----------
         pretraining_ratio : float
             Ratio of feature to randomly discard for reconstruction
@@ -929,12 +922,12 @@ class RandomObfuscator(torch.nn.Module):
         self.num_groups = group_matrix.shape[0]
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        Generate random obfuscation mask.
+        """Generate random obfuscation mask.
 
         Returns
         -------
         masked input and obfuscated variables.
+
         """
         bs = x.shape[0]
 

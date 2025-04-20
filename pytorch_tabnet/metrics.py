@@ -16,9 +16,7 @@ def UnsupervisedLoss(
     eps: float = 1e-9,
     weights: torch.Tensor = None,
 ) -> torch.Tensor:
-    """
-    Implements unsupervised loss function with optional sample weights.
-    """
+    """Implements unsupervised loss function with optional sample weights."""
     errors = y_pred - embedded_x
     reconstruction_errors = torch.mul(errors, obf_vars) ** 2
     batch_means = torch.mean(embedded_x, dim=0)
@@ -130,9 +128,7 @@ class Metric:
 
 
 class AUC(Metric):
-    """
-    AUC.
-    """
+    """AUC."""
 
     _name: str = "auc"
     _maximize: bool = True
@@ -151,9 +147,7 @@ class AUC(Metric):
 
 
 class Accuracy(Metric):
-    """
-    Accuracy.
-    """
+    """Accuracy."""
 
     _name: str = "accuracy"
     _maximize: bool = True
@@ -175,9 +169,7 @@ class Accuracy(Metric):
 
 
 class BalancedAccuracy(Metric):
-    """
-    Balanced Accuracy.
-    """
+    """Balanced Accuracy."""
 
     _name: str = "balanced_accuracy"
     _maximize: bool = True
@@ -196,9 +188,7 @@ class BalancedAccuracy(Metric):
 
 
 class LogLoss(Metric):
-    """
-    LogLoss.
-    """
+    """LogLoss."""
 
     _name: str = "logloss"
     _maximize: bool = False
@@ -216,9 +206,7 @@ class LogLoss(Metric):
 
 
 class MAE(Metric):
-    """
-    Mean Absolute Error.
-    """
+    """Mean Absolute Error."""
 
     _name: str = "mae"
     _maximize: bool = False
@@ -236,9 +224,7 @@ class MAE(Metric):
 
 
 class MSE(Metric):
-    """
-    Mean Squared Error.
-    """
+    """Mean Squared Error."""
 
     _name: str = "mse"
     _maximize: bool = False
@@ -256,8 +242,7 @@ class MSE(Metric):
 
 
 class RMSLE(Metric):
-    """
-    Root Mean squared logarithmic error regression loss.
+    """Root Mean squared logarithmic error regression loss.
     Scikit-implementation:
     https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_log_error.html
     Note: In order to avoid error, negative predictions are clipped to 0.
@@ -281,9 +266,7 @@ class RMSLE(Metric):
 
 
 class UnsupervisedMetric(Metric):
-    """
-    Unsupervised metric
-    """
+    """Unsupervised metric."""
 
     _name: str = "unsup_loss"
     _maximize: bool = False
@@ -300,9 +283,7 @@ class UnsupervisedMetric(Metric):
 
 
 class UnsupervisedNumpyMetric(Metric):
-    """
-    Unsupervised metric
-    """
+    """Unsupervised metric."""
 
     _name: str = "unsup_loss_numpy"
     _maximize: bool = False
@@ -319,9 +300,7 @@ class UnsupervisedNumpyMetric(Metric):
 
 
 class RMSE(Metric):
-    """
-    Root Mean Squared Error.
-    """
+    """Root Mean Squared Error."""
 
     _name: str = "rmse"
     _maximize: bool = False

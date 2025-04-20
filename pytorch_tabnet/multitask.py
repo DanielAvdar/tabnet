@@ -37,8 +37,7 @@ class TabNetMultiTaskClassifier(TabModel):
         y_true: torch.Tensor,
         w: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        """
-        Computes the loss according to network output and targets
+        """Computes the loss according to network output and targets.
 
         Parameters
         ----------
@@ -108,8 +107,7 @@ class TabNetMultiTaskClassifier(TabModel):
         )
 
     def predict(self, X: Union[torch.Tensor, np.ndarray, scipy.sparse.csr_matrix]) -> List[np.ndarray]:
-        """
-        Make predictions on a batch (valid)
+        """Make predictions on a batch (valid).
 
         Parameters
         ----------
@@ -120,6 +118,7 @@ class TabNetMultiTaskClassifier(TabModel):
         -------
         results : np.array
             Predictions of the most probable class
+
         """
         self.network.eval()
 
@@ -156,8 +155,7 @@ class TabNetMultiTaskClassifier(TabModel):
         return results_
 
     def predict_proba(self, X: Union[torch.Tensor, np.ndarray, scipy.sparse.csr_matrix]) -> List[np.ndarray]:
-        """
-        Make predictions for classification on a batch (valid)
+        """Make predictions for classification on a batch (valid).
 
         Parameters
         ----------

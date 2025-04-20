@@ -10,9 +10,7 @@ import torch
 
 
 class Callback:
-    """
-    Abstract base class used to build new callbacks.
-    """
+    """Abstract base class used to build new callbacks."""
 
     def __init__(self) -> None:
         pass
@@ -44,9 +42,7 @@ class Callback:
 
 @dataclass
 class CallbackContainer:
-    """
-    Container holding a list of callbacks.
-    """
+    """Container holding a list of callbacks."""
 
     callbacks: List[Callback] = field(default_factory=list)
 
@@ -101,7 +97,7 @@ class EarlyStopping(Callback):
     number of epochs.
 
     Parameters
-    ---------
+    ----------
     early_stopping_metric : str
         Early stopping metric name
     is_maximize : bool
@@ -178,7 +174,7 @@ class History(Callback):
     every SuperModule.
 
     Parameters
-    ---------
+    ----------
     trainer : Any
         Model class to train
     verbose : int
@@ -241,7 +237,7 @@ class LRSchedulerCallback(Callback):
     """Wrapper for most torch scheduler functions.
 
     Parameters
-    ---------
+    ----------
     scheduler_fn : Any
         Torch scheduling class
     optimizer : Any
@@ -254,6 +250,7 @@ class LRSchedulerCallback(Callback):
         If set to False : lr updates will happen at every epoch
         If set to True : lr updates happen at every batch
         Set this to True for OneCycleLR for example
+
     """
 
     scheduler_fn: Any

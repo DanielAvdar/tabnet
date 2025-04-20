@@ -14,8 +14,7 @@ tn_type = Union[torch.Tensor, None]
 
 
 class TorchDataset(Dataset):
-    """
-    Format for numpy array
+    """Format for numpy array.
 
     Parameters
     ----------
@@ -23,6 +22,7 @@ class TorchDataset(Dataset):
         The input matrix
     y : 2D array
         The one-hot encoded target
+
     """
 
     def __init__(self, x: np.ndarray, y: np.ndarray):
@@ -38,8 +38,7 @@ class TorchDataset(Dataset):
 
 
 class SparseTorchDataset(Dataset):
-    """
-    Format for csr_matrix
+    """Format for csr_matrix.
 
     Parameters
     ----------
@@ -47,6 +46,7 @@ class SparseTorchDataset(Dataset):
         The input matrix
     y : 2D array
         The one-hot encoded target
+
     """
 
     def __init__(self, x: scipy.sparse.csr_matrix, y: np.ndarray):
@@ -63,13 +63,13 @@ class SparseTorchDataset(Dataset):
 
 
 class PredictDataset(Dataset):
-    """
-    Format for numpy array
+    """Format for numpy array.
 
     Parameters
     ----------
     X : 2D array
         The input matrix
+
     """
 
     def __init__(self, x: Union[X_type, torch.Tensor]):
@@ -90,13 +90,13 @@ class PredictDataset(Dataset):
 
 
 class SparsePredictDataset(Dataset):
-    """
-    Format for csr_matrix
+    """Format for csr_matrix.
 
     Parameters
     ----------
     X : CSR matrix
         The input matrix
+
     """
 
     def __init__(self, x: scipy.sparse.csr_matrix):
@@ -207,8 +207,7 @@ def create_dataloaders(
     drop_last: bool,
     pin_memory: bool,
 ) -> Tuple[DataLoader, List[DataLoader]]:
-    """
-    Create dataloaders with or without subsampling depending on weights and balanced.
+    """Create dataloaders with or without subsampling depending on weights and balanced.
 
     Parameters
     ----------
@@ -240,6 +239,7 @@ def create_dataloaders(
     -------
     train_dataloader, valid_dataloader : torch.DataLoader, torch.DataLoader
         Training and validation dataloaders
+
     """
     _need_shuffle, _sampler = create_sampler(weights, y_train)
     t_weights = None
@@ -303,8 +303,7 @@ def create_dataloaders(
 
 
 def create_sampler(weights: Union[int, Dict, Iterable], y_train: np.ndarray) -> Tuple[bool, Optional[WeightedRandomSampler]]:
-    """
-    This creates a sampler from the given weights
+    """This creates a sampler from the given weights.
 
     Parameters
     ----------
@@ -316,6 +315,7 @@ def create_sampler(weights: Union[int, Dict, Iterable], y_train: np.ndarray) -> 
                       in the training set
     y_train : np.array
         Training targets
+
     """
     if isinstance(weights, int):
         if weights == 0:
@@ -363,8 +363,7 @@ def create_dataloaders_pt(
     drop_last: bool,
     pin_memory: bool,
 ) -> Tuple[DataLoader, List[DataLoader]]:
-    """
-    Create dataloaders with or without subsampling depending on weights and balanced.
+    """Create dataloaders with or without subsampling depending on weights and balanced.
 
     Parameters
     ----------
@@ -394,6 +393,7 @@ def create_dataloaders_pt(
     -------
     train_dataloader, valid_dataloader : torch.DataLoader, torch.DataLoader
         Training and validation dataloaders
+
     """
     _need_shuffle, _sampler = create_sampler(weights, X_train)
 

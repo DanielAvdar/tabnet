@@ -76,7 +76,7 @@ line-length = 140
 # In addition to the standard set of exclusions, omit all tests, plus a specific file.
 extend-exclude = ["tests/intg/*", "intg/*", "docs/*", "release-script", "docs-scripts/*", "nbs/*"]
 [tool.ruff.lint]
-select = ["F", "I", "F", "W", "E", "A", ]
+select = ["F", "I", "F", "W", "E", "A","D" ]
 
 fixable = ["ALL"]
 [tool.mypy]

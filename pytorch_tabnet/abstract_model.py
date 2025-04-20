@@ -93,8 +93,7 @@ class TabModel(BaseEstimator):
         self.cat_dims, self.cat_idxs, self.cat_emb_dim = updated_params
 
     def __update__(self, **kwargs: Any) -> None:
-        """
-        Updates parameters.
+        """Updates parameters.
         If does not already exists, creates it.
         Otherwise overwrite with warnings.
         """
@@ -192,6 +191,7 @@ class TabModel(BaseEstimator):
             If True, current model parameters are used to start training
         compute_importance : bool
             Whether to compute feature importance
+
         """
         # update model name
 
@@ -279,8 +279,7 @@ class TabModel(BaseEstimator):
             self.feature_importances_ = self._compute_feature_importances(X_train)
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        """
-        Make predictions on a batch (valid)
+        """Make predictions on a batch (valid).
 
         Parameters
         ----------
@@ -291,6 +290,7 @@ class TabModel(BaseEstimator):
         -------
         predictions : np.array
             Predictions of the regression problem
+
         """
         self.network.eval()
 
@@ -322,8 +322,7 @@ class TabModel(BaseEstimator):
         return self.predict_func(res)
 
     def explain(self, X: np.ndarray, normalize: bool = False) -> Tuple[np.ndarray, Dict]:
-        """
-        Return local explanation
+        """Return local explanation.
 
         Parameters
         ----------
@@ -338,6 +337,7 @@ class TabModel(BaseEstimator):
             Importance per sample, per columns.
         masks : matrix
             Sparse matrix showing attention masks used by network.
+
         """
         self.network.eval()
 
@@ -448,6 +448,7 @@ class TabModel(BaseEstimator):
         ----------
         filepath : str
             Path of the model.
+
         """
         try:
             with zipfile.ZipFile(filepath) as z:
@@ -478,13 +479,13 @@ class TabModel(BaseEstimator):
         return
 
     def _train_epoch(self, train_loader: TBDataLoader) -> None:
-        """
-        Trains one epoch of the network in self.network
+        """Trains one epoch of the network in self.network.
 
         Parameters
         ----------
         train_loader : a :class: `torch.utils.data.Dataloader`
             DataLoader with train set
+
         """
         self.network.train()
 
@@ -511,8 +512,7 @@ class TabModel(BaseEstimator):
         return
 
     def _train_batch(self, X: torch.Tensor, y: torch.Tensor, w: Optional[torch.Tensor] = None) -> Dict:
-        """
-        Trains one batch of data
+        """Trains one batch of data.
 
         Parameters
         ----------
@@ -527,6 +527,7 @@ class TabModel(BaseEstimator):
             Dictionnary with "y": target and "score": prediction scores.
         batch_logs : dict
             Dictionnary with "batch_size" and "loss".
+
         """
         batch_logs = {"batch_size": X.shape[0]}
 
@@ -553,8 +554,7 @@ class TabModel(BaseEstimator):
         return batch_logs
 
     def _predict_epoch(self, name: str, loader: TBDataLoader) -> None:  # todo: replace loader
-        """
-        Predict an epoch and update metrics.
+        """Predict an epoch and update metrics.
 
         Parameters
         ----------
@@ -562,6 +562,7 @@ class TabModel(BaseEstimator):
             Name of the validation set
         loader : torch.utils.data.Dataloader
                 DataLoader with validation set
+
         """
         # Setting network on evaluation mode
         self.network.eval()
@@ -590,8 +591,7 @@ class TabModel(BaseEstimator):
         return
 
     def _predict_batch(self, X: torch.Tensor) -> torch.Tensor:
-        """
-        Predict one batch of data.
+        """Predict one batch of data.
 
         Parameters
         ----------
@@ -602,8 +602,8 @@ class TabModel(BaseEstimator):
         -------
         np.array
             model scores
-        """
 
+        """
         # compute model output
         scores, _ = self.network(X)
 
@@ -793,8 +793,7 @@ class TabModel(BaseEstimator):
         eval_set: List[Tuple[np.ndarray, np.ndarray]],
         weights: Union[int, Dict],
     ) -> None:
-        """
-        Set attributes relative to fit function.
+        """Set attributes relative to fit function.
 
         Parameters
         ----------
@@ -807,13 +806,13 @@ class TabModel(BaseEstimator):
         weights : bool or dictionnary
             0 for no balancing
             1 for automated balancing
+
         """
         raise NotImplementedError("users must define update_fit_params to use this base class")
 
     @abstractmethod
     def compute_loss(self, *args: Any, **kwargs: Any) -> torch.Tensor:
-        """
-        Compute the loss.
+        """Compute the loss.
 
         Parameters
         ----------
@@ -826,13 +825,13 @@ class TabModel(BaseEstimator):
         -------
         float
             Loss value
+
         """
         ...
 
     @abstractmethod
     def prepare_target(self, y: np.ndarray) -> torch.Tensor:
-        """
-        Prepare target before training.
+        """Prepare target before training.
 
         Parameters
         ----------
@@ -843,6 +842,7 @@ class TabModel(BaseEstimator):
         -------
         `torch.Tensor`
             Converted target matrix.
+
         """
         ...
 

@@ -113,6 +113,7 @@ class TabNetPretrainer(TabModel):
             List of custom callbacks
         pin_memory: bool
             Whether to set pin_memory to True or False during training
+
         """
         # update model name
 
@@ -282,13 +283,13 @@ class TabNetPretrainer(TabModel):
         return train_dataloader, valid_dataloaders
 
     def _train_epoch(self, train_loader: DataLoader) -> None:  # todo: replace loader
-        """
-        Trains one epoch of the network in self.network
+        """Trains one epoch of the network in self.network.
 
         Parameters
         ----------
         train_loader : a :class: `torch.utils.data.Dataloader`
             DataLoader with train set
+
         """
         self.network.train()
 
@@ -306,8 +307,7 @@ class TabNetPretrainer(TabModel):
         return
 
     def _train_batch(self, X: torch.Tensor, w: Optional[torch.Tensor] = None) -> dict:  # type: ignore[override]
-        """
-        Trains one batch of data
+        """Trains one batch of data.
 
         Parameters
         ----------
@@ -320,6 +320,7 @@ class TabNetPretrainer(TabModel):
             Dictionnary with "y": target and "score": prediction scores.
         batch_logs : dict
             Dictionnary with "batch_size" and "loss".
+
         """
         batch_logs = {"batch_size": X.shape[0]}
 
@@ -342,8 +343,7 @@ class TabNetPretrainer(TabModel):
         return batch_logs
 
     def _predict_epoch(self, name: str, loader: DataLoader) -> None:  # todo: replace loader
-        """
-        Predict an epoch and update metrics.
+        """Predict an epoch and update metrics.
 
         Parameters
         ----------
@@ -351,6 +351,7 @@ class TabNetPretrainer(TabModel):
             Name of the validation set
         loader : torch.utils.data.Dataloader
                 DataLoader with validation set
+
         """
         # Setting network on evaluation mode
         self.network.eval()
@@ -373,8 +374,7 @@ class TabNetPretrainer(TabModel):
         return
 
     def _predict_batch(self, X: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        Predict one batch of data.
+        """Predict one batch of data.
 
         Parameters
         ----------
@@ -385,6 +385,7 @@ class TabNetPretrainer(TabModel):
         -------
         np.array
             model scores
+
         """
         X = X.to(self.device).float()
         return self.network(X)
@@ -404,8 +405,7 @@ class TabNetPretrainer(TabModel):
         return output, embedded_x, obf_vars
 
     def predict(self, X: Union[np.ndarray, scipy.sparse.csr_matrix]) -> tuple[np.ndarray, np.ndarray]:
-        """
-        Make predictions on a batch (valid)
+        """Make predictions on a batch (valid).
 
         Parameters
         ----------
@@ -416,6 +416,7 @@ class TabNetPretrainer(TabModel):
         -------
         predictions : np.array
             Predictions of the regression problem
+
         """
         self.network.eval()
 
