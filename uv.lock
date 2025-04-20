@@ -17,6 +17,22 @@ resolution-markers = [
 ]
 
 [[package]]
+name = "activations-plus"
+version = "0.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "torch", version = "2.5.1", source = { registry = "https://download.pytorch.org/whl/cu124" }, marker = "python_full_version != '3.13.*' and platform_machine == 'aarch64' and sys_platform == 'linux'" },
+    { name = "torch", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version != '3.13.*' and sys_platform == 'darwin'" },
+    { name = "torch", version = "2.5.1+cu124", source = { registry = "https://download.pytorch.org/whl/cu124" }, marker = "(python_full_version != '3.13.*' and platform_machine != 'aarch64' and sys_platform == 'linux') or (python_full_version != '3.13.*' and sys_platform != 'darwin' and sys_platform != 'linux')" },
+    { name = "torch", version = "2.6.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.13.*' and sys_platform == 'darwin'" },
+    { name = "torch", version = "2.6.0+cu124", source = { registry = "https://download.pytorch.org/whl/cu124" }, marker = "python_full_version == '3.13.*' and sys_platform != 'darwin'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e3/e2/4be2a801e73a0ee6364fd827ff4e727aee1a76c970cb07d502093fbd531f/activations_plus-0.1.1.tar.gz", hash = "sha256:35bf8cf8da08da571b5c065e980bcf3bb91e5529499045c1cee7c0dbd84bfaff", size = 10369 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f4/1f/ff0932d2cb8d6a799d3afced643a2aea1a9106e1fe5f4df9748e1dfefcf5/activations_plus-0.1.1-py3-none-any.whl", hash = "sha256:96e43974052dc0dd809732883cd2b0a7954cf49132a8517795146a56a59dcb62", size = 15931 },
+]
+
+[[package]]
 name = "alabaster"
 version = "1.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -541,6 +557,7 @@ wheels = [
 name = "eh-pytorch-tabnet"
 source = { editable = "." }
 dependencies = [
+    { name = "activations-plus" },
     { name = "numpy" },
     { name = "scikit-learn" },
     { name = "scipy" },
@@ -576,6 +593,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "activations-plus", specifier = ">=0.1.1" },
     { name = "numpy" },
     { name = "scikit-learn" },
     { name = "scipy" },

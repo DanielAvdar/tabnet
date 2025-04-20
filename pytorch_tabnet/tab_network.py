@@ -2,9 +2,10 @@ import math
 from typing import List, Optional, Union
 
 import torch
-from torch.nn import BatchNorm1d, Linear, ReLU
 
-from pytorch_tabnet import sparsemax
+# from pytorch_tabnet import sparsemax
+from activations_plus import Entmax, Sparsemax
+from torch.nn import BatchNorm1d, Linear, ReLU
 
 
 def initialize_non_glu(module: torch.nn.Module, input_dim: int, output_dim: int) -> None:
@@ -653,10 +654,10 @@ class AttentiveTransformer(torch.nn.Module):
 
         if mask_type == "sparsemax":
             # Sparsemax
-            self.selector = sparsemax.Sparsemax(dim=-1)
+            self.selector = Sparsemax(dim=-1)
         elif mask_type == "entmax":
             # Entmax
-            self.selector = sparsemax.Entmax15(dim=-1)
+            self.selector = Entmax(dim=-1)
         else:
             raise NotImplementedError("Please choose either sparsemax" + "or entmax as masktype")
 

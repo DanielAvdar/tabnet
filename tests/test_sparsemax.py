@@ -1,12 +1,14 @@
 import pytest
 import torch
+from activations_plus import Entmax as Entmax15
+from activations_plus import Sparsemax
 
-from pytorch_tabnet.sparsemax import Entmax15, Sparsemax, entmoid15
+from pytorch_tabnet.sparsemax import entmoid15
 
 
 # Generate test cases for Sparsemax
 @pytest.mark.parametrize("dim", [-1, 0, 1])
-@pytest.mark.parametrize("input_shape", [(5, 3), (2, 4, 6)])
+@pytest.mark.parametrize("input_shape", [(5, 3), (2, 4, 6), (2, 2, 3, 4), (10, 20, 30)])
 def test_sparsemax(input_shape, dim):
     input_ = torch.randn(input_shape)
     sparsemax_op = Sparsemax(dim=dim)
