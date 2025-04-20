@@ -39,5 +39,3 @@ def test_entmax15(input_shape, dim):
     # Check normalization along the specified dimension
     sum_along_dim = output.sum(dim=dim)
     assert torch.allclose(sum_along_dim, torch.ones_like(sum_along_dim))
-
-

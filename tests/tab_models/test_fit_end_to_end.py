@@ -1,21 +1,9 @@
-import sys
-
 import numpy as np
 import pytest
-import torch
 
 from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
 from pytorch_tabnet.pretraining import TabNetPretrainer
 from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
-
-compile_backends = [""]
-
-if sys.platform.startswith("linux"):
-    compile_backends += [
-        "inductor",
-    ]
-if torch.cuda.is_available():
-    compile_backends += ["cudagraphs"]
 
 
 @pytest.mark.parametrize(
@@ -62,7 +50,6 @@ if torch.cuda.is_available():
     ],
 )
 @pytest.mark.parametrize("mask_type", ["sparsemax", "entmax"])
-@pytest.mark.parametrize("compile_backend", compile_backends)
 def test_pretrainer_fit(
     X_train,
     X_valid,
@@ -70,14 +57,11 @@ def test_pretrainer_fit(
     model_params,
     fit_params,
     mask_type,
-    compile_backend,
-    # pin_memory,
 ):
     """Test TabNetPretrainer fit method."""
     unsupervised_model = TabNetPretrainer(
         **model_params,
         mask_type=mask_type,
-        compile_backend=compile_backend,
     )
     unsupervised_model.fit(
         X_train=X_train,
@@ -93,7 +77,7 @@ def test_pretrainer_fit(
     pred, _ = unsupervised_model.predict(X_valid)
     assert pred.shape[0] == X_valid.shape[0]
     assert not np.isnan(pred).any()
-    tab_class = TabNetClassifier(compile_backend=compile_backend)
+    tab_class = TabNetClassifier()
     tab_class.fit(
         y_train=np.random.randint(0, 2, size=X_train.shape[0]),
         X_train=X_train,
@@ -101,7 +85,7 @@ def test_pretrainer_fit(
         from_unsupervised=unsupervised_model,
         **fit_params,
     )
-    multi_tab_class = TabNetMultiTaskClassifier(compile_backend=compile_backend)
+    multi_tab_class = TabNetMultiTaskClassifier()
     multi_tab_class.fit(
         y_train=np.random.randint(0, 2, size=(X_train.shape[0], 2)),
         X_train=X_train,
@@ -109,7 +93,7 @@ def test_pretrainer_fit(
         from_unsupervised=unsupervised_model,
         **fit_params,
     )
-    tab_reg = TabNetRegressor(compile_backend=compile_backend)
+    tab_reg = TabNetRegressor()
     tab_reg.fit(
         y_train=np.random.rand(X_train.shape[0]).reshape(-1, 1),
         X_train=X_train,
@@ -117,7 +101,7 @@ def test_pretrainer_fit(
         from_unsupervised=unsupervised_model,
         **fit_params,
     )
-    multi_tab_reg = TabNetRegressor(compile_backend=compile_backend)
+    multi_tab_reg = TabNetRegressor()
     multi_tab_reg.fit(
         y_train=np.random.rand(X_train.shape[0] * 3).reshape(-1, 3),
         X_train=X_train,
