@@ -1,10 +1,5 @@
 """Utilities for multiclass classification in TabNet."""
 
-"""Multi-class / multi-label utility function.
-==========================================
-
-"""
-
 from collections.abc import Sequence
 from itertools import chain
 from typing import List, Union
