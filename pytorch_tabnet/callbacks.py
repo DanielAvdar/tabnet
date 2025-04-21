@@ -12,7 +12,10 @@ import torch
 
 
 class Callback:
-    """Abstract base class used to build new callbacks."""
+    """Build new callbacks for TabNet training.
+
+    This is an abstract base class for creating custom callbacks.
+    """
 
     def __init__(self) -> None:
         """Initialize the Callback base class."""
@@ -37,7 +40,7 @@ class Callback:
         self.trainer = model
 
     def on_epoch_begin(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
-        """Called at the beginning of an epoch.
+        """Call at the beginning of an epoch.
 
         Args:
             epoch (int): Current epoch number.
@@ -47,7 +50,7 @@ class Callback:
         pass
 
     def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
-        """Called at the end of an epoch.
+        """Call at the end of an epoch.
 
         Args:
             epoch (int): Current epoch number.
@@ -57,7 +60,7 @@ class Callback:
         pass
 
     def on_batch_begin(self, batch: int, logs: Optional[Dict[str, Any]] = None) -> None:
-        """Called at the beginning of a batch.
+        """Call at the beginning of a batch.
 
         Args:
             batch (int): Current batch number.
@@ -67,7 +70,7 @@ class Callback:
         pass
 
     def on_batch_end(self, batch: int, logs: Optional[Dict[str, Any]] = None) -> None:
-        """Called at the end of a batch.
+        """Call at the end of a batch.
 
         Args:
             batch (int): Current batch number.
@@ -77,7 +80,7 @@ class Callback:
         pass
 
     def on_train_begin(self, logs: Optional[Dict[str, Any]] = None) -> None:
-        """Called at the beginning of training.
+        """Call at the beginning of training.
 
         Args:
             logs (Optional[Dict[str, Any]]): Additional logs.
@@ -86,7 +89,7 @@ class Callback:
         pass
 
     def on_train_end(self, logs: Optional[Dict[str, Any]] = None) -> None:
-        """Called at the end of training.
+        """Call at the end of training.
 
         Args:
             logs (Optional[Dict[str, Any]]): Additional logs.
@@ -97,49 +100,107 @@ class Callback:
 
 @dataclass
 class CallbackContainer:
-    """Container for managing multiple callbacks during training."""
+    """Manage multiple callbacks during training."""
 
     callbacks: List[Callback] = field(default_factory=list)
 
     def append(self, callback: Callback) -> None:
+        """Append a callback to the container.
+
+        Args:
+            callback (Callback): The callback to append.
+
+        """
         self.callbacks.append(callback)
 
     def set_params(self, params: Dict[str, Any]) -> None:
+        """Set parameters for all callbacks in the container.
+
+        Args:
+            params (Dict[str, Any]): Parameters to set.
+
+        """
         for callback in self.callbacks:
             callback.set_params(params)
 
     def set_trainer(self, trainer: Any) -> None:
+        """Set the trainer for all callbacks in the container.
+
+        Args:
+            trainer (Any): The trainer or model instance.
+
+        """
         self.trainer = trainer
         for callback in self.callbacks:
             callback.set_trainer(trainer)
 
     def on_epoch_begin(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Call on_epoch_begin for all callbacks in the container.
+
+        Args:
+            epoch (int): Current epoch number.
+            logs (Optional[Dict[str, Any]]): Additional logs.
+
+        """
         logs = logs or {}
         for callback in self.callbacks:
             callback.on_epoch_begin(epoch, logs)
 
     def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Call on_epoch_end for all callbacks in the container.
+
+        Args:
+            epoch (int): Current epoch number.
+            logs (Optional[Dict[str, Any]]): Additional logs.
+
+        """
         logs = logs or {}
         for callback in self.callbacks:
             callback.on_epoch_end(epoch, logs)
 
     def on_batch_begin(self, batch: int, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Call on_batch_begin for all callbacks in the container.
+
+        Args:
+            batch (int): Current batch number.
+            logs (Optional[Dict[str, Any]]): Additional logs.
+
+        """
         logs = logs or {}
         for callback in self.callbacks:
             callback.on_batch_begin(batch, logs)
 
     def on_batch_end(self, batch: int, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Call on_batch_end for all callbacks in the container.
+
+        Args:
+            batch (int): Current batch number.
+            logs (Optional[Dict[str, Any]]): Additional logs.
+
+        """
         logs = logs or {}
         for callback in self.callbacks:
             callback.on_batch_end(batch, logs)
 
     def on_train_begin(self, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Call on_train_begin for all callbacks in the container.
+
+        Args:
+            logs (Optional[Dict[str, Any]]): Additional logs.
+
+        """
         logs = logs or {}
         logs["start_time"] = time.time()
         for callback in self.callbacks:
             callback.on_train_begin(logs)
 
     def on_train_end(self, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Call on_train_end for all callbacks in the container.
+
+        Args:
+            logs (Optional[Dict[str, Any]]): Additional logs.
+
+        """
         logs = logs or {}
         for callback in self.callbacks:
             callback.on_train_end(logs)
@@ -210,7 +271,7 @@ class EarlyStopping(Callback):
 
 @dataclass
 class History(Callback):
-    """Callback that records events into a `History` object."""
+    """Record events into a `History` object."""
 
     trainer: Any
     verbose: int = 1
@@ -222,7 +283,12 @@ class History(Callback):
         self.total_time: float = 0.0
 
     def on_train_begin(self, logs: Optional[Dict[str, Any]] = None) -> None:
-        """Initialize history at the start of training."""
+        """Initialize history at the start of training.
+
+        Args:
+            logs (Optional[Dict[str, Any]]): Additional logs.
+
+        """
         self.history: Dict[str, List[float]] = {"loss": []}
         self.history.update({"lr": []})
         self.history.update({name: [] for name in self.trainer._metrics_names})
@@ -230,12 +296,24 @@ class History(Callback):
         self.epoch_loss: float = 0.0
 
     def on_epoch_begin(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
-        """Reset metrics at the start of an epoch."""
+        """Reset metrics at the start of an epoch.
+
+        Args:
+            epoch (int): Current epoch number.
+            logs (Optional[Dict[str, Any]]): Additional logs.
+
+        """
         self.epoch_metrics: Dict[str, float] = {"loss": 0.0}
         self.samples_seen = 0.0
 
     def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
-        """Update history and print metrics at the end of an epoch."""
+        """Update history and print metrics at the end of an epoch.
+
+        Args:
+            epoch (int): Current epoch number.
+            logs (Optional[Dict[str, Any]]): Additional logs.
+
+        """
         self.epoch_metrics["loss"] = self.epoch_loss
         for metric_name, metric_value in self.epoch_metrics.items():
             self.history[metric_name].append(metric_value)
@@ -252,21 +330,35 @@ class History(Callback):
         print(msg)
 
     def on_batch_end(self, batch: int, logs: Optional[Dict[str, Any]] = None) -> None:
-        """Update epoch loss after a batch."""
+        """Update epoch loss after a batch.
+
+        Args:
+            batch (int): Current batch number.
+            logs (Optional[Dict[str, Any]]): Additional logs. Must include 'batch_size' and 'loss'.
+
+        """
         batch_size: int = logs["batch_size"]
         self.epoch_loss = (self.samples_seen * self.epoch_loss + batch_size * logs["loss"]) / (self.samples_seen + batch_size)
         self.samples_seen += batch_size
 
     def __getitem__(self, name: str) -> List[float]:
-        """Get metric history by name."""
+        """Return metric history by name.
+
+        Args:
+            name (str): Name of the metric.
+
+        Returns:
+            List[float]: List of metric values.
+
+        """
         return self.history[name]
 
     def __repr__(self) -> str:
-        """String representation of the history object."""
+        """Return string representation of the history object."""
         return str(self.history)
 
     def __str__(self) -> str:
-        """String representation of the history object."""
+        """Return string representation of the history object."""
         return str(self.history)
 
 
