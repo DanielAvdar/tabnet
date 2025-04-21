@@ -34,6 +34,12 @@ Introduction
 
 TabNet is an attentive, interpretable deep learning architecture for tabular data, implemented in PyTorch. This project is a maintained fork of the original DreamQuark TabNet, with improvements for metrics, GPU support, and usability. It is suitable for classification, regression, and multitask learning on tabular datasets.
 
+Original Repository
+------------------
+This project is a maintained fork of the original DreamQuark TabNet implementation:
+
+- `dreamquark-ai/tabnet <https://github.com/dreamquark-ai/tabnet>`_
+
 Key Features
 ------------
 - Supports classification, regression, multitask, and unsupervised pretraining
@@ -42,3 +48,16 @@ Key Features
 - Flexible API for research and production
 
 For more details, see the original paper: https://arxiv.org/pdf/1908.07442.pdf
+
+Project Changes from the Original Implementation
+-----------------------------------------------
+This maintained fork of TabNet introduces several improvements and changes compared to the original DreamQuark implementation:
+
+- **PyTorch Metrics**: Uses PyTorch-based metrics for better GPU compatibility and performance, replacing the original numpy-based metrics.
+- **Enhanced GPU Support**: Improved prediction and evaluation logic for efficient CUDA (GPU) execution.
+- **API Improvements**: More flexible and user-friendly API for model training, evaluation, and prediction.
+- **Bug Fixes and Maintenance**: Ongoing fixes and updates to ensure compatibility with recent PyTorch versions and Python releases.
+- **Documentation and Examples**: Expanded documentation and new example notebooks for easier onboarding and advanced usage.
+- **License and Policy**: All code is considered changed for license clarity; see LICENSE for details.
+
+These changes aim to make TabNet more robust, performant, and accessible for both research and production use cases.
