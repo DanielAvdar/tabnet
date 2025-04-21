@@ -483,10 +483,10 @@ class TabModel(BaseEstimator):
 
         for batch_idx, (X, y, w) in enumerate(train_loader):  # type: ignore
             self._callback_container.on_batch_begin(batch_idx)
-            X = X.to(self.device)
-            y = y.to(self.device)
+            X = X.to(self.device) # type: ignore
+            y = y.to(self.device) # type: ignore
             if w is not None:  # type: ignore
-                w = w.to(self.device)
+                w = w.to(self.device) # type: ignore
 
             batch_logs = self._train_batch(X, y, w)
 
