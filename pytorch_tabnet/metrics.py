@@ -18,7 +18,7 @@ def UnsupervisedLoss(
     eps: float = 1e-9,
     weights: torch.Tensor = None,
 ) -> torch.Tensor:
-    """Implements unsupervised loss function with optional sample weights."""
+    """Implement an unsupervised loss function with optional sample weights."""
     errors = y_pred - embedded_x
     reconstruction_errors = torch.mul(errors, obf_vars) ** 2
     batch_means = torch.mean(embedded_x, dim=0)
@@ -39,7 +39,7 @@ def UnsupervisedLoss(
 
 @dataclass
 class UnsupMetricContainer:
-    """Container for unsupervised metrics with support for weights."""
+    """Contain unsupervised metrics with support for weights."""
 
     metric_names: List[str]
     prefix: str = ""
@@ -66,7 +66,7 @@ class UnsupMetricContainer:
 
 @dataclass
 class MetricContainer:
-    """Container for supervised metrics with support for weights."""
+    """Contain supervised metrics with support for weights."""
 
     metric_names: List[str]
     prefix: str = ""
@@ -110,7 +110,7 @@ class Metric:
 
     @classmethod
     def get_metrics_by_names(cls, names: List[str]) -> List:
-        """Get list of metric classes by their names.
+        """Get a list of metric classes by their names.
 
         Parameters
         ----------
@@ -137,7 +137,7 @@ class Metric:
 
 
 class AUC(Metric):
-    """Area Under the Curve (AUC) metric."""
+    """Compute the Area Under the Curve (AUC) metric."""
 
     _name: str = "auc"
     _maximize: bool = True
@@ -154,7 +154,7 @@ class AUC(Metric):
 
 
 class Accuracy(Metric):
-    """Accuracy metric."""
+    """Compute the accuracy metric."""
 
     _name: str = "accuracy"
     _maximize: bool = True
@@ -174,7 +174,7 @@ class Accuracy(Metric):
 
 
 class BalancedAccuracy(Metric):
-    """Balanced Accuracy metric."""
+    """Compute the balanced accuracy metric."""
 
     _name: str = "balanced_accuracy"
     _maximize: bool = True
@@ -191,7 +191,7 @@ class BalancedAccuracy(Metric):
 
 
 class LogLoss(Metric):
-    """Logarithmic Loss (LogLoss) metric."""
+    """Compute the logarithmic loss (LogLoss) metric."""
 
     _name: str = "logloss"
     _maximize: bool = False
@@ -210,7 +210,7 @@ class LogLoss(Metric):
 
 
 class MAE(Metric):
-    """Mean Absolute Error (MAE) metric."""
+    """Compute the mean absolute error (MAE) metric."""
 
     _name: str = "mae"
     _maximize: bool = False
@@ -229,7 +229,7 @@ class MAE(Metric):
 
 
 class MSE(Metric):
-    """Mean Squared Error (MSE) metric."""
+    """Compute the mean squared error (MSE) metric."""
 
     _name: str = "mse"
     _maximize: bool = False
@@ -248,7 +248,7 @@ class MSE(Metric):
 
 
 class RMSLE(Metric):
-    """Root Mean Squared Logarithmic Error (RMSLE) metric.
+    """Compute the root mean squared logarithmic error (RMSLE) metric.
 
     Scikit-implementation:
     https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_log_error.html
@@ -274,7 +274,7 @@ class RMSLE(Metric):
 
 
 class UnsupervisedMetric(Metric):
-    """Unsupervised loss metric for TabNet pretraining."""
+    """Compute the unsupervised loss metric for TabNet pretraining."""
 
     _name: str = "unsup_loss"
     _maximize: bool = False
@@ -292,7 +292,7 @@ class UnsupervisedMetric(Metric):
 
 
 class UnsupervisedNumpyMetric(Metric):
-    """Unsupervised loss metric (NumPy version) for TabNet pretraining."""
+    """Compute the unsupervised loss metric (NumPy version) for TabNet pretraining."""
 
     _name: str = "unsup_loss_numpy"
     _maximize: bool = False
@@ -309,7 +309,7 @@ class UnsupervisedNumpyMetric(Metric):
 
 
 class RMSE(Metric):
-    """Root Mean Squared Error (RMSE) metric."""
+    """Compute the root mean squared error (RMSE) metric."""
 
     _name: str = "rmse"
     _maximize: bool = False
@@ -328,7 +328,7 @@ class RMSE(Metric):
 
 
 def check_metrics(metrics: List[Union[str, Any]]) -> List[str]:
-    """Check if custom metrics are provided.
+    """Check whether custom metrics are provided.
 
     Parameters
     ----------
