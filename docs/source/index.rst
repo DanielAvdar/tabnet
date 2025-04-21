@@ -34,15 +34,25 @@ Welcome to eh-pytorch-tabnet's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Introduction
 
    introduction
-   credits
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Models & Usage
+
    models/pretrainer
    models/regressor
    models/classifier
    models/multi_regressor
    models/multi_classifier
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Credits
+
+   credits
 
 Indices and tables
 ==================
