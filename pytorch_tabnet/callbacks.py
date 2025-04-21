@@ -119,6 +119,7 @@ class EarlyStopping(Callback):
     patience: int = 5
 
     def __post_init__(self) -> None:
+        """Initialize EarlyStopping callback and set initial state."""
         self.best_epoch: int = 0
         self.stopped_epoch: int = 0
         self.wait: int = 0
@@ -129,6 +130,7 @@ class EarlyStopping(Callback):
         super().__init__()
 
     def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Check for early stopping condition at the end of an epoch."""
         current_loss = logs.get(self.early_stopping_metric)
         if current_loss is None:
             return
@@ -148,6 +150,7 @@ class EarlyStopping(Callback):
             self.wait += 1
 
     def on_train_end(self, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Restore best weights and print early stopping message at the end of training."""
         self.trainer.best_epoch = self.best_epoch
         self.trainer.best_cost = self.best_loss
 
@@ -188,11 +191,13 @@ class History(Callback):
     verbose: int = 1
 
     def __post_init__(self) -> None:
+        """Initialize History callback and set counters."""
         super().__init__()
         self.samples_seen: float = 0.0
         self.total_time: float = 0.0
 
     def on_train_begin(self, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Initialize history at the start of training."""
         self.history: Dict[str, List[float]] = {"loss": []}
         self.history.update({"lr": []})
         self.history.update({name: [] for name in self.trainer._metrics_names})
@@ -200,10 +205,12 @@ class History(Callback):
         self.epoch_loss: float = 0.0
 
     def on_epoch_begin(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Reset metrics at the start of an epoch."""
         self.epoch_metrics: Dict[str, float] = {"loss": 0.0}
         self.samples_seen = 0.0
 
     def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Update history and print metrics at the end of an epoch."""
         self.epoch_metrics["loss"] = self.epoch_loss
         for metric_name, metric_value in self.epoch_metrics.items():
             self.history[metric_name].append(metric_value)
@@ -220,17 +227,21 @@ class History(Callback):
         print(msg)
 
     def on_batch_end(self, batch: int, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Update epoch loss after a batch."""
         batch_size: int = logs["batch_size"]
         self.epoch_loss = (self.samples_seen * self.epoch_loss + batch_size * logs["loss"]) / (self.samples_seen + batch_size)
         self.samples_seen += batch_size
 
     def __getitem__(self, name: str) -> List[float]:
+        """Get metric history by name."""
         return self.history[name]
 
     def __repr__(self) -> str:
+        """String representation of the history object."""
         return str(self.history)
 
     def __str__(self) -> str:
+        """String representation of the history object."""
         return str(self.history)
 
 
@@ -264,17 +275,20 @@ class LRSchedulerCallback(Callback):
     def __post_init__(
         self,
     ) -> None:
+        """Initialize the learning rate scheduler callback."""
         self.is_metric_related: bool = hasattr(self.scheduler_fn, "is_better")
         self.scheduler: Any = self.scheduler_fn(self.optimizer, **self.scheduler_params)
         super().__init__()
 
     def on_batch_end(self, batch: int, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Update the learning rate at the end of a batch if batch-level scheduling is enabled."""
         if self.is_batch_level:
             self.scheduler.step()
         else:
             pass
 
     def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Update the learning rate at the end of an epoch if epoch-level scheduling is enabled."""
         current_loss = logs.get(self.early_stopping_metric)
         if current_loss is None:
             return
