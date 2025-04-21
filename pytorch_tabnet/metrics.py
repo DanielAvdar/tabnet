@@ -94,7 +94,7 @@ class MetricContainer:
 
 
 class Metric:
-    """Base class for all metrics."""
+    """Abstract base class for defining custom metrics."""
 
     _name: str
     _maximize: bool

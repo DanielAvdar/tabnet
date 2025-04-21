@@ -15,36 +15,89 @@ class Callback:
     """Abstract base class used to build new callbacks."""
 
     def __init__(self) -> None:
+        """Initialize the Callback base class."""
         pass
 
     def set_params(self, params: Dict[str, Any]) -> None:
+        """Set parameters for the callback.
+
+        Args:
+            params (Dict[str, Any]): Parameters to set.
+
+        """
         self.params = params
 
     def set_trainer(self, model: Any) -> None:
+        """Set the trainer/model for the callback.
+
+        Args:
+            model (Any): The model or trainer instance.
+
+        """
         self.trainer = model
 
     def on_epoch_begin(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Called at the beginning of an epoch.
+
+        Args:
+            epoch (int): Current epoch number.
+            logs (Optional[Dict[str, Any]]): Additional logs.
+
+        """
         pass
 
     def on_epoch_end(self, epoch: int, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Called at the end of an epoch.
+
+        Args:
+            epoch (int): Current epoch number.
+            logs (Optional[Dict[str, Any]]): Additional logs.
+
+        """
         pass
 
     def on_batch_begin(self, batch: int, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Called at the beginning of a batch.
+
+        Args:
+            batch (int): Current batch number.
+            logs (Optional[Dict[str, Any]]): Additional logs.
+
+        """
         pass
 
     def on_batch_end(self, batch: int, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Called at the end of a batch.
+
+        Args:
+            batch (int): Current batch number.
+            logs (Optional[Dict[str, Any]]): Additional logs.
+
+        """
         pass
 
     def on_train_begin(self, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Called at the beginning of training.
+
+        Args:
+            logs (Optional[Dict[str, Any]]): Additional logs.
+
+        """
         pass
 
     def on_train_end(self, logs: Optional[Dict[str, Any]] = None) -> None:
+        """Called at the end of training.
+
+        Args:
+            logs (Optional[Dict[str, Any]]): Additional logs.
+
+        """
         pass
 
 
 @dataclass
 class CallbackContainer:
-    """Container holding a list of callbacks."""
+    """Container for managing multiple callbacks during training."""
 
     callbacks: List[Callback] = field(default_factory=list)
 
@@ -94,24 +147,7 @@ class CallbackContainer:
 
 @dataclass
 class EarlyStopping(Callback):
-    """EarlyStopping callback to exit the training loop if early_stopping_metric
-    does not improve by a certain amount for a certain
-    number of epochs.
-
-    Parameters
-    ----------
-    early_stopping_metric : str
-        Early stopping metric name
-    is_maximize : bool
-        Whether to maximize or not early_stopping_metric
-    tol : float
-        minimum change in monitored value to qualify as improvement.
-        This number should be positive.
-    patience : integer
-        number of epochs to wait for improvement before terminating.
-        the counter be reset after each improvement
-
-    """
+    """Callback that stops training when a monitored metric has stopped improving."""
 
     early_stopping_metric: str
     is_maximize: bool
@@ -174,18 +210,7 @@ class EarlyStopping(Callback):
 
 @dataclass
 class History(Callback):
-    """Callback that records events into a `History` object.
-    This callback is automatically applied to
-    every SuperModule.
-
-    Parameters
-    ----------
-    trainer : Any
-        Model class to train
-    verbose : int
-        Print results every verbose iteration
-
-    """
+    """Callback that records events into a `History` object."""
 
     trainer: Any
     verbose: int = 1
@@ -247,24 +272,7 @@ class History(Callback):
 
 @dataclass
 class LRSchedulerCallback(Callback):
-    """Wrapper for most torch scheduler functions.
-
-    Parameters
-    ----------
-    scheduler_fn : Any
-        Torch scheduling class
-    optimizer : Any
-        Optimizer
-    scheduler_params : dict
-        Dictionnary containing all parameters for the scheduler_fn
-    early_stopping_metric : str
-        Metric for early stopping
-    is_batch_level : bool (default = False)
-        If set to False : lr updates will happen at every epoch
-        If set to True : lr updates happen at every batch
-        Set this to True for OneCycleLR for example
-
-    """
+    """Callback that updates the learning rate according to a scheduler."""
 
     scheduler_fn: Any
     optimizer: Any

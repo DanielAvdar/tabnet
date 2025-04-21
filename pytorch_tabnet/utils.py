@@ -257,7 +257,7 @@ def define_device(device_name: str) -> str:
 
 
 class ComplexEncoder(json.JSONEncoder):
-    """JSON encoder for numpy data types and arrays."""
+    """Custom JSON encoder for complex numbers and numpy data types."""
 
     def default(self, obj: object) -> object:
         """Convert numpy objects to lists for JSON serialization."""

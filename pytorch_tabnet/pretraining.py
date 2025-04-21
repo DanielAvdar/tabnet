@@ -27,7 +27,7 @@ from pytorch_tabnet.utils import (
 
 @dataclass
 class TabNetPretrainer(TabModel):
-    """TabNet model for unsupervised pretraining."""
+    """Abstract base class for TabNet pretraining models."""
 
     def __post_init__(self) -> None:
         """Initialize the pretrainer and set default loss and metric."""
