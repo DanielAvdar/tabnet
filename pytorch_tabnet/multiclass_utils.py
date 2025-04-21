@@ -1,3 +1,5 @@
+"""Utilities for multiclass classification in TabNet."""
+
 """Multi-class / multi-label utility function.
 ==========================================
 
@@ -265,7 +267,7 @@ def type_of_target(y: Union[np.ndarray, spmatrix]) -> str:
     'multiclass'
     >>> type_of_target(np.array([[1, 2], [3, 1]]))
     'multiclass-multioutput'
-    >>> type_of_target([[1, 2]])
+    >>> type_of_target([[1, 2]]))
     'multiclass-multioutput'
     >>> type_of_target(np.array([[1.5, 2.0], [3.0, 1.6]]))
     'continuous-multioutput'

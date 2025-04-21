@@ -1,3 +1,5 @@
+"""Metric functions for TabNet models."""
+
 from dataclasses import dataclass
 from typing import Any, List, Union
 

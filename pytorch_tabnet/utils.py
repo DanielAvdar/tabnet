@@ -1,3 +1,5 @@
+"""Utility functions for TabNet package."""
+
 import json
 import warnings
 from typing import List, Optional, Tuple, Union

@@ -1,3 +1,5 @@
+"""Multitask learning utilities for TabNet."""
+
 from dataclasses import dataclass
 from functools import partial
 from typing import List, Optional, Tuple, Union

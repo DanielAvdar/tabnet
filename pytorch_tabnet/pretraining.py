@@ -1,3 +1,5 @@
+"""Pretraining utilities for TabNet models."""
+
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Tuple, Union
 

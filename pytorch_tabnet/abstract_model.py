@@ -1,3 +1,5 @@
+"""Abstract model definitions for TabNet."""
+
 import copy
 import io
 import json

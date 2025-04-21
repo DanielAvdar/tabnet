@@ -1,3 +1,5 @@
+"""Data augmentation utilities for TabNet."""
+
 from typing import Tuple
 
 import numpy as np

@@ -1,3 +1,5 @@
+"""TabNet model class and training logic."""
+
 from dataclasses import dataclass, field
 from functools import partial
 from typing import Any, Dict, List, Optional, Tuple, Union

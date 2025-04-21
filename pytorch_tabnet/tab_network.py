@@ -1,3 +1,5 @@
+"""TabNet neural network architecture components."""
+
 import math
 from typing import List, Optional, Union
 
