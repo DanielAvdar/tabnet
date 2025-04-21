@@ -69,18 +69,18 @@ def create_group_matrix(list_groups: List[List[int]], input_dim: int) -> torch.T
 
     Parameters
     ----------
-    - list_groups : list of list of int
+    list_groups : list of list of int
         Each element is a list representing features in the same group.
         One feature should appear in maximum one group.
         Feature that don't get assigned a group will be in their own group of one feature.
-    - input_dim : number of feature in the initial dataset
+    input_dim : int
+        Number of features in the initial dataset.
 
     Returns
     -------
-    - group_matrix : torch matrix
-        A matrix of size (n_groups, input_dim)
-        where m_ij represents the importance of feature j in group i
-        The rows must some to 1 as each group is equally important a priori.
+    group_matrix : torch.Tensor
+        A matrix of size (n_groups, input_dim) where m_ij represents the importance of feature j in group i.
+        The rows must sum to 1 as each group is equally important a priori.
 
     """
     check_list_groups(list_groups, input_dim)
@@ -152,8 +152,7 @@ def check_list_groups(list_groups: List[List[int]], input_dim: int) -> None:
 
 
 def filter_weights(weights: Union[int, List, np.ndarray]) -> None:
-    """This function makes sure that weights are in correct format for
-    regression and multitask TabNet.
+    """Ensure weights are in correct format for regression and multitask TabNet.
 
     Parameters
     ----------
@@ -230,6 +229,7 @@ def validate_eval_set(
 
 def define_device(device_name: str) -> str:
     """Define the device to use during training and inference.
+
     If auto it will detect automatically whether to use cuda or cpu.
 
     Parameters
@@ -255,7 +255,10 @@ def define_device(device_name: str) -> str:
 
 
 class ComplexEncoder(json.JSONEncoder):
+    """JSON encoder for numpy data types and arrays."""
+
     def default(self, obj: object) -> object:
+        """Convert numpy objects to lists for JSON serialization."""
         if isinstance(obj, (np.generic, np.ndarray)):
             return obj.tolist()
         # Let the base class default method raise the TypeError
@@ -263,8 +266,9 @@ class ComplexEncoder(json.JSONEncoder):
 
 
 def check_input(X: np.ndarray) -> None:
-    """Raise a clear error if X is a pandas dataframe
-    and check array according to scikit rules.
+    """Raise a clear error if X is a pandas dataframe.
+
+    Also check array according to scikit rules.
     """
     if isinstance(X, (pd.DataFrame, pd.Series)):
         err_message = "Pandas DataFrame are not supported: apply X.values when calling fit"
@@ -273,7 +277,7 @@ def check_input(X: np.ndarray) -> None:
 
 
 def check_warm_start(warm_start: bool, from_unsupervised: Optional[bool]) -> None:
-    """Gives a warning about ambiguous usage of the two parameters."""
+    """Warn about ambiguous usage of warm_start and from_unsupervised parameters."""
     if warm_start and from_unsupervised is not None:
         warn_msg = "warm_start=True and from_unsupervised != None: "
         warn_msg = "warm_start will be ignore, training will start from unsupervised weights"
