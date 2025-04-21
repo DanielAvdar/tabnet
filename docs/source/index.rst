@@ -36,11 +36,11 @@ Welcome to eh-pytorch-tabnet's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   pretrainer
-   regressor
-   classifier
-   multi_regressor
-   multi_classifier
+   models/pretrainer
+   models/regressor
+   models/classifier
+   models/multi_regressor
+   models/multi_classifier
 
 Indices and tables
 ==================
