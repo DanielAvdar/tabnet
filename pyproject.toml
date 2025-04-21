@@ -3,7 +3,24 @@ name = "eh-pytorch-tabnet"
 dynamic = ["version"]
 description = "PyTorch implementation of TabNet"
 readme = "README.md"
-authors = []
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+authors = [
+    {name = "DreamQuark"},
+    {name = "DanielAvdar", email = "66269169+DanielAvdar@users.noreply.github.com"},
+]
 requires-python = ">=3.10"
 
 keywords = ["tabnet", "pytorch", "neural-networks"]

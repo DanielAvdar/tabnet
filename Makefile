@@ -32,3 +32,6 @@ update:
 
 mypy:
 	uv tool run mypy pytorch_tabnet --config-file pyproject.toml
+
+doc:
+	uv run sphinx-build -M html docs/source docs/build/
