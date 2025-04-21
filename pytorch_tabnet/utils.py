@@ -17,9 +17,9 @@ def create_explain_matrix(
     cat_idxs: List[int],
     post_embed_dim: int,
 ) -> scipy.sparse.csc_matrix:
-    """This is a computational trick.
-    In order to rapidly sum importances from same embeddings
-    to the initial index.
+    """Create a reducing matrix for summing importances from embeddings to initial indices.
+
+    In order to rapidly sum importances from same embeddings to the initial index.
 
     Parameters
     ----------
@@ -36,7 +36,7 @@ def create_explain_matrix(
     Returns
     -------
     reducing_matrix : np.array
-        Matrix of dim (post_embed_dim, input_dim)  to performe reduce
+        Matrix of dim (post_embed_dim, input_dim) to perform reduce
 
     """
     if isinstance(cat_emb_dim, int):
@@ -112,19 +112,21 @@ def create_group_matrix(list_groups: List[List[int]], input_dim: int) -> torch.T
 
 
 def check_list_groups(list_groups: List[List[int]], input_dim: int) -> None:
-    """Check that list groups:
-        - is a list of list
-        - does not contain twice the same feature in different groups
-        - does not contain unknown features (>= input_dim)
-        - does not contain empty groups.
+    """Check that list_groups is valid for group matrix construction.
 
-    Parameters.
+    - Is a list of list
+    - Does not contain the same feature in different groups
+    - Does not contain unknown features (>= input_dim)
+    - Does not contain empty groups.
+
+    Parameters
     ----------
-    - list_groups : list of list of int
+    list_groups : list of list of int
         Each element is a list representing features in the same group.
         One feature should appear in maximum one group.
-        Feature that don't get assign a group will be in their own group of one feature.
-    - input_dim : number of feature in the initial dataset
+        Feature that don't get assigned a group will be in their own group of one feature.
+    input_dim : int
+        Number of features in the initial dataset
 
     """
     assert isinstance(list_groups, list), "list_groups must be a list of list."
