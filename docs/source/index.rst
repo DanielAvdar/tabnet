@@ -32,6 +32,15 @@ Welcome to eh-pytorch-tabnet's documentation!
 .. image:: https://img.shields.io/github/last-commit/DanielAvdar/eh-pytorch-tabnet/main
    :alt: Last Commit
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   pretrainer
+   regressor
+   classifier
+   multi_regressor
+   multi_classifier
 
 Indices and tables
 ==================

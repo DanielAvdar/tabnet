@@ -2,7 +2,7 @@
 
 install:
 	uv sync --all-extras --all-groups --frozen
-	uv run pip install pre-commit
+	uv pip install pre-commit
 
 .PHONY: default
 default: install

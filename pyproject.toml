@@ -59,6 +59,13 @@ dev = [
     "types-pytz",
     "pandas-stubs",
     "ruff",
+        "sybil[pytest]",
+
+]
+docs = [
+    "sphinx>=8.2.0; python_version >= '3.11'",
+    "sphinx>=7.0.0; python_version < '3.11'",
+    "sphinx-rtd-theme>=3.0.2",
 ]
 [[tool.uv.index]]
 name = "pytorch-cu124"

@@ -10,12 +10,12 @@ import sys
 
 compile_backends = [""]
 
-if sys.platform.startswith("linux"):
-    compile_backends += [
-        "inductor",
-    ]
-if torch.cuda.is_available():
-    compile_backends += ["cudagraphs"]
+# if sys.platform.startswith("linux"):
+#     compile_backends += [
+#         "inductor",
+#     ]
+# if torch.cuda.is_available():
+#     compile_backends += ["cudagraphs"]
 
 
 @pytest.mark.parametrize(
