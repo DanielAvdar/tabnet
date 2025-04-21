@@ -36,6 +36,8 @@ Welcome to eh-pytorch-tabnet's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   introduction
+   credits
    models/pretrainer
    models/regressor
    models/classifier
