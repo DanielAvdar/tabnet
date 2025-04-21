@@ -11,6 +11,18 @@ from torch.nn import BatchNorm1d, Linear, ReLU
 
 
 def initialize_non_glu(module: torch.nn.Module, input_dim: int, output_dim: int) -> None:
+    """Initialize a non-GLU (Gated Linear Unit) linear module with Xavier normal initialization.
+
+    Parameters
+    ----------
+    module : torch.nn.Module
+        The module to initialize (should have a 'weight' attribute).
+    input_dim : int
+        Input dimension.
+    output_dim : int
+        Output dimension.
+
+    """
     total_dim = input_dim + output_dim
     sq_input_dim = math.sqrt(4 * input_dim)
     gain_value = math.sqrt(total_dim / sq_input_dim)
@@ -19,29 +31,65 @@ def initialize_non_glu(module: torch.nn.Module, input_dim: int, output_dim: int)
 
 
 def initialize_glu(module: torch.nn.Module, input_dim: int, output_dim: int) -> None:
+    """Initialize a GLU (Gated Linear Unit) linear module with Xavier normal initialization.
+
+    Parameters
+    ----------
+    module : torch.nn.Module
+        The module to initialize (should have a 'weight' attribute).
+    input_dim : int
+        Input dimension.
+    output_dim : int
+        Output dimension.
+
+    """
     gain_value = math.sqrt((input_dim + output_dim) / math.sqrt(input_dim))
     torch.nn.init.xavier_normal_(module.weight, gain=gain_value)
     return
 
 
 class GBN(torch.nn.Module):
-    """Ghost Batch Normalization
-    https://arxiv.org/abs/1705.08741.
+    """Ghost Batch Normalization.
+
+    See: https://arxiv.org/abs/1705.08741.
     """
 
     def __init__(self, input_dim: int, virtual_batch_size: int = 128, momentum: float = 0.01):
-        super(GBN, self).__init__()
+        """Initialize Ghost Batch Normalization.
 
+        Parameters
+        ----------
+        input_dim : int
+            Number of input features.
+        virtual_batch_size : int
+            Size of virtual batch for normalization.
+        momentum : float
+            Momentum for batch normalization.
+
+        """
+        super(GBN, self).__init__()
         self.input_dim = input_dim
         self.virtual_batch_size = virtual_batch_size
         self.bn = BatchNorm1d(self.input_dim, momentum=momentum)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Apply Ghost Batch Normalization to input tensor x.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor.
+
+        Returns
+        -------
+        torch.Tensor
+            Normalized tensor.
+
+        """
         v = x.shape[0] / self.virtual_batch_size
         v_ceil = math.ceil(v)
         chunks = x.chunk(v_ceil, dim=0)
         res = [self.bn(x_) for x_ in chunks]
-
         return torch.cat(res, dim=0)
 
 
@@ -189,6 +237,19 @@ class TabNetEncoder(torch.nn.Module):
         return steps_output, M_loss
 
     def forward_masks(self, x: torch.Tensor) -> tuple[torch.Tensor, dict]:
+        """Compute and return feature masks for each step.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor.
+
+        Returns
+        -------
+        tuple[torch.Tensor, dict]
+            Tuple of (explanation mask, step-wise masks dictionary).
+
+        """
         x = self.initial_bn(x)
         bs = x.shape[0]  # batch size
         prior = torch.ones((bs, self.attention_dim)).to(x.device)
@@ -283,6 +344,19 @@ class TabNetDecoder(torch.nn.Module):
         initialize_non_glu(self.reconstruction_layer, n_d, self.input_dim)
 
     def forward(self, steps_output: List[torch.Tensor]) -> torch.Tensor:
+        """Forward pass for TabNetDecoder.
+
+        Parameters
+        ----------
+        steps_output : List[torch.Tensor]
+            List of tensors from each step of the encoder.
+
+        Returns
+        -------
+        torch.Tensor
+            Reconstructed input tensor.
+
+        """
         res = 0
         for step_nb, step_output in enumerate(steps_output):
             x = self.feat_transformers[step_nb](step_output)
@@ -489,6 +563,19 @@ class TabNetNoEmbeddings(torch.nn.Module):
             initialize_non_glu(self.final_mapping, n_d, output_dim)  # type: ignore
 
     def forward(self, x: torch.Tensor) -> tuple[Union[torch.Tensor, List[torch.Tensor]], torch.Tensor]:
+        """Forward pass for TabNetNoEmbeddings.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor.
+
+        Returns
+        -------
+        tuple[Union[torch.Tensor, List[torch.Tensor]], torch.Tensor]
+            Output tensor(s) and mask loss.
+
+        """
         res = 0
         steps_output, M_loss = self.encoder(x)
         res = torch.sum(torch.stack(steps_output, dim=0), dim=0)
@@ -503,6 +590,19 @@ class TabNetNoEmbeddings(torch.nn.Module):
         return out, M_loss
 
     def forward_masks(self, x: torch.Tensor) -> tuple[torch.Tensor, dict]:
+        """Return feature masks for each step in TabNetNoEmbeddings.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor.
+
+        Returns
+        -------
+        tuple[torch.Tensor, dict]
+            Tuple of (explanation mask, step-wise masks dictionary).
+
+        """
         return self.encoder.forward_masks(x)
 
 
@@ -613,10 +713,36 @@ class TabNet(torch.nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> tuple[Union[torch.Tensor, List[torch.Tensor]], torch.Tensor]:
+        """Forward pass for TabNet.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor.
+
+        Returns
+        -------
+        tuple[Union[torch.Tensor, List[torch.Tensor]], torch.Tensor]
+            Output tensor(s) and mask loss.
+
+        """
         x = self.embedder(x)
         return self.tabnet(x)
 
     def forward_masks(self, x: torch.Tensor) -> tuple[torch.Tensor, dict]:
+        """Return feature masks for each step in TabNet.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor.
+
+        Returns
+        -------
+        tuple[torch.Tensor, dict]
+            Tuple of (explanation mask, step-wise masks dictionary).
+
+        """
         x = self.embedder(x)
         return self.tabnet.forward_masks(x)
 

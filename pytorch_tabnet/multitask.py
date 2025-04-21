@@ -17,6 +17,8 @@ from pytorch_tabnet.utils import filter_weights
 
 @dataclass
 class TabNetMultiTaskClassifier(TabModel):
+    """TabNet model for multitask classification tasks."""
+
     output_dim: List[int] = None
 
     def __post_init__(self) -> None:

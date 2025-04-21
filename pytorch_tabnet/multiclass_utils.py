@@ -326,6 +326,19 @@ def type_of_target(y: Union[np.ndarray, spmatrix]) -> str:
 
 
 def check_unique_type(y: np.ndarray) -> None:
+    """Check that all elements in y have the same type.
+
+    Parameters
+    ----------
+    y : np.ndarray
+        Target array to check.
+
+    Raises
+    ------
+    TypeError
+        If values in y have different types.
+
+    """
     target_types = pd.Series(y).map(type).unique()
     if len(target_types) != 1:
         raise TypeError(f"Values on the target must have the same type. Target has types {target_types}")
@@ -355,33 +368,54 @@ def infer_output_dim(y_train: np.ndarray) -> tuple[int, np.ndarray]:
 
 
 def check_output_dim(labels: np.ndarray, y: np.ndarray) -> None:
+    """Check that all labels in y are present in the training labels.
+
+    Parameters
+    ----------
+    labels : np.ndarray
+        Array of valid labels from training.
+    y : np.ndarray
+        Array of labels to check.
+
+    Raises
+    ------
+    ValueError
+        If y contains labels not present in labels.
+
+    """
     if y is not None:
         check_unique_type(y)
         valid_labels = unique_labels(y)
         if not set(valid_labels).issubset(set(labels)):
             raise ValueError(
-                f"""Valid set -- {set(valid_labels)} --
-                             contains unkown targets from training --
-                             {set(labels)}"""
+                f"""Valid set -- {set(valid_labels)} --\n" +
+                "contains unkown targets from training --\n" +
+                f"{set(labels)}"""
             )
     return
 
 
 def infer_multitask_output(y_train: np.ndarray) -> tuple[List[int], List[np.ndarray]]:
-    """Infer output_dim from targets
+    """Infer output_dim and label sets for multitask targets.
+
     This is for multiple tasks.
 
     Parameters
     ----------
     y_train : np.ndarray
-        Training targets
+        Training targets, shape (n_examples, n_tasks)
 
     Returns
     -------
-    tasks_dims : list
-        Number of classes for output
-    tasks_labels : list
-        List of sorted list of initial classes
+    tasks_dims : list of int
+        Number of classes for each output
+    tasks_labels : list of np.ndarray
+        List of sorted list of initial classes for each task
+
+    Raises
+    ------
+    ValueError
+        If y_train does not have at least 2 dimensions or a task fails.
 
     """
     if len(y_train.shape) < 2:
