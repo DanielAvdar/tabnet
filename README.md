@@ -3,10 +3,11 @@
 ![PyPI version](https://img.shields.io/pypi/v/eh-pytorch-tabnet.svg)
 ![Python versions](https://img.shields.io/pypi/pyversions/eh-pytorch-tabnet.svg)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
-![Ubuntu](https://img.shields.io/badge/ubuntu-blue?logo=ubuntu)
-![Windows](https://img.shields.io/badge/ubuntu-blue?logo=windows)
-![MacOS](https://img.shields.io/badge/ubuntu-blue?logo=apple)
-![Coverage](https://codecov.io/gh/DanielAvdar/tabnet/graph/badge.svg?token=N0V9KANTG2)
+![OS](https://img.shields.io/badge/ubuntu-blue?logo=ubuntu)
+![OS](https://img.shields.io/badge/win-blue?logo=windows)
+![OS](https://img.shields.io/badge/mac-blue?logo=apple)
+[![codecov](https://codecov.io/gh/DanielAvdar/tabnet/graph/badge.svg?token=N0V9KANTG2)](https://codecov.io/gh/DanielAvdar/tabnet)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![Last Commit](https://img.shields.io/github/last-commit/DanielAvdar/tabnet/main)
 
 
