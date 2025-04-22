@@ -1,0 +1,9 @@
+{
+  "extends": ["config:base"],
+  "packageRules": [
+    {
+      "matchFiles": ["uv.lock"],
+      "schedule": ["before 6am on every day"]
+    }
+  ]
+}
