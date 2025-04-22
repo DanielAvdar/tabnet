@@ -40,6 +40,17 @@ Welcome to eh-pytorch-tabnet's documentation!
 
 .. toctree::
    :maxdepth: 2
+   :caption: Guides
+
+   guid/advanced_example
+   guid/basic_usage
+   guid/custom_metrics_and_losses
+   guid/pretraining_and_transfer
+   guid/augmentation_and_callbacks
+   guid/saving_and_loading
+
+.. toctree::
+   :maxdepth: 2
    :caption: Models & Usage
 
    models/pretrainer
