@@ -33,9 +33,9 @@ Regression Example
 
    # Generate dummy data
    X_train = np.random.rand(100, 10)
-   y_train = np.random.rand(100)
+   y_train = np.random.rand(100).reshape(-1, 1)
    X_valid = np.random.rand(20, 10)
-   y_valid = np.random.rand(20)
+   y_valid = np.random.rand(20).reshape(-1, 1)
    X_test = np.random.rand(10, 10)
 
    reg = TabNetRegressor()

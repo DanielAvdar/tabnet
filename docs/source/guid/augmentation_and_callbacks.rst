@@ -31,14 +31,15 @@ Custom Callback Example
    from pytorch_tabnet.tab_model import TabNetClassifier
    from pytorch_tabnet.callbacks import Callback
 
-   class PrintEpochCallback(Callback):
-       def on_epoch_end(self, epoch, logs=None):
-           print(f"Epoch {epoch} ended.")
-
+   # Generate dummy data
    X_train = np.random.rand(100, 10)
    y_train = np.random.randint(0, 2, 100)
    X_valid = np.random.rand(20, 10)
    y_valid = np.random.randint(0, 2, 20)
+
+   class PrintEpochCallback(Callback):
+       def on_epoch_end(self, epoch, logs=None):
+           print(f"Epoch {epoch} ended.")
 
    clf = TabNetClassifier()
    clf.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], callbacks=[PrintEpochCallback()])

@@ -22,6 +22,7 @@ Custom Evaluation Metric Example
            auc = roc_auc_score(y_true, y_score[:, 1])
            return max(2*auc - 1, 0.)
 
+   # Generate dummy data
    X_train = np.random.rand(100, 10)
    y_train = np.random.randint(0, 2, 100)
    X_valid = np.random.rand(20, 10)
@@ -40,13 +41,14 @@ Custom Loss Function Example
    import torch.nn as nn
    from pytorch_tabnet.tab_model import TabNetRegressor
 
+   # Generate dummy data
+   X_train = np.random.rand(100, 10).astype(np.float32)
+   y_train = np.random.rand(100).astype(np.float32).reshape(-1, 1)
+   X_valid = np.random.rand(20, 10).astype(np.float32)
+   y_valid = np.random.rand(20).astype(np.float32).reshape(-1, 1)
+
    def custom_loss(y_true, y_pred):
        return nn.functional.mse_loss(y_pred, y_true) + 0.1 * torch.mean(torch.abs(y_pred))
-
-   X_train = np.random.rand(100, 10).astype(np.float32)
-   y_train = np.random.rand(100).astype(np.float32)
-   X_valid = np.random.rand(20, 10).astype(np.float32)
-   y_valid = np.random.rand(20).astype(np.float32)
 
    reg = TabNetRegressor()
    reg.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], loss_fn=custom_loss)

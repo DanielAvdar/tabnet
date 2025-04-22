@@ -39,9 +39,9 @@ Saving and Loading a Regressor
 
    # Generate dummy data
    X_train = np.random.rand(100, 10)
-   y_train = np.random.rand(100)
+   y_train = np.random.rand(100).reshape(-1, 1)
    X_valid = np.random.rand(20, 10)
-   y_valid = np.random.rand(20)
+   y_valid = np.random.rand(20).reshape(-1, 1)
 
    reg = TabNetRegressor()
    reg.fit(X_train, y_train, eval_set=[(X_valid, y_valid)])
