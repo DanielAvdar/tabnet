@@ -23,7 +23,9 @@ This guide demonstrates how to use a custom loss function with TabNet.
    y_train = np.random.rand(100).astype(np.float32).reshape(-1, 1)
 
    def custom_loss(y_true, y_pred):
-       return nn.functional.mse_loss(y_pred, y_true) + 0.1 * torch.mean(torch.abs(y_pred))
+       loss = nn.functional.mse_loss(y_pred, y_true, reduction="none")
+       loss = loss.mean()
+       return loss + 0.1 * torch.mean(torch.abs(y_pred))
 
    model = TabNetRegressor()
    model.fit(X_train, y_train, loss_fn=custom_loss)

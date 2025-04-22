@@ -286,7 +286,7 @@ class TabNetRegressor(TabModel):
             y_pred,
             y_true,
         )
-        if len(loss.shape) != 1:
+        if len(loss.shape) > 1:
             loss = torch.mean(loss, dim=1)
         if w is not None:
             loss = loss * w

@@ -49,7 +49,9 @@ Custom Loss Function Example
 
    import torch
    def custom_loss(y_true, y_pred):
-       return nn.functional.mse_loss(y_pred, y_true) + 0.1 * torch.mean(torch.abs(y_pred))
+       loss = nn.functional.mse_loss(y_pred, y_true, reduction="none")
+       loss = loss.mean()
+       return loss + 0.1 * torch.mean(torch.abs(y_pred))
 
    reg = TabNetRegressor()
    reg.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], loss_fn=custom_loss)

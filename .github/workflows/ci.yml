@@ -37,6 +37,7 @@ jobs:
             'test_pretraining.py',
             'test_regression.py',
             'test_fit_end_to_end.py',
+            'docs'
         ]
     steps:
       - uses: actions/checkout@v4

@@ -85,7 +85,7 @@ build-backend = "hatchling.build"
 source = "uv-dynamic-versioning"
 
 [tool.pytest.ini_options]
-addopts = "--ignore=tests/intg --ignore=intg"
+addopts = "--ignore=tests/intg --ignore=intg --ignore=tests/docs --ignore=docs"
 
 [tool.hatch.build.targets.sdist]
 only-include = ["pytorch_tabnet", ]
