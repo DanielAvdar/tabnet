@@ -17,8 +17,8 @@ project = "eh-pytorch-tabnet"
 version = version(project)
 release = version
 
-copyright = "2025, DanielAvdar"  # noqa
-author = "DanielAvdar"
+copyright = "2019 DreamQuark, 2025 Daniel Avdar"  # noqa
+author = "DreamQuark, DanielAvdar"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
