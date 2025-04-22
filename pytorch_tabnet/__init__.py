@@ -1,7 +1,11 @@
 """pytorch_tabnet package initialization."""
 
-from pytorch_tabnet.pretraining import TabNetPretrainer as TabNetPretrainer
-from pytorch_tabnet.tab_model import TabNetClassifier as TabNetClassifier
-from pytorch_tabnet.tab_model import TabNetRegressor as TabNetRegressor
+from importlib.metadata import version
 
-__version__ = "4.0.0"
+from .metrics import Metric as Metric
+from .multitask import TabNetMultiTaskClassifier as TabNetMultiTaskClassifier
+from .pretraining import TabNetPretrainer as TabNetPretrainer
+from .tab_model import TabNetClassifier as TabNetClassifier
+from .tab_model import TabNetRegressor as TabNetRegressor
+
+__version__ = version("eh-pytorch-tabnet")

@@ -6,8 +6,8 @@
 ![Ubuntu](https://img.shields.io/badge/ubuntu-blue?logo=ubuntu)
 ![Windows](https://img.shields.io/badge/ubuntu-blue?logo=windows)
 ![MacOS](https://img.shields.io/badge/ubuntu-blue?logo=apple)
-![Coverage](https://codecov.io/gh/DanielAvdar/eh-pytorch-tabnet/graph/badge.svg?token=N0V9KANTG2)
-![Last Commit](https://img.shields.io/github/last-commit/DanielAvdar/eh-pytorch-tabnet/main)
+![Coverage](https://codecov.io/gh/DanielAvdar/tabnet/graph/badge.svg?token=N0V9KANTG2)
+![Last Commit](https://img.shields.io/github/last-commit/DanielAvdar/tabnet/main)
 
 This is a maintained fork of [`dreamquark-ai/tabnet`](https://github.com/dreamquark-ai/tabnet) with improvements and changes for modern PyTorch, metrics, and GPU support.
 

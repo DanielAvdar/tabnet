@@ -42,8 +42,8 @@ Welcome to eh-pytorch-tabnet's documentation!
    :maxdepth: 2
    :caption: Guides
 
-   guid/advanced_example
    guid/basic_usage
+   guid/advanced_example
    guid/custom_metrics_and_losses
    guid/pretraining_and_transfer
    guid/augmentation_and_callbacks
