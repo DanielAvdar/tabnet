@@ -5,12 +5,12 @@ repos:
       - id: debug-statements
       - id: end-of-file-fixer
       - id: trailing-whitespace
-  - repo: https://gitlab.com/iamlikeme/nbhooks
-    rev: 1.0.0
+  - repo: https://github.com/srstevenson/nb-clean
+    rev: 4.0.1
     hooks:
-      - id: nb-ensure-clean
+      - id: nb-clean
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.6
+    rev: v0.11.6
     hooks:
       - id: ruff-format
         args: [ --preview, --config=pyproject.toml ]

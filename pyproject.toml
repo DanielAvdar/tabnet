@@ -1,22 +1,38 @@
-
 [project]
 name = "eh-pytorch-tabnet"
 dynamic = ["version"]
 description = "PyTorch implementation of TabNet"
 readme = "README.md"
-authors = []
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+authors = [
+    {name = "DreamQuark"},
+    {name = "DanielAvdar", email = "66269169+DanielAvdar@users.noreply.github.com"},
+]
 requires-python = ">=3.10"
 
-keywords = ["tabnet", "pytorch", "neural-networks" ]
+keywords = ["tabnet", "pytorch", "neural-networks"]
 exclude = ["tabnet/*.ipynb"]
 
 
 dependencies = [
     "numpy",
-    "torch",
+    "torch; python_version != '3.13'",
+    "torch>=2.6; python_version == '3.13'",
     "torcheval",
-    "tqdm",
-    "scikit_learn",
+    #    "tqdm",
+    "activations-plus>=0.1.1",
+    "scikit-learn",
     "scipy",
 ]
 
@@ -41,14 +57,22 @@ dev = [
     "types-pytz",
     "pandas-stubs",
     "ruff",
+        "sybil[pytest]",
+
+]
+docs = [
+    "sphinx>=8.2.0; python_version >= '3.11'",
+    "sphinx>=7.0.0; python_version < '3.11'",
+    "sphinx-rtd-theme>=3.0.2",
 ]
 [[tool.uv.index]]
 name = "pytorch-cu124"
 url = "https://download.pytorch.org/whl/cu124"
 explicit = true
+
 [tool.uv.sources]
 torch = [
-  { index = "pytorch-cu124", marker = "platform_system != 'Darwin'"},
+    { index = "pytorch-cu124", marker = "platform_system != 'Darwin'" },
 ]
 
 [build-system]
@@ -59,7 +83,7 @@ build-backend = "hatchling.build"
 source = "uv-dynamic-versioning"
 
 [tool.pytest.ini_options]
-addopts = "--ignore=tests/intg --ignore=intg"
+addopts = "--ignore=tests/intg --ignore=intg --ignore=tests/docs --ignore=docs"
 
 [tool.hatch.build.targets.sdist]
 only-include = ["pytorch_tabnet", ]
@@ -72,11 +96,17 @@ source = "."
 line-length = 140
 
 # In addition to the standard set of exclusions, omit all tests, plus a specific file.
-extend-exclude = ["tests/intg/*", "intg/*", "docs/*", "release-script","docs-scripts/*"]
+extend-exclude = ["tests/intg/*", "intg/*", "docs/*", "release-script", "docs-scripts/*", "nbs/*"]
 [tool.ruff.lint]
-select = ["F",  "I", "F", "W", "E", "A", ]
+select = ["F", "I", "F", "W", "E", "A","D" ]
 
 fixable = ["ALL"]
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D"]
+"docs/*" = ["D"]
+"pytorch_tabnet/tab_network.py" = ["D"]
+"pytorch_tabnet/multiclass_utils.py" = ["D"]
+"pytorch_tabnet/data_handlers.py" = ["D"]
 [tool.mypy]
 python_version = "3.11"
 disallow_untyped_defs = true

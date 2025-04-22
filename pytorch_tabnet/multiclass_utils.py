@@ -1,8 +1,4 @@
-"""
-Multi-class / multi-label utility function
-==========================================
-
-"""
+"""Utilities for multiclass classification in TabNet."""
 
 from collections.abc import Sequence
 from itertools import chain
@@ -17,7 +13,6 @@ from scipy.sparse.base import spmatrix
 
 def _assert_all_finite(X: np.ndarray, allow_nan: bool = False) -> None:
     """Like assert_all_finite, but only for ndarray."""
-
     X = np.asanyarray(X)
     # First try an O(n) time, O(1) space solution for the common case that
     # everything is finite; fall back to O(n) space np.isfinite to prevent
@@ -44,6 +39,7 @@ def assert_all_finite(X: Union[np.ndarray, spmatrix], allow_nan: bool = False) -
     ----------
     X : array or sparse matrix
     allow_nan : bool
+
     """
     _assert_all_finite(X.data if sp.issparse(X) else X, allow_nan)
 
@@ -56,9 +52,7 @@ def _unique_multiclass(y: np.ndarray) -> np.ndarray:
 
 
 def _unique_indicator(y: np.ndarray) -> np.ndarray:
-    """
-    Not implemented
-    """
+    """Not implemented."""
     raise IndexError(
         f"""Given labels are of size {y.shape} while they should be (n_samples,) \n"""
         + """If attempting multilabel classification, try using TabNetMultiTaskClassification """
@@ -74,7 +68,7 @@ _FN_UNIQUE_LABELS = {
 
 
 def unique_labels(*ys: List[np.ndarray]) -> np.ndarray:
-    """Extract an ordered array of unique labels
+    """Extract an ordered array of unique labels.
 
     We don't allow:
         - mix of multilabel and multiclass (single label) targets
@@ -103,6 +97,7 @@ def unique_labels(*ys: List[np.ndarray]) -> np.ndarray:
     array([1, 2, 3, 4])
     >>> unique_labels([1, 2, 10], [5, 11])
     array([ 1,  2,  5, 10, 11])
+
     """
     if not ys:
         raise ValueError("No argument has been passed.")
@@ -162,6 +157,7 @@ def is_multilabel(y: Union[np.ndarray, spmatrix]) -> bool:
     False
     >>> is_multilabel(np.array([[1, 0, 0]]))
     True
+
     """
     if hasattr(y, "__array__"):
         y = np.asarray(y)
@@ -196,6 +192,7 @@ def check_classification_targets(y: np.ndarray) -> None:
     Parameters
     ----------
     y : array-like
+
     """
     y_type = type_of_target(y)
     if y_type not in [
@@ -265,12 +262,13 @@ def type_of_target(y: Union[np.ndarray, spmatrix]) -> str:
     'multiclass'
     >>> type_of_target(np.array([[1, 2], [3, 1]]))
     'multiclass-multioutput'
-    >>> type_of_target([[1, 2]])
+    >>> type_of_target([[1, 2]]))
     'multiclass-multioutput'
     >>> type_of_target(np.array([[1.5, 2.0], [3.0, 1.6]]))
     'continuous-multioutput'
     >>> type_of_target(np.array([[0, 1], [1, 1]]))
     'multilabel-indicator'
+
     """
     valid = (isinstance(y, (Sequence, spmatrix)) or hasattr(y, "__array__")) and not isinstance(y, str)
 
@@ -328,14 +326,26 @@ def type_of_target(y: Union[np.ndarray, spmatrix]) -> str:
 
 
 def check_unique_type(y: np.ndarray) -> None:
+    """Check that all elements in y have the same type.
+
+    Parameters
+    ----------
+    y : np.ndarray
+        Target array to check.
+
+    Raises
+    ------
+    TypeError
+        If values in y have different types.
+
+    """
     target_types = pd.Series(y).map(type).unique()
     if len(target_types) != 1:
         raise TypeError(f"Values on the target must have the same type. Target has types {target_types}")
 
 
 def infer_output_dim(y_train: np.ndarray) -> tuple[int, np.ndarray]:
-    """
-    Infer output_dim from targets
+    """Infer output_dim from targets.
 
     Parameters
     ----------
@@ -348,6 +358,7 @@ def infer_output_dim(y_train: np.ndarray) -> tuple[int, np.ndarray]:
         Number of classes for output
     train_labels : list
         Sorted list of initial classes
+
     """
     check_unique_type(y_train)
     train_labels = unique_labels(y_train)
@@ -357,36 +368,56 @@ def infer_output_dim(y_train: np.ndarray) -> tuple[int, np.ndarray]:
 
 
 def check_output_dim(labels: np.ndarray, y: np.ndarray) -> None:
+    """Check that all labels in y are present in the training labels.
+
+    Parameters
+    ----------
+    labels : np.ndarray
+        Array of valid labels from training.
+    y : np.ndarray
+        Array of labels to check.
+
+    Raises
+    ------
+    ValueError
+        If y contains labels not present in labels.
+
+    """
     if y is not None:
         check_unique_type(y)
         valid_labels = unique_labels(y)
         if not set(valid_labels).issubset(set(labels)):
             raise ValueError(
-                f"""Valid set -- {set(valid_labels)} --
-                             contains unkown targets from training --
-                             {set(labels)}"""
+                f"""Valid set -- {set(valid_labels)} --\n" +
+                "contains unkown targets from training --\n" +
+                f"{set(labels)}"""
             )
     return
 
 
 def infer_multitask_output(y_train: np.ndarray) -> tuple[List[int], List[np.ndarray]]:
-    """
-    Infer output_dim from targets
+    """Infer output_dim and label sets for multitask targets.
+
     This is for multiple tasks.
 
     Parameters
     ----------
     y_train : np.ndarray
-        Training targets
+        Training targets, shape (n_examples, n_tasks)
 
     Returns
     -------
-    tasks_dims : list
-        Number of classes for output
-    tasks_labels : list
-        List of sorted list of initial classes
-    """
+    tasks_dims : list of int
+        Number of classes for each output
+    tasks_labels : list of np.ndarray
+        List of sorted list of initial classes for each task
 
+    Raises
+    ------
+    ValueError
+        If y_train does not have at least 2 dimensions or a task fails.
+
+    """
     if len(y_train.shape) < 2:
         raise ValueError("y_train should be of shape (n_examples, n_tasks)" + f"but got {y_train.shape}")
     nb_tasks = y_train.shape[1]

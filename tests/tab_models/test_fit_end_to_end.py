@@ -57,7 +57,6 @@ def test_pretrainer_fit(
     model_params,
     fit_params,
     mask_type,
-    # pin_memory,
 ):
     """Test TabNetPretrainer fit method."""
     unsupervised_model = TabNetPretrainer(

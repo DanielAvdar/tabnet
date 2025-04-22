@@ -1,3 +1,5 @@
+"""Data augmentation utilities for TabNet."""
+
 from typing import Tuple
 
 import numpy as np
@@ -7,8 +9,7 @@ from pytorch_tabnet.utils import define_device
 
 
 class RegressionSMOTE:
-    """
-    Apply SMOTE
+    """Apply SMOTE.
 
     This will average a percentage p of the elements in the batch with other elements.
     The target will be averaged as well (this might work with binary classification
@@ -23,7 +24,22 @@ class RegressionSMOTE:
         beta: float = 0.5,
         seed: int = 0,
     ):
-        ""
+        """Initialize RegressionSMOTE.
+
+        Parameters
+        ----------
+        device_name : str
+            Device to use ("auto", "cpu", or "cuda").
+        p : float
+            Percentage of elements to mix.
+        alpha : float
+            Alpha parameter for beta distribution.
+        beta : float
+            Beta parameter for beta distribution.
+        seed : int
+            Random seed.
+
+        """
         self.seed = seed
         self._set_seed()
         self.device = define_device(device_name)
@@ -39,6 +55,21 @@ class RegressionSMOTE:
         return
 
     def __call__(self, X: torch.Tensor, y: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Apply SMOTE augmentation to a batch.
+
+        Parameters
+        ----------
+        X : torch.Tensor
+            Input features.
+        y : torch.Tensor
+            Target values.
+
+        Returns
+        -------
+        Tuple[torch.Tensor, torch.Tensor]
+            Augmented features and targets.
+
+        """
         batch_size = X.shape[0]
         random_values = torch.rand(batch_size, device=self.device)
         idx_to_change = random_values < self.p
@@ -58,8 +89,7 @@ class RegressionSMOTE:
 
 
 class ClassificationSMOTE:
-    """
-    Apply SMOTE for classification tasks.
+    """Apply SMOTE for classification tasks.
 
     This will average a percentage p of the elements in the batch with other elements.
     The target will stay unchanged and keep the value of the most important row in the mix.
@@ -73,7 +103,22 @@ class ClassificationSMOTE:
         beta: float = 0.5,
         seed: int = 0,
     ):
-        ""
+        """Initialize ClassificationSMOTE.
+
+        Parameters
+        ----------
+        device_name : str
+            Device to use ("auto", "cpu", or "cuda").
+        p : float
+            Percentage of elements to mix.
+        alpha : float
+            Alpha parameter for beta distribution.
+        beta : float
+            Beta parameter for beta distribution.
+        seed : int
+            Random seed.
+
+        """
         self.seed = seed
         self._set_seed()
         self.device = define_device(device_name)
@@ -89,6 +134,21 @@ class ClassificationSMOTE:
         return
 
     def __call__(self, X: torch.Tensor, y: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Apply SMOTE augmentation to a batch for classification.
+
+        Parameters
+        ----------
+        X : torch.Tensor
+            Input features.
+        y : torch.Tensor
+            Target values.
+
+        Returns
+        -------
+        Tuple[torch.Tensor, torch.Tensor]
+            Augmented features and (unchanged) targets.
+
+        """
         batch_size = X.shape[0]
         random_values = torch.rand(batch_size, device=self.device)
         idx_to_change = random_values < self.p

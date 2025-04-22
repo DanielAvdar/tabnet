@@ -1,3 +1,5 @@
+"""Metric functions for TabNet models."""
+
 from dataclasses import dataclass
 from typing import Any, List, Union
 
@@ -16,9 +18,7 @@ def UnsupervisedLoss(
     eps: float = 1e-9,
     weights: torch.Tensor = None,
 ) -> torch.Tensor:
-    """
-    Implements unsupervised loss function with optional sample weights.
-    """
+    """Implement an unsupervised loss function with optional sample weights."""
     errors = y_pred - embedded_x
     reconstruction_errors = torch.mul(errors, obf_vars) ** 2
     batch_means = torch.mean(embedded_x, dim=0)
@@ -39,12 +39,13 @@ def UnsupervisedLoss(
 
 @dataclass
 class UnsupMetricContainer:
-    """Updated to support weights."""
+    """Contain unsupervised metrics with support for weights."""
 
     metric_names: List[str]
     prefix: str = ""
 
     def __post_init__(self) -> None:
+        """Initialize the metric container by resolving metric names to metric instances."""
         self.metrics = Metric.get_metrics_by_names(self.metric_names)
         self.names = [self.prefix + name for name in self.metric_names]
 
@@ -55,6 +56,7 @@ class UnsupMetricContainer:
         obf_vars: torch.Tensor,
         weights: torch.Tensor = None,
     ) -> dict:
+        """Compute all metrics in the container for the given inputs."""
         logs = {}
         for metric in self.metrics:
             res = metric(y_pred, embedded_x, obf_vars, weights)
@@ -64,12 +66,13 @@ class UnsupMetricContainer:
 
 @dataclass
 class MetricContainer:
-    """Updated to support weights."""
+    """Contain supervised metrics with support for weights."""
 
     metric_names: List[str]
     prefix: str = ""
 
     def __post_init__(self) -> None:
+        """Initialize the metric container by resolving metric names to metric instances."""
         self.metrics = Metric.get_metrics_by_names(self.metric_names)
         self.names = [self.prefix + name for name in self.metric_names]
 
@@ -79,6 +82,7 @@ class MetricContainer:
         y_pred: torch.Tensor,
         weights: torch.Tensor = None,
     ) -> dict:
+        """Compute all metrics in the container for the given inputs."""
         logs = {}
         for metric in self.metrics:
             if isinstance(y_pred, list):
@@ -90,6 +94,8 @@ class MetricContainer:
 
 
 class Metric:
+    """Abstract base class for defining custom metrics."""
+
     _name: str
     _maximize: bool
 
@@ -99,11 +105,12 @@ class Metric:
         y_pred: torch.Tensor,
         weights: torch.Tensor = None,
     ) -> float:
+        """Compute the metric value for the given inputs."""
         raise NotImplementedError("Custom Metrics must implement this function")
 
     @classmethod
     def get_metrics_by_names(cls, names: List[str]) -> List:
-        """Get list of metric classes.
+        """Get a list of metric classes by their names.
 
         Parameters
         ----------
@@ -130,9 +137,7 @@ class Metric:
 
 
 class AUC(Metric):
-    """
-    AUC.
-    """
+    """Compute the Area Under the Curve (AUC) metric."""
 
     _name: str = "auc"
     _maximize: bool = True
@@ -143,17 +148,13 @@ class AUC(Metric):
         y_score: torch.Tensor,
         weights: torch.Tensor = None,
     ) -> float:
+        """Compute the AUC score."""
         num_of_classes = y_score.shape[1]
-        # if weights is not None:
-        #     weights = weights.to(y_true.device)
-        #     return multiclass_auroc(y_score, y_true, num_classes=num_of_classes, weights=weights).cpu().item()
         return multiclass_auroc(y_score, y_true, num_classes=num_of_classes, average="macro").cpu().item()
 
 
 class Accuracy(Metric):
-    """
-    Accuracy.
-    """
+    """Compute the accuracy metric."""
 
     _name: str = "accuracy"
     _maximize: bool = True
@@ -164,20 +165,16 @@ class Accuracy(Metric):
         y_score: torch.Tensor,
         weights: torch.Tensor = None,
     ) -> float:
+        """Compute the accuracy score."""
         res = multiclass_accuracy(
             y_score,
             y_true,
         )
-        # if weights is not None:
-        #     weights = weights.to(y_true.device)
-        #     res *= weights
         return res.cpu().item()
 
 
 class BalancedAccuracy(Metric):
-    """
-    Balanced Accuracy.
-    """
+    """Compute the balanced accuracy metric."""
 
     _name: str = "balanced_accuracy"
     _maximize: bool = True
@@ -188,17 +185,13 @@ class BalancedAccuracy(Metric):
         y_score: torch.Tensor,
         weights: torch.Tensor = None,
     ) -> float:
+        """Compute the balanced accuracy score."""
         num_of_classes = y_score.shape[1]
-        # if weights is not None:
-        #     weights = weights.to(y_true.device)
-        #     return multiclass_accuracy(y_score, y_true, average="macro", num_classes=num_of_classes, weights=weights).cpu().item()
         return multiclass_accuracy(y_score, y_true, average="macro", num_classes=num_of_classes).cpu().item()
 
 
 class LogLoss(Metric):
-    """
-    LogLoss.
-    """
+    """Compute the logarithmic loss (LogLoss) metric."""
 
     _name: str = "logloss"
     _maximize: bool = False
@@ -209,6 +202,7 @@ class LogLoss(Metric):
         y_score: torch.Tensor,
         weights: torch.Tensor = None,
     ) -> float:
+        """Compute the log loss value."""
         loss = CrossEntropyLoss(reduction="none")(y_score.float(), y_true.long())
         if weights is not None:
             loss *= weights.to(y_true.device)
@@ -216,9 +210,7 @@ class LogLoss(Metric):
 
 
 class MAE(Metric):
-    """
-    Mean Absolute Error.
-    """
+    """Compute the mean absolute error (MAE) metric."""
 
     _name: str = "mae"
     _maximize: bool = False
@@ -229,6 +221,7 @@ class MAE(Metric):
         y_score: torch.Tensor,
         weights: torch.Tensor = None,
     ) -> float:
+        """Compute the mean absolute error."""
         errors = torch.abs(y_true - y_score)
         if weights is not None:
             errors *= weights.to(y_true.device)
@@ -236,9 +229,7 @@ class MAE(Metric):
 
 
 class MSE(Metric):
-    """
-    Mean Squared Error.
-    """
+    """Compute the mean squared error (MSE) metric."""
 
     _name: str = "mse"
     _maximize: bool = False
@@ -249,6 +240,7 @@ class MSE(Metric):
         y_score: torch.Tensor,
         weights: torch.Tensor = None,
     ) -> float:
+        """Compute the mean squared error."""
         errors = (y_true - y_score) ** 2
         if weights is not None:
             errors *= weights.to(y_true.device)
@@ -256,8 +248,8 @@ class MSE(Metric):
 
 
 class RMSLE(Metric):
-    """
-    Root Mean squared logarithmic error regression loss.
+    """Compute the root mean squared logarithmic error (RMSLE) metric.
+
     Scikit-implementation:
     https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_squared_log_error.html
     Note: In order to avoid error, negative predictions are clipped to 0.
@@ -273,6 +265,7 @@ class RMSLE(Metric):
         y_score: torch.Tensor,
         weights: torch.Tensor = None,
     ) -> float:
+        """Compute the root mean squared logarithmic error."""
         logerror = torch.log(y_score + 1) - torch.log(y_true + 1)
         squared_logerror = logerror**2
         if weights is not None:
@@ -281,9 +274,7 @@ class RMSLE(Metric):
 
 
 class UnsupervisedMetric(Metric):
-    """
-    Unsupervised metric
-    """
+    """Compute the unsupervised loss metric for TabNet pretraining."""
 
     _name: str = "unsup_loss"
     _maximize: bool = False
@@ -295,33 +286,30 @@ class UnsupervisedMetric(Metric):
         obf_vars: torch.Tensor,
         weights: torch.Tensor = None,
     ) -> float:
+        """Compute the unsupervised loss value."""
         loss = UnsupervisedLoss(y_pred, embedded_x, obf_vars, weights=weights)
         return loss.cpu().item()
 
 
 class UnsupervisedNumpyMetric(Metric):
-    """
-    Unsupervised metric
-    """
+    """Compute the unsupervised loss metric (NumPy version) for TabNet pretraining."""
 
     _name: str = "unsup_loss_numpy"
     _maximize: bool = False
 
     def __call__(  # type: ignore[override]
-        # self, y_pred: np.ndarray, embedded_x: np.ndarray, obf_vars: np.ndarray
         self,
         y_pred: torch.Tensor,
         embedded_x: torch.Tensor,
         obf_vars: torch.Tensor,
         weights: torch.Tensor = None,
     ) -> float:
+        """Compute the unsupervised loss value (NumPy version)."""
         return UnsupervisedLoss(y_pred, embedded_x, obf_vars).cpu().item()
 
 
 class RMSE(Metric):
-    """
-    Root Mean Squared Error.
-    """
+    """Compute the root mean squared error (RMSE) metric."""
 
     _name: str = "rmse"
     _maximize: bool = False
@@ -332,6 +320,7 @@ class RMSE(Metric):
         y_score: torch.Tensor,
         weights: torch.Tensor = None,
     ) -> float:
+        """Compute the root mean squared error."""
         mse_errors = (y_true - y_score) ** 2
         if weights is not None:
             mse_errors *= weights.to(y_true.device)
@@ -339,7 +328,7 @@ class RMSE(Metric):
 
 
 def check_metrics(metrics: List[Union[str, Any]]) -> List[str]:
-    """Check if custom metrics are provided.
+    """Check whether custom metrics are provided.
 
     Parameters
     ----------

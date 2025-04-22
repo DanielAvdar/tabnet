@@ -1,3 +1,5 @@
+"""Pretraining utilities for TabNet models."""
+
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
@@ -25,13 +27,29 @@ from pytorch_tabnet.utils import (
 
 @dataclass
 class TabNetPretrainer(TabModel):
+    """Abstract base class for TabNet pretraining models."""
+
     def __post_init__(self) -> None:
+        """Initialize the pretrainer and set default loss and metric."""
         super(TabNetPretrainer, self).__post_init__()
         self._task = "unsupervised"
         self._default_loss = UnsupervisedLoss
         self._default_metric = "unsup_loss_numpy"
 
     def prepare_target(self, y: np.ndarray) -> np.ndarray:
+        """Return the input as target for unsupervised pretraining.
+
+        Parameters
+        ----------
+        y : np.ndarray
+            Input data.
+
+        Returns
+        -------
+        np.ndarray
+            Same as input.
+
+        """
         return y
 
     def compute_loss(
@@ -41,6 +59,25 @@ class TabNetPretrainer(TabModel):
         obf_vars: torch.Tensor,
         w: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
+        """Compute the unsupervised loss for pretraining.
+
+        Parameters
+        ----------
+        output : torch.Tensor
+            Network output.
+        embedded_x : torch.Tensor
+            Embedded input.
+        obf_vars : torch.Tensor
+            Obfuscated variables mask.
+        w : Optional[torch.Tensor]
+            Optional sample weights.
+
+        Returns
+        -------
+        torch.Tensor
+            Loss value.
+
+        """
         loss = self.loss_fn(output, embedded_x, obf_vars)
         if w is not None:
             loss = loss * w
@@ -50,7 +87,14 @@ class TabNetPretrainer(TabModel):
         self,
         weights: np.ndarray,
     ) -> None:
-        # self.updated_weights = weights
+        """Update fit parameters for pretraining.
+
+        Parameters
+        ----------
+        weights : np.ndarray
+            Sample weights.
+
+        """
         filter_weights(weights)
         self.preds_mapper = None
 
@@ -74,9 +118,7 @@ class TabNetPretrainer(TabModel):
         *args: List,
         **kwargs: Dict,
     ) -> None:
-        """Train a neural network stored in self.network
-        Using train_dataloader for training data and
-        valid_dataloader for validation.
+        """Train the TabNet pretrainer model.
 
         Parameters
         ----------
@@ -84,38 +126,38 @@ class TabNetPretrainer(TabModel):
             Train set to reconstruct in self supervision
         eval_set : list of np.array
             List of evaluation set
-            The last one is used for early stopping
         eval_name : list of str
             List of eval set names.
-        eval_metric : list of str
-            List of evaluation metrics.
-            The last metric is used for early stopping.
         loss_fn : callable or None
-            a PyTorch loss function
-            should be left to None for self supervised and non experts
+            PyTorch loss function
         pretraining_ratio : float
-            Between 0 and 1, percentage of feature to mask for reconstruction
-        weights : np.array
-            Sampling weights for each example.
+            Percentage of features to mask for reconstruction
+        weights : int or np.ndarray
+            Sampling weights for each example
         max_epochs : int
-            Maximum number of epochs during training
+            Maximum number of epochs
         patience : int
-            Number of consecutive non improving epoch before early stopping
+            Early stopping patience
         batch_size : int
             Training batch size
         virtual_batch_size : int
-            Batch size for Ghost Batch Normalization (virtual_batch_size < batch_size)
+            Batch size for Ghost Batch Normalization
         num_workers : int
-            Number of workers used in torch.utils.data.DataLoader
+            Number of workers for DataLoader
         drop_last : bool
-            Whether to drop last batch during training
-        callbacks : list of callback function
-            List of custom callbacks
-        pin_memory: bool
-            Whether to set pin_memory to True or False during training
-        """
-        # update model name
+            Whether to drop last batch
+        callbacks : list of callable
+            Custom callbacks
+        pin_memory : bool
+            Whether to use pinned memory
+        warm_start : bool
+            Whether to warm start from previous fit
+        *args : list
+            Additional arguments
+        **kwargs : dict
+            Additional keyword arguments
 
+        """
         self.max_epochs = max_epochs
         self.patience = patience
         self.batch_size = batch_size
@@ -139,12 +181,10 @@ class TabNetPretrainer(TabModel):
             weights,
         )
 
-        # Validate and reformat eval set depending on training data
         eval_names = validate_eval_set(eval_set, eval_name, X_train)
         train_dataloader, valid_dataloaders = self._construct_loaders(X_train, eval_set, weights=weights)
 
         if not hasattr(self, "network") or not warm_start:
-            # model has never been fitted before of warm_start is False
             self._set_network()
 
         self._update_network_params()
@@ -152,32 +192,26 @@ class TabNetPretrainer(TabModel):
         self._set_optimizer()
         self._set_callbacks(callbacks)
 
-        # Call method on_train_begin for all callbacks
         self._callback_container.on_train_begin()
 
-        # Training loop over epochs
         for epoch_idx in range(self.max_epochs):
-            # Call method on_epoch_begin for all callbacks
             self._callback_container.on_epoch_begin(epoch_idx)
 
             self._train_epoch(train_dataloader)
 
-            # Apply predict epoch to all eval sets
             for eval_name_, valid_dataloader in zip(eval_names, valid_dataloaders, strict=False):
                 self._predict_epoch(eval_name_, valid_dataloader)
 
-            # Call method on_epoch_end for all callbacks
             self._callback_container.on_epoch_end(epoch_idx, logs=self.history.epoch_metrics)
 
             if self._stop_training:
                 break
 
-        # Call method on_train_end for all callbacks
         self._callback_container.on_train_end()
         self.network.eval()
 
     def _set_network(self) -> None:
-        """Setup the network and explain matrix."""
+        """Set up the network and explain matrix for pretraining."""
         if not hasattr(self, "pretraining_ratio"):
             self.pretraining_ratio = 0.5
         torch.manual_seed(self.seed)
@@ -214,16 +248,15 @@ class TabNetPretrainer(TabModel):
         )
 
     def _update_network_params(self) -> None:
+        """Update network parameters for pretraining."""
         self.network.virtual_batch_size = self.virtual_batch_size
         self.network.pretraining_ratio = self.pretraining_ratio
 
     def _set_metrics(self, eval_names: List[str]) -> None:  # type: ignore[override]
-        """Set attributes relative to the metrics.
+        """Set metric containers for each evaluation set.
 
         Parameters
         ----------
-        metrics : list of str
-            List of eval metric names.
         eval_names : list of str
             List of eval set names.
 
@@ -231,7 +264,6 @@ class TabNetPretrainer(TabModel):
         metrics = [self._default_metric]
 
         metrics = check_metrics(metrics)
-        # Set metric container for each sets
         self._metric_container_dict = {}
         for name in eval_names:
             self._metric_container_dict.update({
@@ -244,7 +276,6 @@ class TabNetPretrainer(TabModel):
             self._metrics.extend(metric_container.metrics)
             self._metrics_names.extend(metric_container.names)
 
-        # Early stopping metric is the last eval metric
         self.early_stopping_metric = self._metrics_names[-1] if len(self._metrics_names) > 0 else None
 
     def _construct_loaders(  # type: ignore[override]
@@ -252,22 +283,22 @@ class TabNetPretrainer(TabModel):
         X_train: np.ndarray,
         eval_set: List[Union[np.ndarray, List[np.ndarray]]],
         weights: Union[int, Dict, np.array],
-    ) -> tuple[DataLoader, List[DataLoader]]:  # todo: replace loader
+    ) -> tuple[DataLoader, List[DataLoader]]:
         """Generate dataloaders for unsupervised train and eval set.
 
         Parameters
         ----------
-        X_train : np.array
+        X_train : np.ndarray
             Train set.
-        eval_set : list of tuple
+        eval_set : list
             List of eval tuple set (X, y).
+        weights : int, dict, or np.array
+            Sample weights.
 
         Returns
         -------
-        train_dataloader : `torch.utils.data.Dataloader`
-            Training dataloader.
-        valid_dataloaders : list of `torch.utils.data.Dataloader`
-            List of validation dataloaders.
+        tuple
+            Training and validation dataloaders.
 
         """
         train_dataloader, valid_dataloaders = create_dataloaders_pt(
@@ -282,13 +313,13 @@ class TabNetPretrainer(TabModel):
         return train_dataloader, valid_dataloaders
 
     def _train_epoch(self, train_loader: DataLoader) -> None:  # todo: replace loader
-        """
-        Trains one epoch of the network in self.network
+        """Train one epoch of the network.
 
         Parameters
         ----------
-        train_loader : a :class: `torch.utils.data.Dataloader`
-            DataLoader with train set
+        train_loader : torch.utils.data.DataLoader
+            DataLoader with train set.
+
         """
         self.network.train()
 
@@ -306,24 +337,22 @@ class TabNetPretrainer(TabModel):
         return
 
     def _train_batch(self, X: torch.Tensor, w: Optional[torch.Tensor] = None) -> dict:  # type: ignore[override]
-        """
-        Trains one batch of data
+        """Train one batch of data.
 
         Parameters
         ----------
         X : torch.Tensor
-            Train matrix
+            Train matrix.
+        w : Optional[torch.Tensor]
+            Optional sample weights.
 
         Returns
         -------
-        batch_outs : dict
-            Dictionnary with "y": target and "score": prediction scores.
-        batch_logs : dict
-            Dictionnary with "batch_size" and "loss".
+        dict
+            Batch logs with batch size and loss.
+
         """
         batch_logs = {"batch_size": X.shape[0]}
-
-        # X = X.to(self.device).float()
 
         for param in self.network.parameters():
             param.grad = None
@@ -331,7 +360,6 @@ class TabNetPretrainer(TabModel):
         output, embedded_x, obf_vars = self.network(X)
         loss = self.compute_loss(output, embedded_x, obf_vars)
 
-        # Perform backward pass and optimization
         loss.backward()
         if self.clip_value:
             clip_grad_norm_(self.network.parameters(), self.clip_value)
@@ -342,23 +370,21 @@ class TabNetPretrainer(TabModel):
         return batch_logs
 
     def _predict_epoch(self, name: str, loader: DataLoader) -> None:  # todo: replace loader
-        """
-        Predict an epoch and update metrics.
+        """Predict an epoch and update metrics.
 
         Parameters
         ----------
         name : str
-            Name of the validation set
-        loader : torch.utils.data.Dataloader
-                DataLoader with validation set
+            Name of the validation set.
+        loader : torch.utils.data.DataLoader
+            DataLoader with validation set.
+
         """
-        # Setting network on evaluation mode
         self.network.eval()
 
         list_output = []
         list_embedded_x = []
         list_obfuscation = []
-        # Main loop
         for _batch_idx, (X, _, _) in enumerate(loader):
             output, embedded_x, obf_vars = self._predict_batch(X)
             list_output.append(output)
@@ -373,18 +399,18 @@ class TabNetPretrainer(TabModel):
         return
 
     def _predict_batch(self, X: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        Predict one batch of data.
+        """Predict one batch of data.
 
         Parameters
         ----------
         X : torch.Tensor
-            Owned products
+            Input data.
 
         Returns
         -------
-        np.array
-            model scores
+        tuple
+            Model outputs, embedded inputs, and obfuscated variables.
+
         """
         X = X.to(self.device).float()
         return self.network(X)
@@ -395,27 +421,41 @@ class TabNetPretrainer(TabModel):
         list_embedded_x: List[torch.Tensor],
         list_obfuscation: List[torch.Tensor],
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        # output = np.vstack(list_output)
-        # embedded_x = np.vstack(list_embedded_x)
-        # obf_vars = np.vstack(list_obfuscation)
+        """Stack batches of outputs, embeddings, and obfuscations.
+
+        Parameters
+        ----------
+        list_output : List[torch.Tensor]
+            List of outputs.
+        list_embedded_x : List[torch.Tensor]
+            List of embedded inputs.
+        list_obfuscation : List[torch.Tensor]
+            List of obfuscation masks.
+
+        Returns
+        -------
+        tuple
+            Stacked outputs, embeddings, and obfuscations.
+
+        """
         output = torch.vstack(list_output)
         embedded_x = torch.vstack(list_embedded_x)
         obf_vars = torch.vstack(list_obfuscation)
         return output, embedded_x, obf_vars
 
     def predict(self, X: Union[np.ndarray, scipy.sparse.csr_matrix]) -> tuple[np.ndarray, np.ndarray]:
-        """
-        Make predictions on a batch (valid)
+        """Predict outputs and embeddings for a batch.
 
         Parameters
         ----------
-        X : a :tensor: `torch.Tensor` or matrix: `scipy.sparse.csr_matrix`
-            Input data
+        X : np.ndarray or scipy.sparse.csr_matrix
+            Input data.
 
         Returns
         -------
-        predictions : np.array
-            Predictions of the regression problem
+        tuple
+            Predictions and embedded inputs.
+
         """
         self.network.eval()
 
@@ -438,13 +478,9 @@ class TabNetPretrainer(TabModel):
             for _batch_nb, data in enumerate(dataloader):
                 data = data.to(self.device).float()
                 output, embeded_x, _ = self.network(data)
-                # predictions = output.cpu().detach().numpy()
                 predictions = output
                 results.append(predictions)
-                # embedded_res.append(embeded_x.cpu().detach().numpy())
                 embedded_res.append(embeded_x)
-        # res_output = np.vstack(results)
-        # embedded_inputs = np.vstack(embedded_res)
         res_output = torch.vstack(results).cpu().detach().numpy()
 
         embedded_inputs = torch.vstack(embedded_res).cpu().detach().numpy()

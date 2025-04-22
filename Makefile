@@ -2,7 +2,7 @@
 
 install:
 	uv sync --all-extras --all-groups --frozen
-	uv run pip install pre-commit
+	uv pip install pre-commit
 
 .PHONY: default
 default: install
@@ -32,3 +32,6 @@ update:
 
 mypy:
 	uv tool run mypy pytorch_tabnet --config-file pyproject.toml
+
+doc:
+	uv run sphinx-build -M html docs/source docs/build/

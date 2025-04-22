@@ -1,3 +1,5 @@
+"""Utility functions for TabNet package."""
+
 import json
 import warnings
 from typing import List, Optional, Tuple, Union
@@ -15,10 +17,9 @@ def create_explain_matrix(
     cat_idxs: List[int],
     post_embed_dim: int,
 ) -> scipy.sparse.csc_matrix:
-    """
-    This is a computational trick.
-    In order to rapidly sum importances from same embeddings
-    to the initial index.
+    """Create a reducing matrix for summing importances from embeddings to initial indices.
+
+    In order to rapidly sum importances from same embeddings to the initial index.
 
     Parameters
     ----------
@@ -35,9 +36,9 @@ def create_explain_matrix(
     Returns
     -------
     reducing_matrix : np.array
-        Matrix of dim (post_embed_dim, input_dim)  to performe reduce
-    """
+        Matrix of dim (post_embed_dim, input_dim) to perform reduce
 
+    """
     if isinstance(cat_emb_dim, int):
         all_emb_impact = [cat_emb_dim - 1] * len(cat_idxs)
     else:
@@ -64,23 +65,22 @@ def create_explain_matrix(
 
 
 def create_group_matrix(list_groups: List[List[int]], input_dim: int) -> torch.Tensor:
-    """
-    Create the group matrix corresponding to the given list_groups
+    """Create the group matrix corresponding to the given list_groups.
 
     Parameters
     ----------
-    - list_groups : list of list of int
+    list_groups : list of list of int
         Each element is a list representing features in the same group.
         One feature should appear in maximum one group.
         Feature that don't get assigned a group will be in their own group of one feature.
-    - input_dim : number of feature in the initial dataset
+    input_dim : int
+        Number of features in the initial dataset.
 
     Returns
     -------
-    - group_matrix : torch matrix
-        A matrix of size (n_groups, input_dim)
-        where m_ij represents the importance of feature j in group i
-        The rows must some to 1 as each group is equally important a priori.
+    group_matrix : torch.Tensor
+        A matrix of size (n_groups, input_dim) where m_ij represents the importance of feature j in group i.
+        The rows must sum to 1 as each group is equally important a priori.
 
     """
     check_list_groups(list_groups, input_dim)
@@ -112,19 +112,22 @@ def create_group_matrix(list_groups: List[List[int]], input_dim: int) -> torch.T
 
 
 def check_list_groups(list_groups: List[List[int]], input_dim: int) -> None:
-    """
-    Check that list groups:
-        - is a list of list
-        - does not contain twice the same feature in different groups
-        - does not contain unknown features (>= input_dim)
-        - does not contain empty groups
+    """Check that list_groups is valid for group matrix construction.
+
+    - Is a list of list
+    - Does not contain the same feature in different groups
+    - Does not contain unknown features (>= input_dim)
+    - Does not contain empty groups.
+
     Parameters
     ----------
-    - list_groups : list of list of int
+    list_groups : list of list of int
         Each element is a list representing features in the same group.
         One feature should appear in maximum one group.
-        Feature that don't get assign a group will be in their own group of one feature.
-    - input_dim : number of feature in the initial dataset
+        Feature that don't get assigned a group will be in their own group of one feature.
+    input_dim : int
+        Number of features in the initial dataset
+
     """
     assert isinstance(list_groups, list), "list_groups must be a list of list."
 
@@ -151,9 +154,7 @@ def check_list_groups(list_groups: List[List[int]], input_dim: int) -> None:
 
 
 def filter_weights(weights: Union[int, List, np.ndarray]) -> None:
-    """
-    This function makes sure that weights are in correct format for
-    regression and multitask TabNet
+    """Ensure weights are in correct format for regression and multitask TabNet.
 
     Parameters
     ----------
@@ -163,6 +164,7 @@ def filter_weights(weights: Union[int, List, np.ndarray]) -> None:
     Returns
     -------
     None : This function will only throw an error if format is wrong
+
     """
     err_msg = """Please provide a list or np.array of weights for """
     err_msg += """regression, multitask or pretraining: """
@@ -228,9 +230,9 @@ def validate_eval_set(
 
 
 def define_device(device_name: str) -> str:
-    """
-    Define the device to use during training and inference.
-    If auto it will detect automatically whether to use cuda or cpu
+    """Define the device to use during training and inference.
+
+    If auto it will detect automatically whether to use cuda or cpu.
 
     Parameters
     ----------
@@ -241,6 +243,7 @@ def define_device(device_name: str) -> str:
     -------
     str
         Either "cpu" or "cuda"
+
     """
     if device_name == "auto":
         if torch.cuda.is_available():
@@ -254,7 +257,10 @@ def define_device(device_name: str) -> str:
 
 
 class ComplexEncoder(json.JSONEncoder):
+    """Custom JSON encoder for complex numbers and numpy data types."""
+
     def default(self, obj: object) -> object:
+        """Convert numpy objects to lists for JSON serialization."""
         if isinstance(obj, (np.generic, np.ndarray)):
             return obj.tolist()
         # Let the base class default method raise the TypeError
@@ -262,9 +268,9 @@ class ComplexEncoder(json.JSONEncoder):
 
 
 def check_input(X: np.ndarray) -> None:
-    """
-    Raise a clear error if X is a pandas dataframe
-    and check array according to scikit rules
+    """Raise a clear error if X is a pandas dataframe.
+
+    Also check array according to scikit rules.
     """
     if isinstance(X, (pd.DataFrame, pd.Series)):
         err_message = "Pandas DataFrame are not supported: apply X.values when calling fit"
@@ -273,9 +279,7 @@ def check_input(X: np.ndarray) -> None:
 
 
 def check_warm_start(warm_start: bool, from_unsupervised: Optional[bool]) -> None:
-    """
-    Gives a warning about ambiguous usage of the two parameters.
-    """
+    """Warn about ambiguous usage of warm_start and from_unsupervised parameters."""
     if warm_start and from_unsupervised is not None:
         warn_msg = "warm_start=True and from_unsupervised != None: "
         warn_msg = "warm_start will be ignore, training will start from unsupervised weights"
@@ -286,9 +290,7 @@ def check_warm_start(warm_start: bool, from_unsupervised: Optional[bool]) -> Non
 def check_embedding_parameters(
     cat_dims: List[int], cat_idxs: List[int], cat_emb_dim: Union[int, List[int]]
 ) -> Tuple[List[int], List[int], List[int]]:
-    """
-    Check parameters related to embeddings and rearrange them in a unique manner.
-    """
+    """Check parameters related to embeddings and rearrange them in a unique manner."""
     if (cat_dims == []) ^ (cat_idxs == []):
         if cat_dims == []:
             msg = "If cat_idxs is non-empty, cat_dims must be defined as a list of same length."

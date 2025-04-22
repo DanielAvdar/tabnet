@@ -1,3 +1,5 @@
+"""Abstract model definitions for TabNet."""
+
 import copy
 import io
 import json
@@ -41,7 +43,7 @@ from pytorch_tabnet.utils import (
 
 @dataclass
 class TabModel(BaseEstimator):
-    """Class for TabNet model."""
+    """Abstract base class for TabNet models."""
 
     compile_backends = ["inductor", "cudagraphs", "ipex", "onnxrt"]
 
@@ -75,17 +77,15 @@ class TabModel(BaseEstimator):
     compile_backend: str = ""
 
     def __post_init__(self) -> None:
-        # These are default values needed for saving model
+        """Initialize default values and device for TabModel."""
         self.batch_size: int = 1024
         self.virtual_batch_size: int = 128
 
         torch.manual_seed(self.seed)
-        # Defining device
         self.device = torch.device(define_device(self.device_name))
         if self.verbose != 0:
             warnings.warn(f"Device used : {self.device}", stacklevel=2)
 
-        # create deep copies of mutable parameters
         self.optimizer_fn = copy.deepcopy(self.optimizer_fn)
         self.scheduler_fn = copy.deepcopy(self.scheduler_fn)
 
@@ -93,10 +93,9 @@ class TabModel(BaseEstimator):
         self.cat_dims, self.cat_idxs, self.cat_emb_dim = updated_params
 
     def __update__(self, **kwargs: Any) -> None:
-        """
-        Updates parameters.
-        If does not already exists, creates it.
-        Otherwise overwrite with warnings.
+        """Update model parameters with provided keyword arguments.
+
+        If a parameter does not already exist, it is created. Otherwise, it is overwritten with a warning.
         """
         update_list = [
             "cat_dims",
@@ -146,55 +145,56 @@ class TabModel(BaseEstimator):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        """Train a neural network stored in self.network
-        Using train_dataloader for training data and
-        valid_dataloader for validation.
+        """Train a neural network stored in self.network.
+
+        Uses train_dataloader for training data and valid_dataloader for validation.
 
         Parameters
         ----------
         X_train : np.ndarray
-            Train set
+            Train set.
         y_train : np.array
-            Train targets
+            Train targets.
         eval_set : list of tuple
-            List of eval tuple set (X, y).
-            The last one is used for early stopping
+            List of eval tuple set (X, y). The last one is used for early stopping.
         eval_name : list of str
             List of eval set names.
         eval_metric : list of str
-            List of evaluation metrics.
-            The last metric is used for early stopping.
+            List of evaluation metrics. The last metric is used for early stopping.
         loss_fn : callable or None
-            a PyTorch loss function
-        weights : bool or dictionnary
-            0 for no balancing
-            1 for automated balancing
-            dict for custom weights per class
+            PyTorch loss function.
+        weights : bool or dict
+            0 for no balancing, 1 for automated balancing, dict for custom weights per class.
         max_epochs : int
-            Maximum number of epochs during training
+            Maximum number of epochs during training.
         patience : int
-            Number of consecutive non improving epoch before early stopping
+            Number of consecutive non-improving epochs before early stopping.
         batch_size : int
-            Training batch size
+            Training batch size.
         virtual_batch_size : int
-            Batch size for Ghost Batch Normalization (virtual_batch_size < batch_size)
+            Batch size for Ghost Batch Normalization (virtual_batch_size < batch_size).
         num_workers : int
-            Number of workers used in torch.utils.data.DataLoader
+            Number of workers used in torch.utils.data.DataLoader.
         drop_last : bool
-            Whether to drop last batch during training
+            Whether to drop last batch during training.
         callbacks : list of callback function
-            List of custom callbacks
+            List of custom callbacks.
         pin_memory: bool
-            Whether to set pin_memory to True or False during training
+            Whether to set pin_memory to True or False during training.
         from_unsupervised: unsupervised trained model
-            Use a previously self supervised model as starting weights
+            Use a previously self-supervised model as starting weights.
         warm_start: bool
-            If True, current model parameters are used to start training
+            If True, current model parameters are used to start training.
         compute_importance : bool
-            Whether to compute feature importance
-        """
-        # update model name
+            Whether to compute feature importance.
+        augmentations : callable or None
+            Data augmentation function.
+        *args : list
+            Additional arguments.
+        **kwargs : dict
+            Additional keyword arguments.
 
+        """
         self.max_epochs: int = max_epochs
         self.patience: int = patience
         self.batch_size = batch_size
@@ -208,7 +208,6 @@ class TabModel(BaseEstimator):
         self.compute_importance: bool = compute_importance
 
         if self.augmentations is not None:
-            # This ensure reproducibility
             self.augmentations._set_seed()
 
         eval_set = eval_set if eval_set else []
@@ -228,7 +227,6 @@ class TabModel(BaseEstimator):
             weights,
         )
 
-        # Validate and reformat eval set depending on training data
         eval_names, eval_set = validate_eval_set(eval_set, eval_name, X_train, y_train)
 
         train_dataloader, valid_dataloaders = self._construct_loaders(
@@ -239,11 +237,9 @@ class TabModel(BaseEstimator):
         )
 
         if from_unsupervised is not None:
-            # Update parameters to match self pretraining
             self.__update__(**from_unsupervised.get_params())
 
         if not hasattr(self, "network") or not warm_start:
-            # model has never been fitted before of warm_start is False
             self._set_network()
         self._update_network_params()
         self._set_metrics(eval_metric, eval_names)
@@ -253,44 +249,37 @@ class TabModel(BaseEstimator):
         if from_unsupervised is not None:
             self.load_weights_from_unsupervised(from_unsupervised)
             warnings.warn("Loading weights from unsupervised pretraining", stacklevel=2)
-        # Call method on_train_begin for all callbacks
         self._callback_container.on_train_begin()
 
-        # Training loop over epochs
         for epoch_idx in range(self.max_epochs):
-            # Call method on_epoch_begin for all callbacks
             self._callback_container.on_epoch_begin(epoch_idx)
             self._train_epoch(train_dataloader)
-            # Apply predict epoch to all eval sets
             for eval_name_, valid_dataloader in zip(eval_names, valid_dataloaders, strict=False):
                 self._predict_epoch(eval_name_, valid_dataloader)
-            # Call method on_epoch_end for all callbacks
             self._callback_container.on_epoch_end(epoch_idx, logs=self.history.epoch_metrics)
 
             if self._stop_training:
                 break
 
-        # Call method on_train_end for all callbacks
         self._callback_container.on_train_end()
         self.network.eval()
 
         if self.compute_importance:
-            # compute feature importance once the best model is defined
             self.feature_importances_ = self._compute_feature_importances(X_train)
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        """
-        Make predictions on a batch (valid)
+        """Make predictions on a batch (valid).
 
         Parameters
         ----------
         X : a :tensor: `torch.Tensor` or matrix: `scipy.sparse.csr_matrix`
-            Input data
+            Input data.
 
         Returns
         -------
-        predictions : np.array
-            Predictions of the regression problem
+        np.ndarray
+            Predictions of the regression problem.
+
         """
         self.network.eval()
 
@@ -299,7 +288,6 @@ class TabModel(BaseEstimator):
                 name="predict",
                 dataset=SparsePredictDataset(X),
                 batch_size=self.batch_size,
-                # shuffle=False,
                 predict=True,
             )
         else:
@@ -307,7 +295,6 @@ class TabModel(BaseEstimator):
                 name="predict",
                 dataset=PredictDataset(X),
                 batch_size=self.batch_size,
-                # shuffle=False,
                 predict=True,
             )
 
@@ -322,22 +309,22 @@ class TabModel(BaseEstimator):
         return self.predict_func(res)
 
     def explain(self, X: np.ndarray, normalize: bool = False) -> Tuple[np.ndarray, Dict]:
-        """
-        Return local explanation
+        """Return local explanation.
 
         Parameters
         ----------
         X : tensor: `torch.Tensor` or matrix: `scipy.sparse.csr_matrix`
-            Input data
+            Input data.
         normalize : bool (default False)
-            Wheter to normalize so that sum of features are equal to 1
+            Whether to normalize so that sum of features are equal to 1.
 
         Returns
         -------
-        M_explain : matrix
+        np.ndarray
             Importance per sample, per columns.
-        masks : matrix
+        dict
             Sparse matrix showing attention masks used by network.
+
         """
         self.network.eval()
 
@@ -346,7 +333,6 @@ class TabModel(BaseEstimator):
                 name="predict",
                 dataset=SparsePredictDataset(X),
                 batch_size=self.batch_size,
-                # shuffle=False,
                 predict=True,
             )
         else:
@@ -354,7 +340,6 @@ class TabModel(BaseEstimator):
                 name="predict",
                 dataset=PredictDataset(X),
                 batch_size=self.batch_size,
-                # shuffle=False,
                 predict=True,
             )
 
@@ -383,25 +368,39 @@ class TabModel(BaseEstimator):
         return res_explain, res_masks
 
     def load_weights_from_unsupervised(self, unsupervised_model: "TabModel") -> None:
+        """Load weights from a previously trained unsupervised TabNet model.
+
+        Parameters
+        ----------
+        unsupervised_model : TabModel
+            Previously trained unsupervised TabNet model.
+
+        """
         update_state_dict = copy.deepcopy(self.network.state_dict())
         for param, weights in unsupervised_model.network.state_dict().items():
             if param.startswith("encoder"):
-                # Convert encoder's layers name to match
                 new_param = "tabnet." + param
             else:
                 new_param = param
             if self.network.state_dict().get(new_param) is not None:
-                # update only common layers
                 update_state_dict[new_param] = weights
 
         self.network.load_state_dict(update_state_dict)
 
     def load_class_attrs(self, class_attrs: Dict) -> None:
+        """Load class attributes from a dictionary.
+
+        Parameters
+        ----------
+        class_attrs : dict
+            Dictionary of class attributes to set.
+
+        """
         for attr_name, attr_value in class_attrs.items():
             setattr(self, attr_name, attr_value)
 
     def save_model(self, path: str) -> str:
-        """Saving TabNet model in two distinct files.
+        """Save TabNet model in two distinct files.
 
         Parameters
         ----------
@@ -411,14 +410,13 @@ class TabModel(BaseEstimator):
         Returns
         -------
         str
-            input filepath with ".zip" appended
+            Input filepath with ".zip" appended.
 
         """
         saved_params = {}
         init_params = {}
         for key, val in self.get_params().items():
             if isinstance(val, type):
-                # Don't save torch specific params
                 continue
             else:
                 init_params[key] = val
@@ -427,14 +425,11 @@ class TabModel(BaseEstimator):
         class_attrs = {"preds_mapper": self.preds_mapper}
         saved_params["class_attrs"] = class_attrs
 
-        # Create folder
         Path(path).mkdir(parents=True, exist_ok=True)
 
-        # Save models params
         with open(Path(path).joinpath("model_params.json"), "w", encoding="utf8") as f:
             json.dump(saved_params, f, cls=ComplexEncoder)
 
-        # Save state_dict
         torch.save(self.network.state_dict(), Path(path).joinpath("network.pt"))
         shutil.make_archive(path, "zip", path)
         shutil.rmtree(path)
@@ -448,6 +443,7 @@ class TabModel(BaseEstimator):
         ----------
         filepath : str
             Path of the model.
+
         """
         try:
             with zipfile.ZipFile(filepath) as z:
@@ -458,9 +454,6 @@ class TabModel(BaseEstimator):
                     try:
                         saved_state_dict = torch.load(f, map_location=self.device)
                     except io.UnsupportedOperation:
-                        # In Python <3.7, the returned file object is not seekable (which at least
-                        # some versions of PyTorch require) - so we'll try buffering it in to a
-                        # BytesIO instead:
                         saved_state_dict = torch.load(
                             io.BytesIO(f.read()),
                             map_location=self.device,
@@ -478,28 +471,22 @@ class TabModel(BaseEstimator):
         return
 
     def _train_epoch(self, train_loader: TBDataLoader) -> None:
-        """
-        Trains one epoch of the network in self.network
+        """Train one epoch of the network in self.network.
 
         Parameters
         ----------
-        train_loader : a :class: `torch.utils.data.Dataloader`
-            DataLoader with train set
+        train_loader : TBDataLoader
+            DataLoader with train set.
+
         """
         self.network.train()
 
         for batch_idx, (X, y, w) in enumerate(train_loader):  # type: ignore
             self._callback_container.on_batch_begin(batch_idx)
-            X = X.to(  # type: ignore
-                self.device,
-            )
-            y = y.to(  # type: ignore
-                self.device,
-            )
+            X = X.to(self.device)  # type: ignore
+            y = y.to(self.device)  # type: ignore
             if w is not None:  # type: ignore
-                w = w.to(  # type: ignore
-                    self.device,
-                )
+                w = w.to(self.device)  # type: ignore
 
             batch_logs = self._train_batch(X, y, w)
 
@@ -511,22 +498,22 @@ class TabModel(BaseEstimator):
         return
 
     def _train_batch(self, X: torch.Tensor, y: torch.Tensor, w: Optional[torch.Tensor] = None) -> Dict:
-        """
-        Trains one batch of data
+        """Train one batch of data.
 
         Parameters
         ----------
         X : torch.Tensor
-            Train matrix
+            Train matrix.
         y : torch.Tensor
-            Target matrix
+            Target matrix.
+        w : Optional[torch.Tensor]
+            Optional sample weights.
 
         Returns
         -------
-        batch_outs : dict
-            Dictionnary with "y": target and "score": prediction scores.
-        batch_logs : dict
-            Dictionnary with "batch_size" and "loss".
+        dict
+            Dictionary with batch size and loss.
+
         """
         batch_logs = {"batch_size": X.shape[0]}
 
@@ -539,10 +526,8 @@ class TabModel(BaseEstimator):
         output, M_loss = self.network(X)
 
         loss = self.compute_loss(output, y, w)
-        # Add the overall sparsity loss
         loss = loss - self.lambda_sparse * M_loss
 
-        # Perform backward pass and optimization
         loss.backward()
         if self.clip_value:
             clip_grad_norm_(self.network.parameters(), self.clip_value)
@@ -552,30 +537,28 @@ class TabModel(BaseEstimator):
 
         return batch_logs
 
-    def _predict_epoch(self, name: str, loader: TBDataLoader) -> None:  # todo: replace loader
-        """
-        Predict an epoch and update metrics.
+    def _predict_epoch(self, name: str, loader: TBDataLoader) -> None:
+        """Predict an epoch and update metrics.
 
         Parameters
         ----------
         name : str
-            Name of the validation set
-        loader : torch.utils.data.Dataloader
-                DataLoader with validation set
+            Name of the validation set.
+        loader : TBDataLoader
+            DataLoader with validation set.
+
         """
-        # Setting network on evaluation mode
         self.network.eval()
 
         list_y_true = []
         list_y_score = []
         list_w_ture = []
         with torch.no_grad():
-            # Main loop
             for _batch_idx, (X, y, w) in enumerate(loader):  # type: ignore
                 scores = self._predict_batch(X.to(self.device, non_blocking=True).float())  # type: ignore
                 list_y_true.append(y.to(self.device, non_blocking=True))  # type: ignore
 
-                list_y_score.append(scores)  # todo: weighted scores
+                list_y_score.append(scores)
                 if w is not None:  # type: ignore
                     list_w_ture.append(w.to(self.device, non_blocking=True))  # type: ignore
         w_true = None
@@ -590,21 +573,19 @@ class TabModel(BaseEstimator):
         return
 
     def _predict_batch(self, X: torch.Tensor) -> torch.Tensor:
-        """
-        Predict one batch of data.
+        """Predict one batch of data.
 
         Parameters
         ----------
         X : torch.Tensor
-            Owned products
+            Owned products.
 
         Returns
         -------
-        np.array
-            model scores
-        """
+        torch.Tensor
+            Model scores.
 
-        # compute model output
+        """
         scores, _ = self.network(X)
 
         if isinstance(scores, list):
@@ -615,7 +596,7 @@ class TabModel(BaseEstimator):
         return scores
 
     def _set_network(self) -> None:
-        """Setup the network and explain matrix."""
+        """Set up the network and explain matrix."""
         torch.manual_seed(self.seed)
 
         self.group_matrix = create_group_matrix(self.grouped_features, self.input_dim)
@@ -662,7 +643,6 @@ class TabModel(BaseEstimator):
         metrics = metrics or [self._default_metric]
 
         metrics = check_metrics(metrics)
-        # Set metric container for each sets
         self._metric_container_dict: Dict[str, MetricContainer] = {}
         for name in eval_names:
             self._metric_container_dict.update({name: MetricContainer(metrics, prefix=f"{name}_")})
@@ -673,11 +653,10 @@ class TabModel(BaseEstimator):
             self._metrics.extend(metric_container.metrics)
             self._metrics_names.extend(metric_container.names)
 
-        # Early stopping metric is the last eval metric
         self.early_stopping_metric: Union[None, str] = self._metrics_names[-1] if len(self._metrics_names) > 0 else None
 
     def _set_callbacks(self, custom_callbacks: Union[None, List]) -> None:
-        """Setup the callbacks functions.
+        """Set up the callbacks functions.
 
         Parameters
         ----------
@@ -685,7 +664,6 @@ class TabModel(BaseEstimator):
             List of callback functions.
 
         """
-        # Setup default callbacks history, early stopping and scheduler
         callbacks: List[Union[History, EarlyStopping, LRSchedulerCallback, Callback]] = []
         self.history = History(self, verbose=self.verbose)
         callbacks.append(self.history)
@@ -701,7 +679,6 @@ class TabModel(BaseEstimator):
             warnings.warn(wrn_msg, stacklevel=2)
 
         if self.scheduler_fn is not None:
-            # Add LR Scheduler call_back
             is_batch_level = self.scheduler_params.pop("is_batch_level", False)
             scheduler = LRSchedulerCallback(
                 scheduler_fn=self.scheduler_fn,
@@ -718,7 +695,7 @@ class TabModel(BaseEstimator):
         self._callback_container.set_trainer(self)
 
     def _set_optimizer(self) -> None:
-        """Setup optimizer."""
+        """Set up optimizer."""
         self._optimizer = self.optimizer_fn(self.network.parameters(), **self.optimizer_params)
 
     def _construct_loaders(
@@ -738,16 +715,17 @@ class TabModel(BaseEstimator):
             Train targets.
         eval_set : list of tuple
             List of eval tuple set (X, y).
+        weights : int, dict, or np.array
+            Sample weights.
 
         Returns
         -------
-        train_dataloader : `torch.utils.data.Dataloader`
+        train_dataloader : torch.utils.data.Dataloader
             Training dataloader.
-        valid_dataloaders : list of `torch.utils.data.Dataloader`
+        valid_dataloaders : list of torch.utils.data.Dataloader
             List of validation dataloaders.
 
         """
-        # all weights are not allowed for this type of model
         y_train_mapped = self.prepare_target(y_train)
         for i, (X, y) in enumerate(eval_set):
             y_mapped = self.prepare_target(y)
@@ -770,8 +748,13 @@ class TabModel(BaseEstimator):
 
         Parameters
         ----------
-        loader : `torch.utils.data.Dataloader`
-            Pytorch dataloader.
+        X : np.ndarray
+            Input data.
+
+        Returns
+        -------
+        np.ndarray
+            Feature importances.
 
         """
         M_explain, _ = self.explain(X, normalize=False)
@@ -780,9 +763,23 @@ class TabModel(BaseEstimator):
         return feature_importances_
 
     def _update_network_params(self) -> None:
+        """Update network parameters."""
         self.network.virtual_batch_size = self.virtual_batch_size
 
     def weight_updater(self, weights: Union[bool, Dict[Union[str, int], Any], Any]) -> Union[bool, Dict[Union[str, int], Any]]:
+        """Update class weights for training.
+
+        Parameters
+        ----------
+        weights : bool, dict, or any
+            Class weights or indicator.
+
+        Returns
+        -------
+        bool or dict
+            Updated weights.
+
+        """
         return weights
 
     @abstractmethod
@@ -793,60 +790,89 @@ class TabModel(BaseEstimator):
         eval_set: List[Tuple[np.ndarray, np.ndarray]],
         weights: Union[int, Dict],
     ) -> None:
-        """
-        Set attributes relative to fit function.
+        """Set attributes relative to fit function.
 
         Parameters
         ----------
         X_train : np.ndarray
-            Train set
+            Train set.
         y_train : np.array
-            Train targets
+            Train targets.
         eval_set : list of tuple
             List of eval tuple set (X, y).
-        weights : bool or dictionnary
-            0 for no balancing
-            1 for automated balancing
+        weights : bool or dict
+            0 for no balancing, 1 for automated balancing.
+
         """
         raise NotImplementedError("users must define update_fit_params to use this base class")
 
     @abstractmethod
     def compute_loss(self, *args: Any, **kwargs: Any) -> torch.Tensor:
-        """
-        Compute the loss.
+        """Compute the loss.
 
         Parameters
         ----------
-        y_score : a :tensor: `torch.Tensor`
-            Score matrix
-        y_true : a :tensor: `torch.Tensor`
-            Target matrix
+        *args : Any
+            Arguments for loss computation.
+        **kwargs : Any
+            Keyword arguments for loss computation.
 
         Returns
         -------
-        float
-            Loss value
+        torch.Tensor
+            Loss value.
+
         """
         ...
 
     @abstractmethod
     def prepare_target(self, y: np.ndarray) -> torch.Tensor:
-        """
-        Prepare target before training.
+        """Prepare target before training.
 
         Parameters
         ----------
-        y : a :tensor: `torch.Tensor`
+        y : np.ndarray
             Target matrix.
 
         Returns
         -------
-        `torch.Tensor`
+        torch.Tensor
             Converted target matrix.
+
         """
         ...
 
     @abstractmethod
-    def predict_func(self, y_score: np.ndarray) -> np.ndarray: ...
+    def predict_func(self, y_score: np.ndarray) -> np.ndarray:
+        """Convert model scores to predictions.
 
-    def stack_batches(self, *args: Any, **kwargs: Any) -> Tuple[torch.Tensor, torch.Tensor]: ...
+        Parameters
+        ----------
+        y_score : np.ndarray
+            Model scores.
+
+        Returns
+        -------
+        np.ndarray
+            Model predictions.
+
+        """
+        ...
+
+    def stack_batches(self, *args: Any, **kwargs: Any) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Stack batches of predictions and targets.
+
+        Parameters
+        ----------
+        *args : Any
+            List of batch outputs.
+        **kwargs : Any
+            Additional keyword arguments.
+
+        Returns
+        -------
+        Tuple[torch.Tensor, torch.Tensor]
+            Stacked predictions and targets.
+
+        """
+        ...
