@@ -11,7 +11,8 @@ Custom Evaluation Metric Example
    import numpy as np
    from pytorch_tabnet.tab_model import TabNetClassifier
    from pytorch_tabnet.metrics import Metric
-   from sklearn.metrics import roc_auc_score
+   import torch
+   from torcheval.metrics.functional import binary_auroc
 
    class Gini(Metric):
        def __init__(self):
@@ -19,8 +20,16 @@ Custom Evaluation Metric Example
            self._maximize = True
 
        def __call__(self, y_true, y_score, weights=None):
-           auc = roc_auc_score(y_true, y_score[:, 1])
-           return max(2*auc - 1, 0.)
+           # Ensure tensors are on CPU and correct type
+           if hasattr(y_true, 'detach'):
+               y_true = y_true.detach().cpu().float()
+           if hasattr(y_score, 'detach'):
+               y_score = y_score.detach().cpu().float()
+           # If y_score is 2D, take the second column (prob for class 1)
+           if y_score.ndim == 2 and y_score.shape[1] == 2:
+               y_score = y_score[:, 1]
+           auc = binary_auroc(y_score, y_true)
+           return max(2*auc.item() - 1, 0.)
 
    # Generate dummy data
    X_train = np.random.rand(100, 10)
