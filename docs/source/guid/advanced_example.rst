@@ -16,6 +16,7 @@ This guide demonstrates how to use a custom loss function with TabNet.
    import numpy as np
    from pytorch_tabnet.tab_model import TabNetRegressor
    import torch.nn as nn
+   import torch
 
    # Generate dummy data
    X_train = np.random.rand(100, 10).astype(np.float32)

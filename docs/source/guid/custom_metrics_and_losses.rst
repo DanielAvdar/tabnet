@@ -18,7 +18,7 @@ Custom Evaluation Metric Example
            self._name = "gini"
            self._maximize = True
 
-       def __call__(self, y_true, y_score):
+       def __call__(self, y_true, y_score, weights=None):
            auc = roc_auc_score(y_true, y_score[:, 1])
            return max(2*auc - 1, 0.)
 
@@ -47,6 +47,7 @@ Custom Loss Function Example
    X_valid = np.random.rand(20, 10).astype(np.float32)
    y_valid = np.random.rand(20).astype(np.float32).reshape(-1, 1)
 
+   import torch
    def custom_loss(y_true, y_pred):
        return nn.functional.mse_loss(y_pred, y_true) + 0.1 * torch.mean(torch.abs(y_pred))
 
