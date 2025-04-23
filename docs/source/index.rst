@@ -42,12 +42,12 @@ Welcome to eh-pytorch-tabnet's documentation!
    :maxdepth: 2
    :caption: Guides
 
-   guid/basic_usage
-   guid/advanced_example
-   guid/custom_metrics_and_losses
-   guid/pretraining_and_transfer
-   guid/augmentation_and_callbacks
-   guid/saving_and_loading
+   guides/basic_usage
+   guides/advanced_example
+   guides/custom_metrics_and_losses
+   guides/pretraining_and_transfer
+   guides/augmentation_and_callbacks
+   guides/saving_and_loading
 
 .. toctree::
    :maxdepth: 2
