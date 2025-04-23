@@ -200,7 +200,7 @@ class UnsupervisedMetric(Metric):
     _name: str = "unsup_loss"
     _maximize: bool = False
 
-    def __call__(self, y_pred: torch.Tensor, embedded_x: torch.Tensor, obf_vars: torch.Tensor, weights: torch.Tensor = None) -> float:
+    def __call__(self, y_pred: torch.Tensor, embedded_x: torch.Tensor, obf_vars: torch.Tensor, weights: torch.Tensor = None) -> float:  # type: ignore[override]
         """Compute the unsupervised loss metric.
 
         Parameters
@@ -230,7 +230,7 @@ class UnsupervisedNumpyMetric(Metric):
     _name: str = "unsup_loss_numpy"
     _maximize: bool = False
 
-    def __call__(self, y_pred: torch.Tensor, embedded_x: torch.Tensor, obf_vars: torch.Tensor, weights: torch.Tensor = None) -> float:
+    def __call__(self, y_pred: torch.Tensor, embedded_x: torch.Tensor, obf_vars: torch.Tensor, weights: torch.Tensor = None) -> float:  # type: ignore[override]
         """Compute the unsupervised loss metric (NumPy version).
 
         Parameters
