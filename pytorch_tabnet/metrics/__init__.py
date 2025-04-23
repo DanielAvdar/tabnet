@@ -10,9 +10,6 @@ from .base_metrics import (
     MetricContainer as MetricContainer,
 )
 from .base_metrics import (
-    UnsupervisedLoss as UnsupervisedLoss,
-)
-from .base_metrics import (
     UnsupMetricContainer as UnsupMetricContainer,
 )
 from .base_metrics import (
@@ -23,6 +20,7 @@ from .mae import MAE as MAE
 from .mse import MSE as MSE
 from .rmse import RMSE as RMSE
 from .rmsle import RMSLE as RMSLE
+from .unsupervised_loss import UnsupervisedLoss as UnsupervisedLoss
 from .unsupervised_metrics import (
     UnsupervisedMetric as UnsupervisedMetric,
 )

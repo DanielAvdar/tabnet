@@ -1,6 +1,6 @@
-from pytorch_tabnet.metrics import Metric
-from pytorch_tabnet.metrics import UnsupervisedLoss
 import torch
+
+from pytorch_tabnet.metrics import Metric, UnsupervisedLoss
 
 
 class UnsupervisedMetric(Metric):
