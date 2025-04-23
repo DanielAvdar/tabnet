@@ -43,7 +43,7 @@ Welcome to eh-pytorch-tabnet's documentation!
    :caption: Guides
 
    guides/basic_usage
-   guides/advanced_example
+   guides/categorical_embeding_example
    guides/custom_metrics_and_losses
    guides/pretraining_and_transfer
    guides/augmentation_and_callbacks

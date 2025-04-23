@@ -1,5 +1,5 @@
 Categorical Embedding Example Guide
-===================================
+====================================
 
 This section provides examples for using categorical embeddings with eh-pytorch-tabnet.
 
@@ -52,6 +52,9 @@ This guide demonstrates how to use categorical features with embeddings in TabNe
    # Specify categorical feature indices and their dimensions
    cat_idxs = [0, 1]  # indices of categorical columns
    cat_dims = [4, 4]  # number of unique values for each categorical column
+
+   # Reshape y_train to 2D as required by TabNetRegressor
+   y_train = y_train.reshape(-1, 1)
 
    model = TabNetRegressor(cat_idxs=cat_idxs, cat_dims=cat_dims)
    model.fit(X_train, y_train)
