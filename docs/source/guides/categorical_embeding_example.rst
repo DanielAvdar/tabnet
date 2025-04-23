@@ -1,5 +1,5 @@
-Categorical Embedding Example Guide
-====================================
+Categorical Embedding
+=====================
 
 This section provides examples for using categorical embeddings with eh-pytorch-tabnet.
 

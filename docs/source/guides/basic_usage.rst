@@ -1,4 +1,4 @@
-Basic Usage Guide
+Basic Usage
 =================
 
 This guide demonstrates basic usage of TabNet for classification, regression, and multi-task problems. Each example is standalone and can be run independently.
