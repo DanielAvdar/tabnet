@@ -1,7 +1,7 @@
 Categorical Embedding
 =====================
 
-This section provides examples for using categorical embeddings with eh-pytorch-tabnet.
+This section provides examples for using categorical embeddings with pytorch-tabnet2.
 
 .. contents:: Table of Contents
    :depth: 1

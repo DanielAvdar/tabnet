@@ -1,7 +1,7 @@
 # TabNet: Attentive Interpretable Tabular Learning
 
-![PyPI version](https://img.shields.io/pypi/v/eh-pytorch-tabnet.svg)
-![Python versions](https://img.shields.io/pypi/pyversions/eh-pytorch-tabnet.svg)
+![PyPI version](https://img.shields.io/pypi/v/pytorch-tabnet2.svg)
+![Python versions](https://img.shields.io/pypi/pyversions/pytorch-tabnet2.svg)
 ![License](https://img.shields.io/badge/License-MIT-blue.svg)
 ![OS](https://img.shields.io/badge/ubuntu-blue?logo=ubuntu)
 ![OS](https://img.shields.io/badge/win-blue?logo=windows)
@@ -22,7 +22,7 @@ supporting classification, regression, multitask learning, and unsupervised pret
 Install TabNet using pip:
 
 ```bash
-pip install eh-pytorch-tabnet
+pip install pytorch-tabnet2
 ```
 
 ## What is TabNet?

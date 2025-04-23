@@ -1,5 +1,5 @@
 [project]
-name = "eh-pytorch-tabnet"
+name = "pytorch-tabnet2"
 dynamic = ["version"]
 description = "PyTorch implementation of TabNet"
 readme = "README.md"

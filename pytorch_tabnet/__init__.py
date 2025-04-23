@@ -8,4 +8,4 @@ from .pretraining import TabNetPretrainer as TabNetPretrainer
 from .tab_model import TabNetClassifier as TabNetClassifier
 from .tab_model import TabNetRegressor as TabNetRegressor
 
-__version__ = version("eh-pytorch-tabnet")
+__version__ = version("pytorch-tabnet2")
