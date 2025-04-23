@@ -312,6 +312,11 @@ class TabNetRegressor(TabModel):
         weights : bool or np.ndarray
             Sample weights.
 
+        Raises
+        ------
+        ValueError
+            If y_train does not have 2 dimensions.
+
         """
         if len(y_train.shape) != 2:
             msg: str = (
