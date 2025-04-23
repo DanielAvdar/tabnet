@@ -1,6 +1,56 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "lockFileMaintenance": {
+  "extends": [
+    "config:recommended"
+  ],
+  "python": {
+    "lockFileMaintenance": {
+      "enabled": true,
+      "automerge": true
+
+    }
+  },
+  "automerge": true,
+  "pre-commit": {
     "enabled": true
-  }
+  },
+  "schedule": [
+    "at any time"
+  ],
+  "labels": [
+    "renovate"
+  ],
+  "packageRules": [
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "labels": [
+        "github-actions",
+        "renovate"
+      ]
+    },
+    {
+      "matchManagers": [
+        "pre-commit"
+      ],
+      "labels": [
+        "pre-commit",
+        "renovate"
+      ]
+    },
+    {
+      "matchManagers": [
+        "pip-compile",
+        "pip_requirements",
+        "pip_setup",
+        "pipenv",
+        "poetry"
+      ],
+      "labels": [
+        "python",
+        "renovate"
+      ]
+    }
+  ]
 }
