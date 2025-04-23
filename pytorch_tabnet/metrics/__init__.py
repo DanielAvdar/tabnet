@@ -1,3 +1,5 @@
+"""pytorch_tabnet.metrics package initialization."""
+
 from .accuracy import Accuracy as Accuracy
 from .auc import AUC as AUC
 from .balanced_accuracy import BalancedAccuracy as BalancedAccuracy

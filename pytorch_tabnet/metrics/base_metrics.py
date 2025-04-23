@@ -1,3 +1,5 @@
+"""Base metrics and metric containers for pytorch_tabnet."""
+
 from dataclasses import dataclass
 from typing import Any, List, Union
 
@@ -11,6 +13,7 @@ def UnsupervisedLoss(
     eps: float = 1e-9,
     weights: torch.Tensor = None,
 ) -> torch.Tensor:
+    """Compute the unsupervised loss for reconstruction tasks."""
     errors = y_pred - embedded_x
     reconstruction_errors = torch.mul(errors, obf_vars) ** 2
     batch_means = torch.mean(embedded_x, dim=0)
@@ -33,10 +36,12 @@ class Metric:
     _maximize: bool
 
     def __call__(self, y_true: torch.Tensor, y_pred: torch.Tensor, weights: torch.Tensor = None) -> float:
+        """Compute the metric value. Must be implemented by subclasses."""
         raise NotImplementedError("Custom Metrics must implement this function")
 
     @classmethod
     def get_metrics_by_names(cls, names: List[str]) -> List:
+        """Get metric instances by their names."""
         available_metrics = cls.__subclasses__()
         available_names = [metric()._name for metric in available_metrics]
         metrics = []
@@ -50,14 +55,18 @@ class Metric:
 
 @dataclass
 class MetricContainer:
+    """Container for managing multiple supervised metrics."""
+
     metric_names: List[str]
     prefix: str = ""
 
     def __post_init__(self) -> None:
+        """Initialize the metric container."""
         self.metrics = Metric.get_metrics_by_names(self.metric_names)
         self.names = [self.prefix + name for name in self.metric_names]
 
     def __call__(self, y_true: torch.Tensor, y_pred: torch.Tensor, weights: torch.Tensor = None) -> dict:
+        """Compute all metrics in the container."""
         logs = {}
         for metric in self.metrics:
             if isinstance(y_pred, list):
@@ -70,14 +79,18 @@ class MetricContainer:
 
 @dataclass
 class UnsupMetricContainer:
+    """Container for managing multiple unsupervised metrics."""
+
     metric_names: List[str]
     prefix: str = ""
 
     def __post_init__(self) -> None:
+        """Initialize the unsupervised metric container."""
         self.metrics = Metric.get_metrics_by_names(self.metric_names)
         self.names = [self.prefix + name for name in self.metric_names]
 
     def __call__(self, y_pred: torch.Tensor, embedded_x: torch.Tensor, obf_vars: torch.Tensor, weights: torch.Tensor = None) -> dict:
+        """Compute all unsupervised metrics in the container."""
         logs = {}
         for metric in self.metrics:
             res = metric(y_pred, embedded_x, obf_vars, weights)
@@ -86,6 +99,7 @@ class UnsupMetricContainer:
 
 
 def check_metrics(metrics: List[Union[str, Any]]) -> List[str]:
+    """Validate and return metric names from a list of metrics or strings."""
     val_metrics = []
     for metric in metrics:
         if isinstance(metric, str):
@@ -98,17 +112,23 @@ def check_metrics(metrics: List[Union[str, Any]]) -> List[str]:
 
 
 class UnsupervisedMetric(Metric):
+    """Unsupervised loss metric for reconstruction tasks."""
+
     _name: str = "unsup_loss"
     _maximize: bool = False
 
     def __call__(self, y_pred: torch.Tensor, embedded_x: torch.Tensor, obf_vars: torch.Tensor, weights: torch.Tensor = None) -> float:
+        """Compute the unsupervised loss metric."""
         loss = UnsupervisedLoss(y_pred, embedded_x, obf_vars, weights=weights)
         return loss.cpu().item()
 
 
 class UnsupervisedNumpyMetric(Metric):
+    """Unsupervised loss metric (NumPy version) for reconstruction tasks."""
+
     _name: str = "unsup_loss_numpy"
     _maximize: bool = False
 
     def __call__(self, y_pred: torch.Tensor, embedded_x: torch.Tensor, obf_vars: torch.Tensor, weights: torch.Tensor = None) -> float:
+        """Compute the unsupervised loss metric (NumPy version)."""
         return UnsupervisedLoss(y_pred, embedded_x, obf_vars).cpu().item()
