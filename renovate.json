@@ -1,6 +1,21 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "lockFileMaintenance": {
-    "enabled": true
-  }
+  "extends": [
+    "config:recommended"
+  ],
+  "python": {
+    "lockFileMaintenance": {
+      "enabled": true
+    }
+  },
+  "schedule": [
+    "every day"
+  ],
+  "packageRules": [
+    {
+      "matchManagers": ["uv"],
+      "groupName": "all non-major uv dependencies",
+      "groupThreshold": 5
+    }
+  ]
 }
