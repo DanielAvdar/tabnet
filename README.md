@@ -42,7 +42,7 @@ Key aspects of TabNet:
 
 ## Usage
 
-### [Documentation](https://eh-pytorch-tabnet.readthedocs.io/en/latest/)
+### [Documentation](https://tabnet.readthedocs.io/en/latest/)
 
 
 ### Examples
