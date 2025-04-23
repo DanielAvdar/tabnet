@@ -1,3 +1,8 @@
+"""Unsupervised metrics for reconstruction tasks in PyTorch TabNet.
+
+Provides metrics for evaluating unsupervised loss during model training and evaluation.
+"""
+
 import torch
 
 from pytorch_tabnet.metrics import Metric, UnsupervisedLoss

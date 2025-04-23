@@ -1,4 +1,10 @@
+"""Unsupervised loss computation for reconstruction tasks in PyTorch TabNet.
+
+Defines the loss function used to evaluate reconstruction performance in unsupervised settings.
+"""
+
 import torch
+
 
 def UnsupervisedLoss(
     y_pred: torch.Tensor,
