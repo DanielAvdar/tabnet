@@ -13,6 +13,22 @@ class Accuracy(Metric):
     _maximize: bool = True
 
     def __call__(self, y_true: torch.Tensor, y_score: torch.Tensor, weights: torch.Tensor = None) -> float:
-        """Compute the accuracy score."""
+        """Compute the accuracy score.
+
+        Parameters
+        ----------
+        y_true : torch.Tensor
+            True class labels.
+        y_score : torch.Tensor
+            Predicted scores or probabilities.
+        weights : torch.Tensor, optional
+            Sample weights.
+
+        Returns
+        -------
+        float
+            The computed accuracy score.
+
+        """
         res = multiclass_accuracy(y_score, y_true)
         return res.cpu().item()
