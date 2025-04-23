@@ -61,6 +61,12 @@ Welcome to eh-pytorch-tabnet's documentation!
 
 .. toctree::
    :maxdepth: 2
+   :caption: Metrics
+
+   metrics
+
+.. toctree::
+   :maxdepth: 2
    :caption: Credits
 
    credits

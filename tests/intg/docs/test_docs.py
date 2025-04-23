@@ -43,3 +43,7 @@ def test_doc_model_examples(file_path, line, example):
 @pytest.mark.parametrize("file_path, line, example", collect_examples("guides"))
 def test_doc_guides_examples(file_path, line, example):
     example.evaluate()
+
+@pytest.mark.parametrize("file_path, line, example", collect_examples(""))
+def test_doc_general_examples(file_path, line, example):
+    example.evaluate()
