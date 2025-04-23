@@ -1,0 +1,15 @@
+import torch
+
+from .base_metrics import Metric
+
+
+class RMSLE(Metric):
+    _name: str = "rmsle"
+    _maximize: bool = False
+
+    def __call__(self, y_true: torch.Tensor, y_score: torch.Tensor, weights: torch.Tensor = None) -> float:
+        logerror = torch.log(y_score + 1) - torch.log(y_true + 1)
+        squared_logerror = logerror**2
+        if weights is not None:
+            squared_logerror *= weights.to(y_true.device)
+        return torch.sqrt(torch.mean(squared_logerror)).cpu().item()
