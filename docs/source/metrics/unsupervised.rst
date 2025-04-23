@@ -13,8 +13,11 @@ Used for unsupervised pretraining, typically measures reconstruction error.
 
    import torch
    from pytorch_tabnet.metrics import UnsupervisedLoss
-   metric = UnsupervisedLoss()
-   # Example usage depends on the unsupervised task
+   y_pred = torch.randn(3, 5)
+   embedded_x = torch.randn(3, 5)
+   obf_vars = torch.randint(0, 2, (3, 5)).float()
+   loss = UnsupervisedLoss(y_pred, embedded_x, obf_vars)
+   print(loss)
 
 **Unsupervised Metrics**
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -27,7 +30,11 @@ Additional metrics for unsupervised learning tasks.
    import torch
    from pytorch_tabnet.metrics import UnsupervisedMetric
    metric = UnsupervisedMetric()
-   # Example usage depends on the unsupervised task
+   y_pred = torch.randn(3, 5)
+   embedded_x = torch.randn(3, 5)
+   obf_vars = torch.randint(0, 2, (3, 5)).float()
+   score = metric(y_pred, embedded_x, obf_vars)
+   print(score)
 
 Base Metrics
 ------------
