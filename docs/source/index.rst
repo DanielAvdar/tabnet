@@ -63,7 +63,9 @@ Welcome to eh-pytorch-tabnet's documentation!
    :maxdepth: 2
    :caption: Metrics
 
-   metrics
+   metrics/classification
+   metrics/regression
+   metrics/unsupervised
 
 .. toctree::
    :maxdepth: 2
