@@ -17,9 +17,15 @@ Measures the proportion of correct predictions among the total number of cases.
    import torch
    from pytorch_tabnet.metrics import Accuracy
    metric = Accuracy()
-   y_true = torch.tensor([0, 1, 1, 0])
-   y_pred = torch.tensor([0, 1, 0, 0])
-   print(metric(y_true, y_pred))  # Output: 0.75
+   y_true = torch.tensor([0, 1, 2, 1])
+   # Predicted probabilities for 4 samples and 3 classes
+   y_pred = torch.tensor([
+       [0.8, 0.1, 0.1],
+       [0.2, 0.7, 0.1],
+       [0.1, 0.2, 0.7],
+       [0.1, 0.6, 0.3],
+   ])
+   print(metric(y_true, y_pred))  # Output: 1.0
 
 **AUC (Area Under the ROC Curve)**
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -35,8 +41,13 @@ Represents the probability that a classifier ranks a random positive instance hi
    import torch
    from pytorch_tabnet.metrics import AUC
    metric = AUC()
-   y_true = torch.tensor([0, 1, 1, 0])
-   y_score = torch.tensor([0.1, 0.8, 0.7, 0.2])
+   y_true = torch.tensor([0, 1, 2, 1])
+   y_score = torch.tensor([
+       [0.8, 0.1, 0.1],
+       [0.2, 0.7, 0.1],
+       [0.1, 0.2, 0.7],
+       [0.1, 0.6, 0.3],
+   ])
    print(metric(y_true, y_score))  # Output: 1.0
 
 **Balanced Accuracy**
@@ -53,9 +64,14 @@ Computes the average recall obtained on each class, useful for imbalanced datase
    import torch
    from pytorch_tabnet.metrics import BalancedAccuracy
    metric = BalancedAccuracy()
-   y_true = torch.tensor([0, 1, 1, 0])
-   y_pred = torch.tensor([0, 1, 0, 0])
-   print(metric(y_true, y_pred))  # Output: 0.75
+   y_true = torch.tensor([0, 1, 2, 1])
+   y_pred = torch.tensor([
+       [0.8, 0.1, 0.1],
+       [0.2, 0.7, 0.1],
+       [0.1, 0.2, 0.7],
+       [0.1, 0.6, 0.3],
+   ])
+   print(metric(y_true, y_pred))  # Output: 1.0
 
 **Log Loss (Cross-Entropy Loss)**
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -71,6 +87,11 @@ Measures the performance of a classification model where the prediction is a pro
    import torch
    from pytorch_tabnet.metrics import LogLoss
    metric = LogLoss()
-   y_true = torch.tensor([0, 1])
-   y_pred = torch.tensor([0.1, 0.9])
-   print(metric(y_true, y_pred))  # Output: 0.105...
+   y_true = torch.tensor([0, 1, 2, 1])
+   y_pred = torch.tensor([
+       [0.8, 0.1, 0.1],
+       [0.2, 0.7, 0.1],
+       [0.1, 0.2, 0.7],
+       [0.1, 0.6, 0.3],
+   ])
+   print(metric(y_true, y_pred))  # Output: close to 0
