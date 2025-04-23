@@ -77,6 +77,6 @@ See the [nbs/](nbs/) folder for more complete examples and notebooks.
 - Original repo: https://github.com/dreamquark-ai/tabnet
 
 ## License & Credits
-- Original implementation and research by DreamQuark team
+- Original implementation and research by [DreamQuark team](https://github.com/dreamquark-ai/tabnet)
 - Maintained and improved by Daniel Avdar and contributors
 - See LICENSE for details

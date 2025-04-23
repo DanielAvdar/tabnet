@@ -34,6 +34,16 @@ Introduction
 
 TabNet is an attentive, interpretable deep learning architecture for tabular data, implemented in PyTorch. This project is a maintained fork of the original DreamQuark TabNet, with improvements for metrics, GPU support, and usability. It is suitable for classification, regression, and multitask learning on tabular datasets.
 
+Installation
+------------
+
+Install TabNet using pip:
+
+.. code-block:: bash
+
+   pip install eh-pytorch-tabnet
+
+
 Original Repository
 ------------------
 This project is a maintained fork of the original DreamQuark TabNet implementation:
