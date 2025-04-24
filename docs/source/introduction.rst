@@ -24,10 +24,10 @@ Introduction
 .. image:: https://img.shields.io/badge/ubuntu-blue?logo=apple
    :alt: MacOS
 
-.. image:: https://codecov.io/gh/DanielAvdar/pytorch-tabnet2/graph/badge.svg?token=N0V9KANTG2
+.. image:: https://codecov.io/gh/DanielAvdar/tabnet/branch/main/graph/badge.svg
    :alt: Coverage
 
-.. image:: https://img.shields.io/github/last-commit/DanielAvdar/pytorch-tabnet2/main
+.. image:: https://img.shields.io/github/last-commit/DanielAvdar/tabnet/main
    :alt: Last Commit
 
 
