@@ -1,11 +1,16 @@
 .PHONY: help
 
+.PHONY: default
+default: install
+
+
 install:
 	uv sync --all-extras --all-groups --frozen
 	uv pip install pre-commit
 
-.PHONY: default
-default: install
+
+install-docs:
+	uv sync --group docs --frozen --no-group dev
 
 test:
 	uv run pytest

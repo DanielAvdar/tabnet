@@ -75,3 +75,4 @@ Key Improvements
 - Added comprehensive unittests, achieving over 90% code coverage for improved reliability and maintainability.
 - Significantly reduced training time on both CPU and GPU, primarily due to the removal of the DataLoader and improved vectorization.
 - Enabled real-time validation metric calculation on the GPU during training, leveraging torcheval for efficient, on-device evaluation.
+- Added type annotations throughout the codebase for improved code clarity and static analysis.
