@@ -1,4 +1,4 @@
-Data Augmentation and Callbacks Guide
+Data Augmentation and Callbacks
 =====================================
 
 This guide demonstrates how to use data augmentation and callbacks with TabNet. Each example is standalone.

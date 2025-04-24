@@ -1,4 +1,4 @@
-Custom Metrics and Losses Guide
+Custom Metrics and Losses
 ==============================
 
 This guide demonstrates how to use custom evaluation metrics and custom loss functions with TabNet. Each example is standalone.

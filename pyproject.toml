@@ -1,5 +1,5 @@
 [project]
-name = "eh-pytorch-tabnet"
+name = "pytorch-tabnet2"
 dynamic = ["version"]
 description = "PyTorch implementation of TabNet"
 readme = "README.md"
@@ -98,15 +98,18 @@ line-length = 140
 # In addition to the standard set of exclusions, omit all tests, plus a specific file.
 extend-exclude = ["tests/intg/*", "intg/*", "docs/*", "release-script", "docs-scripts/*", "nbs/*"]
 [tool.ruff.lint]
-select = ["F", "I", "F", "W", "E", "A","D" ]
+select = ["F", "I", "F", "W", "E", "A","D","DOC"]
 
 fixable = ["ALL"]
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["D"]
-"docs/*" = ["D"]
-"pytorch_tabnet/tab_network.py" = ["D"]
-"pytorch_tabnet/multiclass_utils.py" = ["D"]
-"pytorch_tabnet/data_handlers.py" = ["D"]
+"tests/*" = ["D", "DOC"]
+"docs/*" = ["D", "DOC"]
+"pytorch_tabnet/tab_network/**" = ["D", "DOC"]
+"pytorch_tabnet/multiclass_utils.py" = ["D", "DOC"]
+"pytorch_tabnet/data_handlers/**" = ["D", "DOC"]
+"pytorch_tabnet/augmentations.py" = ["D", "DOC"]
+"pytorch_tabnet/callbacks/**" = ["D", "DOC"]
+"pytorch_tabnet/utils.py" = ["D", "DOC"]
 [tool.mypy]
 python_version = "3.11"
 disallow_untyped_defs = true

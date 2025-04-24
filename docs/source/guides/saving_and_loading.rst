@@ -1,4 +1,4 @@
-Model Saving and Loading Guide
+Model Saving and Loading
 =============================
 
 This guide demonstrates how to save and load TabNet models. Each example is standalone.

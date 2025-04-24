@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath("../../"))
 # sys.path.insert(0, os.path.abspath("./"))  # in conf.py
 
 
-project = "eh-pytorch-tabnet"
+project = "pytorch-tabnet2"
 version = version(project)
 release = version
 

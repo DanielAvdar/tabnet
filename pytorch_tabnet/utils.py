@@ -161,9 +161,10 @@ def filter_weights(weights: Union[int, List, np.ndarray]) -> None:
     weights : int, dict or list
         Initial weights parameters given by user
 
-    Returns
-    -------
-    None : This function will only throw an error if format is wrong
+    Raises
+    ------
+    ValueError
+        If weights are not in the correct format for regression, multitask, or pretraining.
 
     """
     err_msg = """Please provide a list or np.array of weights for """
@@ -260,7 +261,19 @@ class ComplexEncoder(json.JSONEncoder):
     """Custom JSON encoder for complex numbers and numpy data types."""
 
     def default(self, obj: object) -> object:
-        """Convert numpy objects to lists for JSON serialization."""
+        """Convert numpy objects to lists for JSON serialization.
+
+        Parameters
+        ----------
+        obj : object
+            The object to encode.
+
+        Returns
+        -------
+        object
+            A JSON-serializable object (list, dict, etc.) or calls the base class default method.
+
+        """
         if isinstance(obj, (np.generic, np.ndarray)):
             return obj.tolist()
         # Let the base class default method raise the TypeError

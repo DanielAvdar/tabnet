@@ -3,12 +3,12 @@
 Introduction
 ============
 
-.. image:: https://img.shields.io/pypi/v/eh-pytorch-tabnet.svg
-   :target: https://pypi.org/project/eh-pytorch-tabnet/
+.. image:: https://img.shields.io/pypi/v/pytorch-tabnet2.svg
+   :target: https://pypi.org/project/pytorch-tabnet2/
    :alt: PyPI version
 
-.. image:: https://img.shields.io/pypi/pyversions/eh-pytorch-tabnet.svg
-   :target: https://pypi.org/project/eh-pytorch-tabnet/
+.. image:: https://img.shields.io/pypi/pyversions/pytorch-tabnet2.svg
+   :target: https://pypi.org/project/pytorch-tabnet2/
    :alt: Python versions
 
 .. image:: https://img.shields.io/badge/License-MIT-blue.svg
@@ -24,15 +24,25 @@ Introduction
 .. image:: https://img.shields.io/badge/ubuntu-blue?logo=apple
    :alt: MacOS
 
-.. image:: https://codecov.io/gh/DanielAvdar/eh-pytorch-tabnet/graph/badge.svg?token=N0V9KANTG2
+.. image:: https://codecov.io/gh/DanielAvdar/pytorch-tabnet2/graph/badge.svg?token=N0V9KANTG2
    :alt: Coverage
 
-.. image:: https://img.shields.io/github/last-commit/DanielAvdar/eh-pytorch-tabnet/main
+.. image:: https://img.shields.io/github/last-commit/DanielAvdar/pytorch-tabnet2/main
    :alt: Last Commit
 
 
 
 TabNet is an attentive, interpretable deep learning architecture for tabular data, implemented in PyTorch. This project is a maintained fork of the original DreamQuark TabNet, with improvements for metrics, GPU support, and usability. It is suitable for classification, regression, and multitask learning on tabular datasets.
+
+Installation
+------------
+
+Install TabNet using pip:
+
+.. code-block:: bash
+
+   pip install pytorch-tabnet2
+
 
 Original Repository
 ------------------
@@ -51,13 +61,18 @@ For more details, see the original paper: https://arxiv.org/pdf/1908.07442.pdf
 
 Project Changes from the Original Implementation
 -----------------------------------------------
-This maintained fork of TabNet introduces several improvements and changes compared to the original DreamQuark implementation:
 
-- **PyTorch Metrics**: Uses PyTorch-based metrics for better GPU compatibility and performance, replacing the original numpy-based metrics.
-- **Enhanced GPU Support**: Improved prediction and evaluation logic for efficient CUDA (GPU) execution.
-- **API Improvements**: More flexible and user-friendly API for model training, evaluation, and prediction.
-- **Bug Fixes and Maintenance**: Ongoing fixes and updates to ensure compatibility with recent PyTorch versions and Python releases.
-- **Documentation and Examples**: Expanded documentation and new example notebooks for easier onboarding and advanced usage.
-- **License and Policy**: All code is considered changed for license clarity; see LICENSE for details.
+Key Changes from Original
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-These changes aim to make TabNet more robust, performant, and accessible for both research and production use cases.
+- Removed the PyTorch DataLoader, which previously accessed each datapoint individually and limited vectorization, resulting in slow performance. Data is now processed in a more efficient, vectorized manner.
+- Replaced sklearn metrics with torcheval, enabling fast, GPU-accelerated metric computation without the need to move data to the CPU or convert to numpy.
+- Shifted data weighting from the sampling/data loading stage to the loss function and metric calculations, providing more flexibility and efficiency.
+
+Key Improvements
+~~~~~~~~~~~~~~~~
+
+- Added comprehensive unittests, achieving over 90% code coverage for improved reliability and maintainability.
+- Significantly reduced training time on both CPU and GPU, primarily due to the removal of the DataLoader and improved vectorization.
+- Enabled real-time validation metric calculation on the GPU during training, leveraging torcheval for efficient, on-device evaluation.
+- Added type annotations throughout the codebase for improved code clarity and static analysis.

@@ -554,7 +554,7 @@ wheels = [
 ]
 
 [[package]]
-name = "eh-pytorch-tabnet"
+name = "pytorch-tabnet2"
 source = { editable = "." }
 dependencies = [
     { name = "activations-plus" },

@@ -444,6 +444,11 @@ class TabModel(BaseEstimator):
         filepath : str
             Path of the model.
 
+        Raises
+        ------
+        KeyError
+            If the zip file is missing required components.
+
         """
         try:
             with zipfile.ZipFile(filepath) as z:
