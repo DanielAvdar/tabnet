@@ -1,13 +1,11 @@
 import pytest
 import torch
 
-from pytorch_tabnet.tab_network import (
-    AttentiveTransformer,
-    EmbeddingGenerator,
-    FeatTransformer,
-    RandomObfuscator,
-    TabNetPretraining,
-)
+from pytorch_tabnet.tab_network.attentive_transformer import AttentiveTransformer
+from pytorch_tabnet.tab_network.embedding_generator import EmbeddingGenerator
+from pytorch_tabnet.tab_network.feat_transformer import FeatTransformer
+from pytorch_tabnet.tab_network.random_obfuscator import RandomObfuscator
+from pytorch_tabnet.tab_network.tabnet_pretraining import TabNetPretraining
 
 
 @pytest.fixture
