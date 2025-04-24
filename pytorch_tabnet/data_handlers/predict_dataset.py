@@ -5,7 +5,7 @@ import scipy
 import torch
 from torch.utils.data import Dataset
 
-from pytorch_tabnet.data_handlers import X_type
+from .data_types import X_type
 
 
 class PredictDataset(Dataset):
