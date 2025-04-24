@@ -6,7 +6,7 @@
 ![OS](https://img.shields.io/badge/ubuntu-blue?logo=ubuntu)
 ![OS](https://img.shields.io/badge/win-blue?logo=windows)
 ![OS](https://img.shields.io/badge/mac-blue?logo=apple)
-[![codecov](https://codecov.io/gh/DanielAvdar/tabnet/graph/badge.svg?token=N0V9KANTG2)](https://codecov.io/gh/DanielAvdar/tabnet)
+[![codecov](https://codecov.io/gh/DanielAvdar/tabnet/branch/main/graph/badge.svg)](https://codecov.io/gh/DanielAvdar/tabnet/tree/main)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![Last Commit](https://img.shields.io/github/last-commit/DanielAvdar/tabnet/main)
 
