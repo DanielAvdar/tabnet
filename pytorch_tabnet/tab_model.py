@@ -9,14 +9,14 @@ import scipy
 import torch
 
 # from torch.utils.data import DataLoader
-from pytorch_tabnet.abstract_model import TabModel
+from pytorch_tabnet.abstract_model import TabSupervisedModel
 from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, TBDataLoader
 from pytorch_tabnet.multiclass_utils import check_output_dim, infer_output_dim
 from pytorch_tabnet.utils import filter_weights
 
 
 @dataclass
-class TabNetClassifier(TabModel):
+class TabNetClassifier(TabSupervisedModel):
     """TabNet model for classification tasks."""
 
     output_dim: int = None
@@ -227,7 +227,7 @@ class TabNetClassifier(TabModel):
 
 
 @dataclass
-class TabNetRegressor(TabModel):
+class TabNetRegressor(TabSupervisedModel):
     """TabNet model for regression tasks."""
 
     output_dim: int = None
