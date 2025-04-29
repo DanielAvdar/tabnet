@@ -467,4 +467,3 @@ class TabSupervisedModel(TabModel):
             Converted target matrix.
 
         """
-        ...
