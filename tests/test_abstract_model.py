@@ -3,7 +3,8 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 
-from pytorch_tabnet.abstract_model import TabSupervisedModel
+from pytorch_tabnet.abstract_model_sub import TabSupervisedModel
+
 
 # Define necessary functions and classes from the provided code
 # ... (copy the entire code provided in "Related information and code...")
