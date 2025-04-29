@@ -42,7 +42,7 @@ from pytorch_tabnet.utils import (
 
 
 @dataclass
-class _TabModel(BaseEstimator):
+class TabModel(BaseEstimator):
     compile_backends = ["inductor", "cudagraphs", "ipex", "onnxrt"]
 
     n_d: int = 8
@@ -882,5 +882,5 @@ class _TabModel(BaseEstimator):
 
 
 @dataclass
-class TabSupervisedModel(_TabModel):
+class TabSupervisedModel(TabModel):
     """Abstract base class for TabNet models."""
