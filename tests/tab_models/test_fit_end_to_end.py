@@ -50,18 +50,12 @@ from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
     ],
 )
 @pytest.mark.parametrize("mask_type", ["sparsemax", "entmax"])
-def test_pretrainer_fit(
-    X_train,
-    X_valid,
-    weights,
-    model_params,
-    fit_params,
-    mask_type,
-):
+def test_pretrainer_fit(X_train, X_valid, weights, model_params, fit_params, mask_type, device_str):
     """Test TabNetPretrainer fit method."""
     unsupervised_model = TabNetPretrainer(
         **model_params,
         mask_type=mask_type,
+        device_name=device_str,
     )
     unsupervised_model.fit(
         X_train=X_train,
@@ -84,6 +78,7 @@ def test_pretrainer_fit(
         weights=weights,
         from_unsupervised=unsupervised_model,
         **fit_params,
+        device_name=device_str,
     )
     multi_tab_class = TabNetMultiTaskClassifier()
     multi_tab_class.fit(
@@ -92,6 +87,7 @@ def test_pretrainer_fit(
         weights=weights,
         from_unsupervised=unsupervised_model,
         **fit_params,
+        device_name=device_str,
     )
     tab_reg = TabNetRegressor()
     tab_reg.fit(
@@ -100,6 +96,7 @@ def test_pretrainer_fit(
         weights=weights,
         from_unsupervised=unsupervised_model,
         **fit_params,
+        device_name=device_str,
     )
     multi_tab_reg = TabNetRegressor()
     multi_tab_reg.fit(
@@ -108,4 +105,5 @@ def test_pretrainer_fit(
         weights=weights,
         from_unsupervised=unsupervised_model,
         **fit_params,
+        device_name=device_str,
     )
