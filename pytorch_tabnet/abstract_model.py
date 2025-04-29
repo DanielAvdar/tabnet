@@ -403,7 +403,7 @@ class TabModel(BaseEstimator):
             Loss value.
 
         """
-        ...
+
 
     @abstractmethod
     def predict_func(self, y_score: np.ndarray) -> np.ndarray:
@@ -420,7 +420,7 @@ class TabModel(BaseEstimator):
             Model predictions.
 
         """
-        ...
+
 
     def stack_batches(self, *args: Any, **kwargs: Any) -> Tuple[torch.Tensor, torch.Tensor]:
         """Stack batches of predictions and targets.
@@ -438,4 +438,4 @@ class TabModel(BaseEstimator):
             Stacked predictions and targets.
 
         """
-        ...
+
