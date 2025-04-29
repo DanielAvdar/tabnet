@@ -42,9 +42,7 @@ from pytorch_tabnet.utils import (
 
 
 @dataclass
-class TabModel(BaseEstimator):
-    """Abstract base class for TabNet models."""
-
+class _TabModel(BaseEstimator):
     compile_backends = ["inductor", "cudagraphs", "ipex", "onnxrt"]
 
     n_d: int = 8
@@ -138,7 +136,7 @@ class TabModel(BaseEstimator):
         drop_last: bool = True,
         callbacks: Union[None, List] = None,
         pin_memory: bool = True,
-        from_unsupervised: Union[None, "TabModel"] = None,
+        from_unsupervised: Union[None, "TabSupervisedModel"] = None,
         warm_start: bool = False,
         augmentations: Union[None, Any] = None,
         compute_importance: bool = False,
@@ -367,12 +365,12 @@ class TabModel(BaseEstimator):
 
         return res_explain, res_masks
 
-    def load_weights_from_unsupervised(self, unsupervised_model: "TabModel") -> None:
+    def load_weights_from_unsupervised(self, unsupervised_model: "TabSupervisedModel") -> None:
         """Load weights from a previously trained unsupervised TabNet model.
 
         Parameters
         ----------
-        unsupervised_model : TabModel
+        unsupervised_model : TabSupervisedModel
             Previously trained unsupervised TabNet model.
 
         """
@@ -881,3 +879,8 @@ class TabModel(BaseEstimator):
 
         """
         ...
+
+
+@dataclass
+class TabSupervisedModel(_TabModel):
+    """Abstract base class for TabNet models."""

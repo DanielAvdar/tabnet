@@ -10,7 +10,7 @@ from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader
 
 from pytorch_tabnet import tab_network
-from pytorch_tabnet.abstract_model import TabModel
+from pytorch_tabnet.abstract_model import TabSupervisedModel
 from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, create_dataloaders_pt, validate_eval_set
 from pytorch_tabnet.metrics import (
     UnsupervisedLoss,
@@ -26,7 +26,7 @@ from pytorch_tabnet.utils import (
 
 
 @dataclass
-class TabNetPretrainer(TabModel):
+class TabNetPretrainer(TabSupervisedModel):
     """Abstract base class for TabNet pretraining models."""
 
     def __post_init__(self) -> None:
