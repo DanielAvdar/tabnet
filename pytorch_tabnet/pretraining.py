@@ -11,7 +11,6 @@ from torch.utils.data import DataLoader
 
 from pytorch_tabnet import tab_network
 from pytorch_tabnet.abstract_model import TabModel
-from pytorch_tabnet.abstract_model_sub import TabSupervisedModel
 from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, create_dataloaders_pt, validate_eval_set
 from pytorch_tabnet.metrics import (
     UnsupervisedLoss,
@@ -99,7 +98,7 @@ class TabNetPretrainer(TabModel):
         filter_weights(weights)
         self.preds_mapper = None
 
-    def fit(  # type: ignore[override]
+    def fit(
         self,
         X_train: np.ndarray,
         eval_set: Optional[List[Union[np.ndarray, List[np.ndarray]]]] = None,
@@ -253,7 +252,7 @@ class TabNetPretrainer(TabModel):
         self.network.virtual_batch_size = self.virtual_batch_size
         self.network.pretraining_ratio = self.pretraining_ratio
 
-    def _set_metrics(self, eval_names: List[str]) -> None:  # type: ignore[override]
+    def _set_metrics(self, eval_names: List[str]) -> None:
         """Set metric containers for each evaluation set.
 
         Parameters
@@ -267,9 +266,7 @@ class TabNetPretrainer(TabModel):
         metrics = check_metrics(metrics)
         self._metric_container_dict = {}
         for name in eval_names:
-            self._metric_container_dict.update({
-                name: UnsupMetricContainer(metrics, prefix=f"{name}_")  # type: ignore
-            })
+            self._metric_container_dict.update({name: UnsupMetricContainer(metrics, prefix=f"{name}_")})
 
         self._metrics = []
         self._metrics_names = []
@@ -279,7 +276,7 @@ class TabNetPretrainer(TabModel):
 
         self.early_stopping_metric = self._metrics_names[-1] if len(self._metrics_names) > 0 else None
 
-    def _construct_loaders(  # type: ignore[override]
+    def _construct_loaders(
         self,
         X_train: np.ndarray,
         eval_set: List[Union[np.ndarray, List[np.ndarray]]],
@@ -337,7 +334,7 @@ class TabNetPretrainer(TabModel):
 
         return
 
-    def _train_batch(self, X: torch.Tensor, w: Optional[torch.Tensor] = None) -> dict:  # type: ignore[override]
+    def _train_batch(self, X: torch.Tensor, w: Optional[torch.Tensor] = None) -> dict:
         """Train one batch of data.
 
         Parameters
