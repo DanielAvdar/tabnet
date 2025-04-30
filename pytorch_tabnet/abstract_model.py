@@ -377,7 +377,6 @@ class TabModel(BaseEstimator):
             0 for no balancing, 1 for automated balancing.
 
         """
-        raise NotImplementedError("users must define update_fit_params to use this base class")
 
     @abstractmethod
     def compute_loss(self, *args: Any, **kwargs: Any) -> torch.Tensor:
