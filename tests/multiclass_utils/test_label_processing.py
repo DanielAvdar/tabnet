@@ -61,3 +61,13 @@ def test_unique_labels_multilabel_indicator():
     y = np.array([[1, 0], [0, 1], [1, 1]])
     with pytest.raises(IndexError, match="If attempting multilabel classification"):
         unique_labels(y)
+
+
+def test_unique_multiclass_non_array_like():
+    """Test _unique_multiclass with object that doesn't have __array__ attribute."""
+    from pytorch_tabnet.multiclass_utils.label_processing import _unique_multiclass
+
+    # Using a simple set as input instead of a numpy array
+    y = {1, 2, 3}  # set doesn't have __array__ attribute
+    result = _unique_multiclass(y)
+    np.testing.assert_array_equal(result, np.array([1, 2, 3]))
