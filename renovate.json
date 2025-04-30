@@ -3,12 +3,13 @@
   "extends": [
     "config:recommended"
   ],
-  "python": {
-    "lockFileMaintenance": {
-      "enabled": true,
-      "automerge": true
-
-    }
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "schedule": [
+      "at any time"
+    ],
+    "groupName": "uv-lock"
   },
   "automerge": true,
   "pre-commit": {
