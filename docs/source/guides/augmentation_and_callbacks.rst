@@ -3,6 +3,9 @@ Data Augmentation and Callbacks
 
 This guide demonstrates how to use data augmentation and callbacks with TabNet. Each example is standalone.
 
+.. warning::
+   **Deprecation Notice:** The ``augmentations`` parameter is deprecated and will be removed in a future version.
+
 Data Augmentation Example
 ------------------------
 
@@ -18,6 +21,7 @@ Data Augmentation Example
    X_valid = np.random.rand(20, 10)
    y_valid = np.random.randint(0, 2, 20)
 
+   # Note: This approach is deprecated and will be removed in a future version
    aug = ClassificationSMOTE()
    clf = TabNetClassifier()
    clf.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], augmentations=aug)
