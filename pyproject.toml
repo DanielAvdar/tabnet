@@ -109,7 +109,7 @@ fixable = ["ALL"]
 "pytorch_tabnet/data_handlers/**" = ["D", "DOC"]
 "pytorch_tabnet/augmentations.py" = ["D", "DOC"]
 "pytorch_tabnet/callbacks/**" = ["D", "DOC"]
-"pytorch_tabnet/utils.py" = ["D", "DOC"]
+"pytorch_tabnet/utils/**" = ["D", "DOC"]
 [tool.mypy]
 python_version = "3.11"
 disallow_untyped_defs = true
