@@ -124,7 +124,7 @@ class TestErrorHandling(unittest.TestCase):
         y = MockSparseSeries()
 
         with self.assertRaises(ValueError):
-            from pytorch_tabnet.multiclass_utils import type_of_target
+            from pytorch_tabnet.multiclass_utils.tmp import type_of_target
 
             type_of_target(y)
 
@@ -169,7 +169,7 @@ class TestErrorHandling(unittest.TestCase):
 
     def test_multitask_empty_dimension_error(self):
         """Test handling of arrays with empty dimensions in type_of_target"""
-        from pytorch_tabnet.multiclass_utils import type_of_target
+        from pytorch_tabnet.multiclass_utils.tmp import type_of_target
 
         # Create array with empty second dimension
         y = np.zeros((5, 0))
@@ -178,7 +178,7 @@ class TestErrorHandling(unittest.TestCase):
     def test_object_dtype_with_nan_handling(self):
         """Test handling of object dtypes with NaN values"""
 
-        from pytorch_tabnet.multiclass_utils import assert_all_finite
+        from pytorch_tabnet.multiclass_utils.tmp import assert_all_finite
 
         # Create float array with NaN (to avoid object array TypeErrors)
         y = np.array([1.0, 2.0, np.nan, 3.0], dtype=float)
@@ -188,7 +188,7 @@ class TestErrorHandling(unittest.TestCase):
 
     def test_infinity_handling_with_allow_nan(self):
         """Test handling of infinite values when allow_nan is True"""
-        from pytorch_tabnet.multiclass_utils import assert_all_finite
+        from pytorch_tabnet.multiclass_utils.tmp import assert_all_finite
 
         # Create array with infinity but allow_nan=True (should still fail)
         y = np.array([1.0, 2.0, np.inf, 3.0])
@@ -198,7 +198,7 @@ class TestErrorHandling(unittest.TestCase):
 
     def test_assert_all_finite_object_array(self):
         """Test assert_all_finite with object arrays but bypassing direct isnan call"""
-        from pytorch_tabnet.multiclass_utils import assert_all_finite
+        from pytorch_tabnet.multiclass_utils.tmp import assert_all_finite
 
         # Use float arrays that are compatible with isnan/isfinite
         y = np.array([1.0, 2.0, 3.0], dtype=float)
@@ -213,7 +213,7 @@ class TestErrorHandling(unittest.TestCase):
         """Test is_multilabel with different sparse matrix types"""
         from scipy.sparse import csr_matrix
 
-        from pytorch_tabnet.multiclass_utils import is_multilabel
+        from pytorch_tabnet.multiclass_utils.tmp import is_multilabel
 
         # Create a sparse matrix with binary values (proper multilabel format)
         mat = csr_matrix(([1, 1], ([0, 1], [1, 2])), shape=(3, 3))
@@ -228,14 +228,14 @@ class TestErrorHandling(unittest.TestCase):
 
     def test_unique_labels_no_arguments(self):
         """Test unique_labels with no arguments"""
-        from pytorch_tabnet.multiclass_utils import unique_labels
+        from pytorch_tabnet.multiclass_utils.tmp import unique_labels
 
         with self.assertRaises(ValueError):
             unique_labels()
 
     def test_unique_labels_mixed_types(self):
         """Test unique_labels with mixed data types that should raise an error"""
-        from pytorch_tabnet.multiclass_utils import unique_labels
+        from pytorch_tabnet.multiclass_utils.tmp import unique_labels
 
         # Creating different label types for different arrays
         # This should raise ValueError since we mix string and integer label types
@@ -244,7 +244,7 @@ class TestErrorHandling(unittest.TestCase):
 
     def test_type_of_target_non_array(self):
         """Test type_of_target with non-array inputs"""
-        from pytorch_tabnet.multiclass_utils import type_of_target
+        from pytorch_tabnet.multiclass_utils.tmp import type_of_target
 
         # Input not convertible to array
         with self.assertRaises(ValueError):
@@ -252,7 +252,7 @@ class TestErrorHandling(unittest.TestCase):
 
     def test_check_classification_targets_wrong_type(self):
         """Test check_classification_targets with wrong target type"""
-        from pytorch_tabnet.multiclass_utils import check_classification_targets
+        from pytorch_tabnet.multiclass_utils.tmp import check_classification_targets
 
         # Create a continuous target
         y = np.array([0.1, 0.2, 0.3])

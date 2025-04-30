@@ -7,13 +7,14 @@ from sklearn.utils.multiclass import (
 )
 
 from pytorch_tabnet.multiclass_utils import (
-    assert_all_finite,
+    # assert_all_finite,
     check_output_dim,
     infer_multitask_output,
     infer_output_dim,
-    is_multilabel,
-    type_of_target,  # Import from pytorch_tabnet, not sklearn
+    # is_multilabel,
+    # type_of_target,  # Import from pytorch_tabnet, not sklearn
 )
+from pytorch_tabnet.multiclass_utils.tmp import assert_all_finite, is_multilabel, type_of_target
 
 
 # Tests for unique_labels
