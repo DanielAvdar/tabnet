@@ -36,22 +36,6 @@ class TabNetPretrainer(TabModel):
         self._default_loss = UnsupervisedLoss
         self._default_metric = "unsup_loss_numpy"
 
-    def prepare_target(self, y: np.ndarray) -> np.ndarray:
-        """Return the input as target for unsupervised pretraining.
-
-        Parameters
-        ----------
-        y : np.ndarray
-            Input data.
-
-        Returns
-        -------
-        np.ndarray
-            Same as input.
-
-        """
-        return y
-
     def compute_loss(
         self,
         output: torch.Tensor,
