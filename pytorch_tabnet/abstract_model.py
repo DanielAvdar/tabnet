@@ -104,14 +104,7 @@ class TabModel(BaseEstimator):
         ]
         for var_name, value in kwargs.items():
             if var_name in update_list:
-                try:
-                    exec(f"global previous_val; previous_val = self.{var_name}")
-                    if previous_val != value:  # type: ignore # noqa
-                        wrn_msg = f"Pretraining: {var_name} changed from {previous_val} to {value}"  # type: ignore # noqa
-                        warnings.warn(wrn_msg, stacklevel=2)
-                        exec(f"self.{var_name} = value")
-                except AttributeError:
-                    exec(f"self.{var_name} = value")
+                setattr(self, var_name, value)
 
     def explain(self, X: np.ndarray, normalize: bool = False) -> Tuple[np.ndarray, Dict]:
         """Return local explanation.
