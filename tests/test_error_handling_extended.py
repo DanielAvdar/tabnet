@@ -260,6 +260,37 @@ class TestErrorHandling(unittest.TestCase):
         with self.assertRaises(ValueError):
             check_classification_targets(y)
 
+    def test_check_embedding_parameters(self):
+        """Test check_classification_targets with wrong target type"""
+        from pytorch_tabnet.utils import check_embedding_parameters
+
+        with self.assertRaises(ValueError):
+            check_embedding_parameters(
+                cat_dims=[1],
+                cat_emb_dim=[],
+                cat_idxs=[1],
+            )
+
+    def test_check_input(self):
+        """Test check_classification_targets with wrong target type"""
+        import pandas as pd
+
+        from pytorch_tabnet.utils import check_input
+
+        with self.assertRaises(TypeError):
+            check_input(
+                pd.DataFrame(),
+            )
+
+    def test_filter_weights(self):
+        """Test check_classification_targets with wrong target type"""
+        from pytorch_tabnet.utils import filter_weights
+
+        with self.assertRaises(ValueError):
+            filter_weights(1)
+        with self.assertRaises(ValueError):
+            filter_weights(dict())
+
 
 if __name__ == "__main__":
     unittest.main()
