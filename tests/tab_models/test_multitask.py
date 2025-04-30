@@ -89,6 +89,8 @@ def test_class(sample_data, classifier, fit_params):
     X_train, y_train, X_test, y_test = sample_data
 
     classifier.fit(X_train, y_train, eval_set=[(X_test, y_test)], **fit_params)
+    classifier._compute_feature_importances(X=X_train)
+
     X_train, y_train, X_test, y_test = (
         to_torch(X_train),
         to_torch(y_train),

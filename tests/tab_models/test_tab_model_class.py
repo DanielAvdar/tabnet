@@ -44,6 +44,8 @@ def test_class_fit(sample_data, classifier_instance):
         eval_set,
         weights=weights,
     )
+    classifier_instance._compute_feature_importances(X=X_train)
+
     assert classifier_instance.output_dim == len(np.unique(sample_data[1]))
     assert classifier_instance.classes_ is not None
     # assert classifier_instance.updated_weights == {0: 0.5, 1: 0.5}
