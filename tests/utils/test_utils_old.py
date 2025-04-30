@@ -3,10 +3,10 @@ import pytest
 import torch
 
 from pytorch_tabnet.utils import (
-    check_list_groups,
     create_group_matrix,
     validate_eval_set,
 )
+from pytorch_tabnet.utils.matrices import check_list_groups
 
 
 @pytest.mark.parametrize(

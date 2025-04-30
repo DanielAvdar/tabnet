@@ -3,14 +3,14 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 
-from pytorch_tabnet.abstract_model import TabModel
+from pytorch_tabnet.abstract_model_sub import TabSupervisedModel
 
 # Define necessary functions and classes from the provided code
 # ... (copy the entire code provided in "Related information and code...")
 
 
 @dataclass  # Assuming TabModel is a dataclass
-class MockTabModel(TabModel):  # Create a Mock model for testing
+class MockTabModel(TabSupervisedModel):  # Create a Mock model for testing
     """Mock TabModel for testing."""
 
     _default_loss: torch.nn.Module = None

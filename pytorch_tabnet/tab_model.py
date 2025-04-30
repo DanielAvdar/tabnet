@@ -1,5 +1,6 @@
 """TabNet model class and training logic."""
 
+import warnings
 from dataclasses import dataclass, field
 from functools import partial
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -9,14 +10,14 @@ import scipy
 import torch
 
 # from torch.utils.data import DataLoader
-from pytorch_tabnet.abstract_model import TabModel
+from pytorch_tabnet.abstract_model_sub import TabSupervisedModel
 from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, TBDataLoader
 from pytorch_tabnet.multiclass_utils import check_output_dim, infer_output_dim
 from pytorch_tabnet.utils import filter_weights
 
 
 @dataclass
-class TabNetClassifier(TabModel):
+class TabNetClassifier(TabSupervisedModel):
     """TabNet model for classification tasks."""
 
     output_dim: int = None
@@ -194,6 +195,12 @@ class TabNetClassifier(TabModel):
         self.network.eval()
 
         if scipy.sparse.issparse(X):
+            # Add deprecation warning for sparse input support
+            warnings.warn(
+                "Support for scipy.sparse inputs is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             dataloader: TBDataLoader = TBDataLoader(
                 name="predict",
                 dataset=SparsePredictDataset(X),
@@ -227,7 +234,7 @@ class TabNetClassifier(TabModel):
 
 
 @dataclass
-class TabNetRegressor(TabModel):
+class TabNetRegressor(TabSupervisedModel):
     """TabNet model for regression tasks."""
 
     output_dim: int = None

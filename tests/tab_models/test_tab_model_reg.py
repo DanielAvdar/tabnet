@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 import torch
 
+from pytorch_tabnet.callbacks import Callback
 from pytorch_tabnet.tab_model import TabNetRegressor
 
 
@@ -35,7 +36,9 @@ def regressor_instance():
 
 def test_reg_fig(sample_data_regressor, regressor_instance):
     X_train, y_train, eval_set = sample_data_regressor
-    regressor_instance.fit(X_train, y_train, eval_set=eval_set)
+    regressor_instance.fit(X_train, y_train, eval_set=eval_set, callbacks=[Callback()])
+    regressor_instance._compute_feature_importances(X=X_train)
+
     assert regressor_instance.output_dim == sample_data_regressor[1].shape[1]
     assert regressor_instance._default_metric == "mse"
     pred = regressor_instance.predict(X_train)

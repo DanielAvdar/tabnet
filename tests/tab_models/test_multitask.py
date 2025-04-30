@@ -1,3 +1,5 @@
+from functools import partial
+
 import numpy as np
 import pytest
 import torch
@@ -83,12 +85,20 @@ def test_compute_loss(sample_data, classifier):
             batch_size=128,
             virtual_batch_size=128,
         ),
+        dict(
+            max_epochs=1,
+            batch_size=128,
+            virtual_batch_size=128,
+            loss_fn=[partial(torch.nn.functional.cross_entropy, reduction="none")] * 3,
+        ),
     ],
 )
 def test_class(sample_data, classifier, fit_params):
     X_train, y_train, X_test, y_test = sample_data
 
     classifier.fit(X_train, y_train, eval_set=[(X_test, y_test)], **fit_params)
+    classifier._compute_feature_importances(X=X_train)
+
     X_train, y_train, X_test, y_test = (
         to_torch(X_train),
         to_torch(y_train),

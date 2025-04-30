@@ -1,5 +1,6 @@
 """Pretraining utilities for TabNet models."""
 
+import warnings
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
@@ -35,22 +36,6 @@ class TabNetPretrainer(TabModel):
         self._task = "unsupervised"
         self._default_loss = UnsupervisedLoss
         self._default_metric = "unsup_loss_numpy"
-
-    def prepare_target(self, y: np.ndarray) -> np.ndarray:
-        """Return the input as target for unsupervised pretraining.
-
-        Parameters
-        ----------
-        y : np.ndarray
-            Input data.
-
-        Returns
-        -------
-        np.ndarray
-            Same as input.
-
-        """
-        return y
 
     def compute_loss(
         self,
@@ -98,7 +83,7 @@ class TabNetPretrainer(TabModel):
         filter_weights(weights)
         self.preds_mapper = None
 
-    def fit(  # type: ignore[override]
+    def fit(
         self,
         X_train: np.ndarray,
         eval_set: Optional[List[Union[np.ndarray, List[np.ndarray]]]] = None,
@@ -169,6 +154,14 @@ class TabNetPretrainer(TabModel):
         self.pin_memory = pin_memory and (self.device.type != "cpu")
         self.pretraining_ratio = pretraining_ratio
         eval_set = eval_set if eval_set else []
+
+        # Add deprecation warning for sparse input support
+        if scipy.sparse.issparse(X_train):
+            warnings.warn(
+                "Support for scipy.sparse inputs is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         if loss_fn is None:
             self.loss_fn = self._default_loss
@@ -252,7 +245,7 @@ class TabNetPretrainer(TabModel):
         self.network.virtual_batch_size = self.virtual_batch_size
         self.network.pretraining_ratio = self.pretraining_ratio
 
-    def _set_metrics(self, eval_names: List[str]) -> None:  # type: ignore[override]
+    def _set_metrics(self, eval_names: List[str]) -> None:
         """Set metric containers for each evaluation set.
 
         Parameters
@@ -266,9 +259,7 @@ class TabNetPretrainer(TabModel):
         metrics = check_metrics(metrics)
         self._metric_container_dict = {}
         for name in eval_names:
-            self._metric_container_dict.update({
-                name: UnsupMetricContainer(metrics, prefix=f"{name}_")  # type: ignore
-            })
+            self._metric_container_dict.update({name: UnsupMetricContainer(metrics, prefix=f"{name}_")})
 
         self._metrics = []
         self._metrics_names = []
@@ -278,7 +269,7 @@ class TabNetPretrainer(TabModel):
 
         self.early_stopping_metric = self._metrics_names[-1] if len(self._metrics_names) > 0 else None
 
-    def _construct_loaders(  # type: ignore[override]
+    def _construct_loaders(
         self,
         X_train: np.ndarray,
         eval_set: List[Union[np.ndarray, List[np.ndarray]]],
@@ -336,7 +327,7 @@ class TabNetPretrainer(TabModel):
 
         return
 
-    def _train_batch(self, X: torch.Tensor, w: Optional[torch.Tensor] = None) -> dict:  # type: ignore[override]
+    def _train_batch(self, X: torch.Tensor, w: Optional[torch.Tensor] = None) -> dict:
         """Train one batch of data.
 
         Parameters
@@ -460,6 +451,12 @@ class TabNetPretrainer(TabModel):
         self.network.eval()
 
         if scipy.sparse.issparse(X):
+            # Add deprecation warning for sparse input support
+            warnings.warn(
+                "Support for scipy.sparse inputs is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             dataloader = DataLoader(
                 SparsePredictDataset(X),
                 batch_size=self.batch_size,
