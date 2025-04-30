@@ -1,7 +1,6 @@
 """Utility functions for TabNet package."""
 
 import json
-import warnings
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -289,15 +288,6 @@ def check_input(X: np.ndarray) -> None:
         err_message = "Pandas DataFrame are not supported: apply X.values when calling fit"
         raise TypeError(err_message)
     check_array(X, accept_sparse=True)
-
-
-def check_warm_start(warm_start: bool, from_unsupervised: Optional[bool]) -> None:
-    """Warn about ambiguous usage of warm_start and from_unsupervised parameters."""
-    if warm_start and from_unsupervised is not None:
-        warn_msg = "warm_start=True and from_unsupervised != None: "
-        warn_msg = "warm_start will be ignore, training will start from unsupervised weights"
-        warnings.warn(warn_msg, stacklevel=2)
-    return
 
 
 def check_embedding_parameters(

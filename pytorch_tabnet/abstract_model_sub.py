@@ -24,7 +24,6 @@ from pytorch_tabnet.metrics import MetricContainer, check_metrics
 # from torch.utils.data import DataLoader
 from pytorch_tabnet.utils import (
     check_input,
-    check_warm_start,
     create_explain_matrix,
     create_group_matrix,
     validate_eval_set,
@@ -132,7 +131,6 @@ class TabSupervisedModel(TabModel):
             self.loss_fn = loss_fn
 
         check_input(X_train)
-        check_warm_start(warm_start, from_unsupervised)
 
         self.update_fit_params(
             X_train,
