@@ -59,3 +59,59 @@ def test_tabnet_no_embeddings():
     out_with_groups, M_loss_with_groups = tabnet_no_emb_with_groups.forward(x)
 
     assert out_with_groups.shape == (batch_size, output_dim)
+
+
+def test_tabnet_no_embeddings_forward_masks():
+    """Test the forward_masks method of TabNetNoEmbeddings."""
+    input_dim = 16
+    output_dim = 8
+    n_d = 8
+    n_a = 8
+    n_steps = 3
+
+    tabnet_no_emb = TabNetNoEmbeddings(
+        input_dim=input_dim,
+        output_dim=output_dim,
+        n_d=n_d,
+        n_a=n_a,
+        n_steps=n_steps,
+    )
+
+    batch_size = 10
+    x = torch.rand((batch_size, input_dim))
+
+    # Test forward_masks method
+    global_mask, masks_dict = tabnet_no_emb.forward_masks(x)
+
+    assert global_mask.shape == (batch_size, input_dim)
+    assert isinstance(masks_dict, dict)
+    assert len(masks_dict) == n_steps
+
+
+def test_tabnet_no_embeddings_multi_output():
+    """Test TabNetNoEmbeddings with multiple output dimensions."""
+    input_dim = 16
+    # Define multiple output dimensions for multi-task
+    output_dim = [8, 6, 4]
+    n_d = 8
+    n_a = 8
+    n_steps = 3
+
+    tabnet_no_emb = TabNetNoEmbeddings(
+        input_dim=input_dim,
+        output_dim=output_dim,
+        n_d=n_d,
+        n_a=n_a,
+        n_steps=n_steps,
+    )
+
+    batch_size = 10
+    x = torch.rand((batch_size, input_dim))
+
+    outputs, M_loss = tabnet_no_emb.forward(x)
+
+    # Check that we get multiple outputs matching the specified dimensions
+    assert isinstance(outputs, list)
+    assert len(outputs) == len(output_dim)
+    for i, dim in enumerate(output_dim):
+        assert outputs[i].shape == (batch_size, dim)

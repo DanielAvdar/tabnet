@@ -1,3 +1,4 @@
+import pytest
 import torch
 
 from pytorch_tabnet.tab_network.tabnet import TabNet
@@ -71,3 +72,65 @@ def test_tabnet():
     out_with_groups, M_loss_with_groups = tabnet_with_groups.forward(x)
 
     assert out_with_groups.shape == (batch_size, output_dim)
+
+
+def test_tabnet_forward_masks():
+    """Test the forward_masks method of TabNet."""
+    input_dim = 16
+    output_dim = 8
+    n_d = 8
+    n_a = 8
+    n_steps = 3
+    gamma = 1.3
+
+    # We need to provide a group matrix to avoid the None error
+    group_matrix = torch.eye(input_dim)
+
+    tabnet = TabNet(
+        input_dim=input_dim,
+        output_dim=output_dim,
+        n_d=n_d,
+        n_a=n_a,
+        n_steps=n_steps,
+        gamma=gamma,
+        group_attention_matrix=group_matrix,
+    )
+
+    batch_size = 10
+    # Using float tensor instead of integer tensor to avoid BatchNorm error
+    x = torch.rand((batch_size, input_dim))
+
+    # Test forward_masks method
+    global_mask, masks_dict = tabnet.forward_masks(x)
+
+    assert global_mask.shape == (batch_size, input_dim)
+    assert isinstance(masks_dict, dict)
+    assert len(masks_dict) == n_steps
+
+
+def test_tabnet_validation_errors():
+    """Test that TabNet raises appropriate errors for invalid parameters."""
+    input_dim = 16
+    output_dim = 8
+
+    # We need to provide a group matrix to avoid the None error
+    group_matrix = torch.eye(input_dim)
+
+    # Test n_steps <= 0
+    with pytest.raises(ValueError, match="n_steps should be a positive integer"):
+        TabNet(
+            input_dim=input_dim,
+            output_dim=output_dim,
+            n_steps=0,
+            group_attention_matrix=group_matrix,
+        )
+
+    # Test n_independent and n_shared both zero
+    with pytest.raises(ValueError, match="n_shared and n_independent can't be both zero"):
+        TabNet(
+            input_dim=input_dim,
+            output_dim=output_dim,
+            n_independent=0,
+            n_shared=0,
+            group_attention_matrix=group_matrix,
+        )
