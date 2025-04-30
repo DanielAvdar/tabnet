@@ -1,5 +1,6 @@
 """Multitask learning utilities for TabNet."""
 
+import warnings
 from dataclasses import dataclass
 from functools import partial
 from typing import List, Optional, Tuple, Union
@@ -169,6 +170,12 @@ class TabNetMultiTaskClassifier(TabSupervisedModel):
         self.network.eval()
 
         if scipy.sparse.issparse(X):
+            # Add deprecation warning for sparse input support
+            warnings.warn(
+                "Support for scipy.sparse inputs is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             dataloader = TBDataLoader(
                 name="predict",
                 dataset=SparsePredictDataset(X),
@@ -217,6 +224,12 @@ class TabNetMultiTaskClassifier(TabSupervisedModel):
         self.network.eval()
 
         if scipy.sparse.issparse(X):
+            # Add deprecation warning for sparse input support
+            warnings.warn(
+                "Support for scipy.sparse inputs is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             dataloader = TBDataLoader(
                 name="predict",
                 dataset=SparsePredictDataset(X),

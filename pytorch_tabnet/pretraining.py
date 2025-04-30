@@ -1,5 +1,6 @@
 """Pretraining utilities for TabNet models."""
 
+import warnings
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
@@ -153,6 +154,14 @@ class TabNetPretrainer(TabModel):
         self.pin_memory = pin_memory and (self.device.type != "cpu")
         self.pretraining_ratio = pretraining_ratio
         eval_set = eval_set if eval_set else []
+
+        # Add deprecation warning for sparse input support
+        if scipy.sparse.issparse(X_train):
+            warnings.warn(
+                "Support for scipy.sparse inputs is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         if loss_fn is None:
             self.loss_fn = self._default_loss
@@ -442,6 +451,12 @@ class TabNetPretrainer(TabModel):
         self.network.eval()
 
         if scipy.sparse.issparse(X):
+            # Add deprecation warning for sparse input support
+            warnings.warn(
+                "Support for scipy.sparse inputs is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             dataloader = DataLoader(
                 SparsePredictDataset(X),
                 batch_size=self.batch_size,

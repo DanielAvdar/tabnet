@@ -120,8 +120,22 @@ class TabSupervisedModel(TabModel):
         self.augmentations = augmentations
         self.compute_importance: bool = compute_importance
 
+        # Add deprecation warning for augmentations parameter
         if self.augmentations is not None:
+            warnings.warn(
+                "The 'augmentations' parameter is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             self.augmentations._set_seed()
+
+        # Add deprecation warning for sparse input support
+        if scipy.sparse.issparse(X_train):
+            warnings.warn(
+                "Support for scipy.sparse inputs is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         eval_set = eval_set if eval_set else []
 

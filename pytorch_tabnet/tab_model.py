@@ -1,5 +1,6 @@
 """TabNet model class and training logic."""
 
+import warnings
 from dataclasses import dataclass, field
 from functools import partial
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -194,6 +195,12 @@ class TabNetClassifier(TabSupervisedModel):
         self.network.eval()
 
         if scipy.sparse.issparse(X):
+            # Add deprecation warning for sparse input support
+            warnings.warn(
+                "Support for scipy.sparse inputs is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
             dataloader: TBDataLoader = TBDataLoader(
                 name="predict",
                 dataset=SparsePredictDataset(X),
