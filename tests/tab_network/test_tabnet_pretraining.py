@@ -61,17 +61,58 @@ def test_tabnet_pretraining():
     x = torch.randint(0, 3, (batch_size, input_dim))
 
     # Update the expected return values based on the actual implementation
-    reconstructed, obf_vars, loss = tabnet_pretraining.forward(x)
+    reconstructed, embedded_x, obf_vars = tabnet_pretraining.forward(x)
 
     # The output shape may be different due to embeddings
     # Instead of checking exact shape, just verify it's a 2D tensor with batch_size samples
     assert reconstructed.shape[0] == batch_size
+    assert embedded_x.shape[0] == batch_size
     # Due to embeddings, obf_vars shape is actually larger than input_dim
     # Just check the batch dimension matches
     assert obf_vars.shape[0] == batch_size
-    assert isinstance(loss, torch.Tensor)
-    # The loss is not a scalar, but rather a tensor with shape (batch_size, feature_dim)
-    assert loss.dim() >= 1  # Just check it's a tensor with at least 1 dimension
+
+
+def test_tabnet_pretraining_eval_mode():
+    """Test TabNetPretraining in evaluation mode to cover lines 112-118."""
+    input_dim = 16
+    pretraining_ratio = 0.2
+    n_d = 8
+    n_a = 8
+    n_steps = 3
+
+    # Create an identity matrix for group_attention_matrix to avoid None errors
+    group_matrix = torch.eye(input_dim)
+
+    # Create a TabNetPretraining model
+    tabnet_pretraining = TabNetPretraining(
+        input_dim=input_dim,
+        pretraining_ratio=pretraining_ratio,
+        n_d=n_d,
+        n_a=n_a,
+        n_steps=n_steps,
+        group_attention_matrix=group_matrix,
+    )
+
+    # Set model to evaluation mode
+    tabnet_pretraining.eval()
+
+    # Run a forward pass
+    batch_size = 10
+    x = torch.rand((batch_size, input_dim))
+
+    # In eval mode, the forward path is different
+    reconstructed, embedded_x, obf_vars = tabnet_pretraining.forward(x)
+
+    # Basic assertions for eval mode
+    assert reconstructed.shape[0] == batch_size
+    assert embedded_x.shape[0] == batch_size
+    assert obf_vars.shape[0] == batch_size
+
+    # In eval mode, obfuscated_vars should be all ones
+    assert torch.all(obf_vars == 1.0)
+
+    # Reset to training mode
+    tabnet_pretraining.train()
 
 
 def test_tabnet_pretraining_no_embeddings():
@@ -92,11 +133,11 @@ def test_tabnet_pretraining_no_embeddings():
     batch_size = 10
     x = torch.rand((batch_size, input_dim))
 
-    reconstructed, obf_vars, loss = tabnet_pretraining.forward(x)
+    reconstructed, embedded_x, obf_vars = tabnet_pretraining.forward(x)
 
     assert reconstructed.shape == (batch_size, input_dim)
+    assert embedded_x.shape[0] == batch_size
     assert obf_vars.shape[0] == batch_size
-    assert isinstance(loss, torch.Tensor)
 
 
 def test_tabnet_pretraining_different_ratios():
@@ -126,10 +167,10 @@ def test_tabnet_pretraining_different_ratios():
     x = torch.rand((batch_size, input_dim))
 
     # Test with small ratio
-    reconstructed_small, obf_vars_small, loss_small = tabnet_small_ratio.forward(x)
+    reconstructed_small, embedded_small, obf_vars_small = tabnet_small_ratio.forward(x)
 
     # Test with large ratio
-    reconstructed_large, obf_vars_large, loss_large = tabnet_large_ratio.forward(x)
+    reconstructed_large, embedded_large, obf_vars_large = tabnet_large_ratio.forward(x)
 
     # Verify basic shapes are correct
     assert reconstructed_small.shape == (batch_size, input_dim)
@@ -154,11 +195,10 @@ def test_tabnet_pretraining_special_edge_cases():
     x = torch.rand((batch_size, input_dim))
 
     # Normal forward pass
-    reconstructed, obf_vars, loss = tabnet.forward(x)
+    reconstructed, embedded_x, obf_vars = tabnet.forward(x)
 
     # Check reconstruction shapes
     assert reconstructed.shape == (batch_size, input_dim)
-    assert isinstance(loss, torch.Tensor)
 
     # Create a very extreme case with almost all features obfuscated
     extreme_ratio = 0.99
@@ -168,7 +208,33 @@ def test_tabnet_pretraining_special_edge_cases():
         group_attention_matrix=group_matrix,
     )
 
-    reconstructed_extreme, obf_vars_extreme, loss_extreme = tabnet_extreme.forward(x)
+    reconstructed_extreme, embedded_extreme, obf_vars_extreme = tabnet_extreme.forward(x)
 
     # Should still work with extreme ratio
     assert reconstructed_extreme.shape == (batch_size, input_dim)
+
+
+def test_tabnet_pretraining_forward_masks():
+    """Test the forward_masks method of TabNetPretraining."""
+    input_dim = 16
+    pretraining_ratio = 0.2
+
+    # Create an identity matrix for group_attention_matrix to avoid None errors
+    group_matrix = torch.eye(input_dim)
+
+    tabnet = TabNetPretraining(
+        input_dim=input_dim,
+        pretraining_ratio=pretraining_ratio,
+        group_attention_matrix=group_matrix,
+    )
+
+    batch_size = 10
+    x = torch.rand((batch_size, input_dim))
+
+    # Test forward_masks method
+    explanation_mask, masks_dict = tabnet.forward_masks(x)
+
+    # Check basic shapes
+    assert explanation_mask.shape == (batch_size, input_dim)
+    assert isinstance(masks_dict, dict)
+    assert len(masks_dict) == tabnet.n_steps
