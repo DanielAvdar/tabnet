@@ -16,7 +16,7 @@ test:
 	uv run pytest
 
 check:
-	uvx pre-commit run --all-files
+	uv run pre-commit run --all-files
 
 
 build:
