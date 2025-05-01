@@ -1,17 +1,17 @@
 """Multitask learning utilities for TabNet."""
 
-import warnings
 from dataclasses import dataclass
 from functools import partial
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
-import scipy
+
+# import scipy
 import torch
 
 # from torch.utils.data import DataLoader
 from pytorch_tabnet.abstract_model_sub import TabSupervisedModel
-from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, TBDataLoader
+from pytorch_tabnet.data_handlers import PredictDataset, TBDataLoader
 from pytorch_tabnet.utils import check_output_dim, filter_weights, infer_multitask_output
 
 
@@ -121,9 +121,9 @@ class TabNetMultiTaskClassifier(TabSupervisedModel):
 
     def update_fit_params(
         self,
-        X_train: Union[np.ndarray, scipy.sparse.csr_matrix],
+        X_train: np.ndarray,
         y_train: np.ndarray,
-        eval_set: List[Tuple[Union[np.ndarray, scipy.sparse.csr_matrix], np.ndarray]],
+        eval_set: List[Tuple[np.ndarray, np.ndarray]],
         weights: Union[np.ndarray, None],
     ) -> None:
         """Update fit parameters for multitask classification.
@@ -152,7 +152,7 @@ class TabNetMultiTaskClassifier(TabSupervisedModel):
             weights=weights,
         )
 
-    def predict(self, X: Union[torch.Tensor, np.ndarray, scipy.sparse.csr_matrix]) -> List[np.ndarray]:
+    def predict(self, X: Union[torch.Tensor, np.ndarray]) -> List[np.ndarray]:
         """Predict the most probable class for each task.
 
         Parameters
@@ -168,26 +168,12 @@ class TabNetMultiTaskClassifier(TabSupervisedModel):
         """
         self.network.eval()
 
-        if scipy.sparse.issparse(X):
-            # Add deprecation warning for sparse input support
-            warnings.warn(
-                "Support for scipy.sparse inputs is deprecated and will be removed in a future version.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            dataloader = TBDataLoader(
-                name="predict",
-                dataset=SparsePredictDataset(X),
-                batch_size=self.batch_size,
-                predict=True,
-            )
-        else:
-            dataloader = TBDataLoader(
-                name="predict",
-                dataset=PredictDataset(X),
-                batch_size=self.batch_size,
-                predict=True,
-            )
+        dataloader = TBDataLoader(
+            name="predict",
+            dataset=PredictDataset(X),
+            batch_size=self.batch_size,
+            predict=True,
+        )
 
         results: dict = {}
         with torch.no_grad():
@@ -206,7 +192,7 @@ class TabNetMultiTaskClassifier(TabSupervisedModel):
         results_ = [np.vectorize(self.preds_mapper[task_idx].get)(task_res.astype(str)) for task_idx, task_res in enumerate(results_)]
         return results_
 
-    def predict_proba(self, X: Union[torch.Tensor, np.ndarray, scipy.sparse.csr_matrix]) -> List[np.ndarray]:
+    def predict_proba(self, X: Union[torch.Tensor, np.ndarray]) -> List[np.ndarray]:
         """Predict class probabilities for each task.
 
         Parameters
@@ -222,26 +208,12 @@ class TabNetMultiTaskClassifier(TabSupervisedModel):
         """
         self.network.eval()
 
-        if scipy.sparse.issparse(X):
-            # Add deprecation warning for sparse input support
-            warnings.warn(
-                "Support for scipy.sparse inputs is deprecated and will be removed in a future version.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            dataloader = TBDataLoader(
-                name="predict",
-                dataset=SparsePredictDataset(X),
-                batch_size=self.batch_size,
-                predict=True,
-            )
-        else:
-            dataloader = TBDataLoader(
-                name="predict",
-                dataset=PredictDataset(X),
-                batch_size=self.batch_size,
-                predict=True,
-            )
+        dataloader = TBDataLoader(
+            name="predict",
+            dataset=PredictDataset(X),
+            batch_size=self.batch_size,
+            predict=True,
+        )
 
         results: dict = {}
         for data, _, _ in dataloader:  # type: ignore

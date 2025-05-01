@@ -12,9 +12,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
-import scipy
+import scipy  # todo: replace scipy with numpy
 import torch
-from scipy.sparse import csc_matrix
+from scipy.sparse import csc_matrix  # todo: replace scipy with numpy
 from sklearn.base import BaseEstimator
 
 # from torch.utils.data import DataLoader

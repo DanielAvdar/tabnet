@@ -3,7 +3,7 @@
 from typing import List, Union
 
 import numpy as np
-import scipy
+import scipy  # todo: replace scipy with numpy
 import torch
 
 # def create_explain_matrix(
@@ -24,7 +24,7 @@ def create_explain_matrix(
     cat_emb_dim: Union[int, List[int]],
     cat_idxs: List[int],
     post_embed_dim: int,
-) -> scipy.sparse.csc_matrix:
+) -> scipy.sparse.csc_matrix:  # todo: replace scipy with numpy
     """Create a reducing matrix for summing importances from embeddings to initial indices.
 
     In order to rapidly sum importances from same embeddings to the initial index.
@@ -69,7 +69,7 @@ def create_explain_matrix(
     for i, cols in enumerate(indices_trick):
         reducing_matrix[cols, i] = 1
 
-    return scipy.sparse.csc_matrix(reducing_matrix)
+    return scipy.sparse.csc_matrix(reducing_matrix)  # todo: replace scipy with numpy
 
 
 def create_group_matrix(list_groups: List[List[int]], input_dim: int) -> torch.Tensor:

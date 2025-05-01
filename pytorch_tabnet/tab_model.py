@@ -1,17 +1,15 @@
 """TabNet model class and training logic."""
 
-import warnings
 from dataclasses import dataclass, field
 from functools import partial
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-import scipy
 import torch
 
 # from torch.utils.data import DataLoader
 from pytorch_tabnet.abstract_model_sub import TabSupervisedModel
-from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, TBDataLoader
+from pytorch_tabnet.data_handlers import PredictDataset, TBDataLoader
 from pytorch_tabnet.utils import check_output_dim, filter_weights, infer_output_dim
 
 
@@ -193,28 +191,13 @@ class TabNetClassifier(TabSupervisedModel):
         """
         self.network.eval()
 
-        if scipy.sparse.issparse(X):
-            # Add deprecation warning for sparse input support
-            warnings.warn(
-                "Support for scipy.sparse inputs is deprecated and will be removed in a future version.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            dataloader: TBDataLoader = TBDataLoader(
-                name="predict",
-                dataset=SparsePredictDataset(X),
-                batch_size=self.batch_size,
-                # shuffle=False,
-                predict=True,
-            )
-        else:
-            dataloader = TBDataLoader(
-                name="predict",
-                dataset=PredictDataset(X),
-                batch_size=self.batch_size,
-                # shuffle=False,
-                predict=True,
-            )
+        dataloader = TBDataLoader(
+            name="predict",
+            dataset=PredictDataset(X),
+            batch_size=self.batch_size,
+            # shuffle=False,
+            predict=True,
+        )
 
         results: List[np.ndarray] = []
         with torch.no_grad():

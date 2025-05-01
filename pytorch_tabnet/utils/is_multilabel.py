@@ -3,8 +3,8 @@
 from typing import Union
 
 import numpy as np
-from scipy.sparse import dok_matrix, issparse, lil_matrix
-from scipy.sparse.base import spmatrix
+from scipy.sparse import dok_matrix, issparse, lil_matrix  # todo: replace scipy with numpy
+from scipy.sparse.base import spmatrix  # todo: replace scipy with numpy
 
 from pytorch_tabnet.utils._is_integral_float import _is_integral_float
 
