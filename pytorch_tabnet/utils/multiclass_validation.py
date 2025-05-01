@@ -4,8 +4,8 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
-from scipy import sparse as sp
-from scipy.sparse.base import spmatrix
+from scipy import sparse as sp  # todo: replace scipy with numpy
+from scipy.sparse.base import spmatrix  # todo: replace scipy with numpy
 
 from pytorch_tabnet.utils._assert_all_finite import _assert_all_finite
 from pytorch_tabnet.utils.label_processing import unique_labels

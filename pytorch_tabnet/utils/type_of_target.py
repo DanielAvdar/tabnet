@@ -3,7 +3,7 @@
 from typing import Sequence, Union
 
 import numpy as np
-from scipy.sparse.base import spmatrix
+from scipy.sparse.base import spmatrix  # todo: replace scipy with numpy
 
 from pytorch_tabnet.utils._assert_all_finite import _assert_all_finite
 from pytorch_tabnet.utils.is_multilabel import is_multilabel

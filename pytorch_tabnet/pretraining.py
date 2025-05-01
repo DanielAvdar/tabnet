@@ -1,18 +1,16 @@
 """Pretraining utilities for TabNet models."""
 
-import warnings
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-import scipy
 import torch
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader
 
 from pytorch_tabnet import tab_network
 from pytorch_tabnet.abstract_model import TabModel
-from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, create_dataloaders_pt, validate_eval_set
+from pytorch_tabnet.data_handlers import PredictDataset, create_dataloaders_pt, validate_eval_set
 from pytorch_tabnet.metrics import (
     UnsupervisedLoss,
     UnsupMetricContainer,
@@ -156,12 +154,6 @@ class TabNetPretrainer(TabModel):
         eval_set = eval_set if eval_set else []
 
         # Add deprecation warning for sparse input support
-        if scipy.sparse.issparse(X_train):
-            warnings.warn(
-                "Support for scipy.sparse inputs is deprecated and will be removed in a future version.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
 
         if loss_fn is None:
             self.loss_fn = self._default_loss
@@ -434,7 +426,7 @@ class TabNetPretrainer(TabModel):
         obf_vars = torch.vstack(list_obfuscation)
         return output, embedded_x, obf_vars
 
-    def predict(self, X: Union[np.ndarray, scipy.sparse.csr_matrix]) -> tuple[np.ndarray, np.ndarray]:
+    def predict(self, X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Predict outputs and embeddings for a batch.
 
         Parameters
@@ -450,24 +442,11 @@ class TabNetPretrainer(TabModel):
         """
         self.network.eval()
 
-        if scipy.sparse.issparse(X):
-            # Add deprecation warning for sparse input support
-            warnings.warn(
-                "Support for scipy.sparse inputs is deprecated and will be removed in a future version.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            dataloader = DataLoader(
-                SparsePredictDataset(X),
-                batch_size=self.batch_size,
-                shuffle=False,
-            )
-        else:
-            dataloader = DataLoader(
-                PredictDataset(X),
-                batch_size=self.batch_size,
-                shuffle=False,
-            )
+        dataloader = DataLoader(
+            PredictDataset(X),
+            batch_size=self.batch_size,
+            shuffle=False,
+        )
 
         results = []
         embedded_res = []
