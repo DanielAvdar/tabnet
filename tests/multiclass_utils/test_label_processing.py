@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pytorch_tabnet.multiclass_utils.label_processing import unique_labels
+from pytorch_tabnet.multiclass_utils.label_processing import _unique_multiclass, unique_labels
 
 
 def test_unique_labels_single_array():
@@ -65,7 +65,6 @@ def test_unique_labels_multilabel_indicator():
 
 def test_unique_multiclass_non_array_like():
     """Test _unique_multiclass with object that doesn't have __array__ attribute."""
-    from pytorch_tabnet.multiclass_utils.label_processing import _unique_multiclass
 
     # Using a simple set as input instead of a numpy array
     y = {1, 2, 3}  # set doesn't have __array__ attribute
