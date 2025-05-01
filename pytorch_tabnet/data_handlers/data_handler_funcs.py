@@ -2,7 +2,6 @@
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
-import scipy
 import torch
 from torch.utils.data import DataLoader, WeightedRandomSampler
 
@@ -10,8 +9,6 @@ from pytorch_tabnet.utils import check_input
 
 from .data_types import X_type
 from .predict_dataset import PredictDataset
-from .sparse_predict_dataset import SparsePredictDataset
-from .sparse_torch_dataset import SparseTorchDataset
 from .tb_dataloader import TBDataLoader
 from .torch_dataset import TorchDataset
 
@@ -67,56 +64,33 @@ def create_dataloaders(
     if isinstance(weights, np.ndarray):
         t_weights = torch.from_numpy(weights)
 
-    if scipy.sparse.issparse(X_train):
-        train_dataloader = TBDataLoader(
-            name="train-data",
-            dataset=SparseTorchDataset(X_train.astype(np.float32), y_train),
-            batch_size=batch_size,
-            weights=t_weights,
-            drop_last=drop_last,
-            pin_memory=pin_memory,
-        )
-    else:
-        train_dataloader = TBDataLoader(
-            name="train-data",
-            dataset=TorchDataset(X_train.astype(np.float32), y_train),
-            batch_size=batch_size,
-            weights=t_weights,
-            # sampler=sampler,
-            # shuffle=need_shuffle,
-            # num_workers=num_workers,
-            drop_last=drop_last,
-            pin_memory=pin_memory,
-        )
+    train_dataloader = TBDataLoader(
+        name="train-data",
+        dataset=TorchDataset(X_train.astype(np.float32), y_train),
+        batch_size=batch_size,
+        weights=t_weights,
+        # sampler=sampler,
+        # shuffle=need_shuffle,
+        # num_workers=num_workers,
+        drop_last=drop_last,
+        pin_memory=pin_memory,
+    )
 
     valid_dataloaders = []
     for X, y in eval_set:
         v_t_weights = None
 
-        if scipy.sparse.issparse(X):
-            valid_dataloaders.append(
-                TBDataLoader(
-                    name="val-data",
-                    dataset=SparseTorchDataset(X.astype(np.float32), y),
-                    batch_size=batch_size,
-                    weights=v_t_weights,
-                    pin_memory=pin_memory,
-                    predict=True,
-                    # all_at_once=True,
-                )
+        valid_dataloaders.append(
+            TBDataLoader(
+                name="val-data",
+                dataset=TorchDataset(X.astype(np.float32), y),
+                batch_size=batch_size,
+                weights=v_t_weights,
+                pin_memory=pin_memory,
+                predict=True,
+                # all_at_once=True,
             )
-        else:
-            valid_dataloaders.append(
-                TBDataLoader(
-                    name="val-data",
-                    dataset=TorchDataset(X.astype(np.float32), y),
-                    batch_size=batch_size,
-                    weights=v_t_weights,
-                    pin_memory=pin_memory,
-                    predict=True,
-                    # all_at_once=True,
-                )
-            )
+        )
 
     return train_dataloader, valid_dataloaders
 
@@ -174,8 +148,8 @@ def create_class_weights(y_train: torch.Tensor, base_size: float = 1.0) -> torch
 
 
 def create_dataloaders_pt(
-    X_train: Union[scipy.sparse.csr_matrix, np.ndarray],
-    eval_set: List[Union[scipy.sparse.csr_matrix, np.ndarray]],
+    X_train: np.ndarray,
+    eval_set: np.ndarray,
     weights: Union[int, Dict[Any, Any], Iterable[Any]],
     batch_size: int,
     num_workers: int,
@@ -186,7 +160,7 @@ def create_dataloaders_pt(
 
     Parameters
     ----------
-    X_train : np.ndarray or scipy.sparse.csr_matrix
+    X_train : np.ndarray
         Training data
     eval_set : list of np.array (for Xs and ys) or scipy.sparse.csr_matrix (for Xs)
         List of eval sets
@@ -216,63 +190,34 @@ def create_dataloaders_pt(
     """
     # _need_shuffle, _sampler = create_sampler(weights, X_train)
 
-    if scipy.sparse.issparse(X_train):
-        train_dataloader = TBDataLoader(
-            name="train-data",
-            dataset=SparsePredictDataset(X_train),
-            batch_size=batch_size,
-            # sampler=sampler,
-            # shuffle=need_shuffle,
-            # num_workers=num_workers,
-            drop_last=drop_last,
-            pin_memory=pin_memory,
-            pre_training=True,
-        )
-    else:
-        train_dataloader = TBDataLoader(
-            name="train-data",
-            dataset=PredictDataset(X_train),
-            batch_size=batch_size,
-            # sampler=sampler,
-            # shuffle=need_shuffle,
-            # num_workers=num_workers,
-            drop_last=drop_last,
-            pin_memory=pin_memory,
-            pre_training=True,
-        )
+    train_dataloader = TBDataLoader(
+        name="train-data",
+        dataset=PredictDataset(X_train),
+        batch_size=batch_size,
+        # sampler=sampler,
+        # shuffle=need_shuffle,
+        # num_workers=num_workers,
+        drop_last=drop_last,
+        pin_memory=pin_memory,
+        pre_training=True,
+    )
 
     valid_dataloaders = []
     for X in eval_set:
-        if scipy.sparse.issparse(X):
-            valid_dataloaders.append(
-                TBDataLoader(
-                    name="val-data",
-                    dataset=SparsePredictDataset(X),
-                    batch_size=batch_size,
-                    # sampler=sampler,
-                    # shuffle=need_shuffle,
-                    # num_workers=num_workers,
-                    drop_last=drop_last,
-                    pin_memory=pin_memory,
-                    predict=True,
-                    # all_at_once=True,
-                )
+        valid_dataloaders.append(
+            TBDataLoader(
+                name="val-data",
+                dataset=PredictDataset(X),
+                batch_size=batch_size,
+                # sampler=sampler,
+                # shuffle=need_shuffle,
+                # num_workers=num_workers,
+                drop_last=drop_last,
+                pin_memory=pin_memory,
+                predict=True,
+                # all_at_once=True,
             )
-        else:
-            valid_dataloaders.append(
-                TBDataLoader(
-                    name="val-data",
-                    dataset=PredictDataset(X),
-                    batch_size=batch_size,
-                    # sampler=sampler,
-                    # shuffle=need_shuffle,
-                    # num_workers=num_workers,
-                    drop_last=drop_last,
-                    pin_memory=pin_memory,
-                    predict=True,
-                    # all_at_once=True,
-                )
-            )
+        )
 
     return train_dataloader, valid_dataloaders
 

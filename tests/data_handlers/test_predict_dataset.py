@@ -33,7 +33,7 @@ class TestPredictDataset(unittest.TestCase):
         """Test initialization with SciPy sparse matrix."""
         # Create a sparse matrix
         x_dense = np.array([[1, 0, 0], [0, 2, 0], [0, 0, 3]], dtype=np.float32)
-        x_sparse = scipy.sparse.csr_matrix(x_dense)
+        x_sparse = scipy.sparse.csr_matrix(x_dense).toarray()
 
         # Initialize the dataset
         dataset = PredictDataset(x_sparse)
