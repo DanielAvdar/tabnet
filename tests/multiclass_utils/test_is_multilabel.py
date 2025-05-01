@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.sparse as sp
 
-from pytorch_tabnet.multiclass_utils.is_multilabel import is_multilabel
+from pytorch_tabnet.utils.is_multilabel import is_multilabel
 
 
 def test_is_multilabel_1d_array():

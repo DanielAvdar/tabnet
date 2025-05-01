@@ -1,6 +1,6 @@
 import numpy as np
 
-from pytorch_tabnet.multiclass_utils._is_integral_float import _is_integral_float
+from pytorch_tabnet.utils._is_integral_float import _is_integral_float
 
 
 def test_is_integral_float_true():

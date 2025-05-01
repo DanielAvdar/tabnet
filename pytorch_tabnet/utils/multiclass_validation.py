@@ -7,22 +7,12 @@ import pandas as pd
 from scipy import sparse as sp
 from scipy.sparse.base import spmatrix
 
-from ._assert_all_finite import _assert_all_finite
-from .label_processing import unique_labels
-
-# def _assert_all_finite(X: np.ndarray, allow_nan: bool = False) -> None:
+from pytorch_tabnet.utils._assert_all_finite import _assert_all_finite
+from pytorch_tabnet.utils.label_processing import unique_labels
 
 
-# def assert_all_finite(X: spmatrix, allow_nan: bool = False) -> None:
-
-
-# def check_classification_targets(y: np.ndarray) -> None:
-
-
-# def check_unique_type(y: np.ndarray) -> None:
-
-
-# def check_output_dim(labels: np.ndarray, y: np.ndarray) -> None:
+def _get_sparse_data(X: Union[np.ndarray, spmatrix]) -> Union[np.ndarray, spmatrix]:
+    return X.data if sp.issparse(X) else X
 
 
 def assert_all_finite(X: Union[np.ndarray, spmatrix], allow_nan: bool = False) -> None:
@@ -34,7 +24,15 @@ def assert_all_finite(X: Union[np.ndarray, spmatrix], allow_nan: bool = False) -
     allow_nan : bool
 
     """
-    _assert_all_finite(X.data if sp.issparse(X) else X, allow_nan)
+    _assert_all_finite(_get_sparse_data(X), allow_nan)
+
+
+def _get_target_types(y: np.ndarray) -> np.ndarray:
+    return pd.Series(y).map(type).unique()
+
+
+def _has_consistent_types(types: np.ndarray) -> bool:
+    return len(types) == 1
 
 
 def check_unique_type(y: np.ndarray) -> None:
@@ -51,9 +49,13 @@ def check_unique_type(y: np.ndarray) -> None:
         If values in y have different types.
 
     """
-    target_types = pd.Series(y).map(type).unique()
-    if len(target_types) != 1:
+    target_types = _get_target_types(y)
+    if not _has_consistent_types(target_types):
         raise TypeError(f"Values on the target must have the same type. Target has types {target_types}")
+
+
+def _are_all_labels_valid(valid_labels: np.ndarray, labels: np.ndarray) -> bool:
+    return set(valid_labels).issubset(set(labels))
 
 
 def check_output_dim(labels: np.ndarray, y: np.ndarray) -> None:
@@ -75,7 +77,7 @@ def check_output_dim(labels: np.ndarray, y: np.ndarray) -> None:
     if y is not None:
         check_unique_type(y)
         valid_labels = unique_labels(y)
-        if not set(valid_labels).issubset(set(labels)):
+        if not _are_all_labels_valid(valid_labels, labels):
             raise ValueError(
                 f"""Valid set -- {set(valid_labels)} --\n" +
                 "contains unkown targets from training --\n" +

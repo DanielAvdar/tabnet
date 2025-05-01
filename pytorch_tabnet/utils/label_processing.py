@@ -1,11 +1,11 @@
-"""Label processing utilities for multiclass classification in TabNet."""
+"""Label processing utilities for TabNet."""
 
 from itertools import chain
-from typing import List
+from typing import Callable, List, Set
 
 import numpy as np
 
-from .type_of_target import type_of_target
+from pytorch_tabnet.utils.type_of_target import type_of_target
 
 
 def _unique_multiclass(y: np.ndarray) -> np.ndarray:
@@ -29,6 +29,39 @@ _FN_UNIQUE_LABELS = {
     "multiclass": _unique_multiclass,
     "multilabel-indicator": _unique_indicator,
 }
+
+
+def _check_no_arguments(ys: List[np.ndarray]) -> None:
+    if not ys:
+        raise ValueError("No argument has been passed.")
+
+
+def _consolidate_label_types(ys_types: Set[str]) -> Set[str]:
+    if ys_types == {"binary", "multiclass"}:
+        return {"multiclass"}
+    return ys_types
+
+
+def _validate_label_types(ys_types: Set[str]) -> str:
+    if len(ys_types) > 1:
+        raise ValueError("Mix type of y not allowed, got types %s" % ys_types)
+    return ys_types.pop()
+
+
+def _get_unique_labels_function(label_type: str) -> Callable[[np.ndarray], np.ndarray]:
+    _unique_labels = _FN_UNIQUE_LABELS.get(label_type, None)
+    if not _unique_labels:
+        raise ValueError("Unknown label type: %s" % repr(label_type))
+    return _unique_labels
+
+
+def _extract_all_labels(ys: List[np.ndarray], unique_labels_fn: Callable[[np.ndarray], np.ndarray]) -> Set:
+    return set(chain.from_iterable(unique_labels_fn(y) for y in ys))
+
+
+def _validate_label_input_types(ys_labels: Set) -> None:
+    if len(set(isinstance(label, str) for label in ys_labels)) > 1:
+        raise ValueError("Mix of label input types (string and number)")
 
 
 def unique_labels(*ys: List[np.ndarray]) -> np.ndarray:
@@ -63,28 +96,20 @@ def unique_labels(*ys: List[np.ndarray]) -> np.ndarray:
     array([ 1,  2,  5, 10, 11])
 
     """
-    if not ys:
-        raise ValueError("No argument has been passed.")
+    _check_no_arguments(list(ys))
+
     # Check that we don't mix label format
-
     ys_types = set(type_of_target(x) for x in ys)
-    if ys_types == {"binary", "multiclass"}:
-        ys_types = {"multiclass"}
+    ys_types = _consolidate_label_types(ys_types)
 
-    if len(ys_types) > 1:
-        raise ValueError("Mix type of y not allowed, got types %s" % ys_types)
-
-    label_type = ys_types.pop()
+    label_type = _validate_label_types(ys_types)
 
     # Get the unique set of labels
-    _unique_labels = _FN_UNIQUE_LABELS.get(label_type, None)
-    if not _unique_labels:
-        raise ValueError("Unknown label type: %s" % repr(ys))
+    unique_labels_fn = _get_unique_labels_function(label_type)
 
-    ys_labels = set(chain.from_iterable(_unique_labels(y) for y in ys))
+    ys_labels = _extract_all_labels(list(ys), unique_labels_fn)
 
     # Check that we don't mix string type with number type
-    if len(set(isinstance(label, str) for label in ys_labels)) > 1:
-        raise ValueError("Mix of label input types (string and number)")
+    _validate_label_input_types(ys_labels)
 
     return np.array(sorted(ys_labels))

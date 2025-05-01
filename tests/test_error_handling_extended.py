@@ -3,15 +3,14 @@ import unittest
 import numpy as np
 from scipy.sparse import csr_matrix
 
-from pytorch_tabnet.multiclass_utils import infer_output_dim
-from pytorch_tabnet.multiclass_utils.is_multilabel import is_multilabel
-from pytorch_tabnet.multiclass_utils.label_processing import unique_labels
-from pytorch_tabnet.multiclass_utils.type_detection import check_classification_targets
-from pytorch_tabnet.multiclass_utils.type_of_target import type_of_target
-from pytorch_tabnet.multiclass_utils.validation import assert_all_finite
 from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
 from pytorch_tabnet.tab_model import TabNetClassifier
-from pytorch_tabnet.utils import check_embedding_parameters, check_input, filter_weights
+from pytorch_tabnet.utils import check_embedding_parameters, check_input, filter_weights, infer_output_dim
+from pytorch_tabnet.utils.is_multilabel import is_multilabel
+from pytorch_tabnet.utils.label_processing import unique_labels
+from pytorch_tabnet.utils.multiclass_validation import assert_all_finite
+from pytorch_tabnet.utils.type_detection import check_classification_targets
+from pytorch_tabnet.utils.type_of_target import type_of_target
 
 
 class TestErrorHandling(unittest.TestCase):
@@ -59,7 +58,7 @@ class TestErrorHandling(unittest.TestCase):
             # batch_size must be > 0
             model.fit(X, y, batch_size=0)
 
-    def test_multiclass_utils_errors(self):
+    def test_utils_errors(self):
         # Testing infer_output_dim function with invalid input
 
         # Test with None input
