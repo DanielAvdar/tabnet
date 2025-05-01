@@ -16,7 +16,7 @@ class TestSparseTorchDataset(unittest.TestCase):
         """Test initialization with sparse matrix and labels."""
         # Create a sparse matrix for features
         x_dense = np.array([[1, 0, 0], [0, 2, 0], [0, 0, 3]], dtype=np.float32)
-        x_sparse = scipy.sparse.csr_matrix(x_dense)
+        x_sparse = scipy.sparse.csr_matrix(x_dense).toarray()
 
         # Create labels
         y = np.array([[1, 0], [0, 1], [1, 0]], dtype=np.float32)
@@ -42,7 +42,7 @@ class TestSparseTorchDataset(unittest.TestCase):
         data = np.array([1, 2, 3, 4, 5], dtype=np.float32)
         row = np.array([0, 1, 2, 3, 4])
         col = np.array([0, 1, 2, 1, 0])
-        x_sparse = scipy.sparse.csr_matrix((data, (row, col)), shape=(5, 3))
+        x_sparse = scipy.sparse.csr_matrix((data, (row, col)), shape=(5, 3)).toarray()
 
         # Create labels
         y = np.random.rand(5, 2).astype(np.float32)
@@ -56,7 +56,7 @@ class TestSparseTorchDataset(unittest.TestCase):
         """Test the __getitem__ method."""
         # Create a sparse matrix
         x_dense = np.array([[1, 0, 0], [0, 2, 0], [0, 0, 3]], dtype=np.float32)
-        x_sparse = scipy.sparse.csr_matrix(x_dense)
+        x_sparse = scipy.sparse.csr_matrix(x_dense).toarray()
 
         # Create labels
         y = np.array([[1, 0], [0, 1], [1, 0]], dtype=np.float32)

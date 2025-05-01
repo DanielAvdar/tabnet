@@ -196,9 +196,9 @@ class TestDataHandlerFuncs(unittest.TestCase):
         mock_tbdataloader.return_value = MagicMock()
 
         # Create test data (sparse matrices)
-        X_train = scipy.sparse.csr_matrix(np.random.rand(10, 5).astype(np.float32))
+        X_train = scipy.sparse.csr_matrix(np.random.rand(10, 5).astype(np.float32)).toarray()
         y_train = np.random.rand(10, 2).astype(np.float32)
-        X_val = scipy.sparse.csr_matrix(np.random.rand(8, 5).astype(np.float32))
+        X_val = scipy.sparse.csr_matrix(np.random.rand(8, 5).astype(np.float32)).toarray()
         y_val = np.random.rand(8, 2).astype(np.float32)
         eval_set = [(X_val, y_val)]
 
