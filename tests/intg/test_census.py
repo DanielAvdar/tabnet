@@ -8,7 +8,7 @@ def test_census():
     import numpy as np
     np.random.seed(0)
 
-    import scipy
+    # import scipy
 
     import wget
     from pathlib import Path
@@ -96,13 +96,13 @@ def test_census():
     X_test = train[features].values[test_indices]
     y_test = train[target].values[test_indices]
 
-    max_epochs = 4
+    max_epochs = 6
 
     from pytorch_tabnet.augmentations import ClassificationSMOTE
     aug = ClassificationSMOTE(p=0.2)
 
-    sparse_X_train = scipy.sparse.csr_matrix(X_train)
-    sparse_X_valid = scipy.sparse.csr_matrix(X_valid)
+    sparse_X_train = X_train
+    sparse_X_valid = X_valid
 
     clf.fit(
         X_train=sparse_X_train, y_train=y_train,
@@ -130,7 +130,7 @@ def test_census():
             num_workers=0,
             weights=1,
             drop_last=False,
-            augmentations=aug,
+            # augmentations=aug,
             compute_importance=False
         )
         save_history.append(clf.history["valid_auc"])
