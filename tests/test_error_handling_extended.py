@@ -8,10 +8,10 @@ from pytorch_tabnet.multiclass_utils.is_multilabel import is_multilabel
 from pytorch_tabnet.multiclass_utils.label_processing import unique_labels
 from pytorch_tabnet.multiclass_utils.type_detection import check_classification_targets
 from pytorch_tabnet.multiclass_utils.type_of_target import type_of_target
-from pytorch_tabnet.multiclass_utils.validation import assert_all_finite
 from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
 from pytorch_tabnet.tab_model import TabNetClassifier
 from pytorch_tabnet.utils import check_embedding_parameters, check_input, filter_weights
+from pytorch_tabnet.utils.validation_multi import assert_all_finite
 
 
 class TestErrorHandling(unittest.TestCase):
