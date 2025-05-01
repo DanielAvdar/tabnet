@@ -31,16 +31,16 @@ def test_assert_all_finite_numpy():
 def test_assert_all_finite_sparse():
     """Test assert_all_finite with sparse matrices."""
     # Normal case - should not raise
-    X = sp.csr_matrix([[1.0, 2.0], [3.0, 4.0]])
+    X = sp.csr_matrix([[1.0, 2.0], [3.0, 4.0]]).toarray()
     assert_all_finite(X)
 
     # With NaN - should raise
-    X = sp.csr_matrix([[1.0, np.nan], [3.0, 4.0]])
+    X = sp.csr_matrix([[1.0, np.nan], [3.0, 4.0]]).toarray()
     with pytest.raises(ValueError, match="Input contains NaN, infinity"):
         assert_all_finite(X)
 
     # With infinity - should raise
-    X = sp.csr_matrix([[1.0, np.inf], [3.0, 4.0]])
+    X = sp.csr_matrix([[1.0, np.inf], [3.0, 4.0]]).toarray()
     with pytest.raises(ValueError, match="Input contains NaN, infinity"):
         assert_all_finite(X)
 

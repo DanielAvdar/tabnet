@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-from scipy import sparse
 
 from pytorch_tabnet.utils.type_of_target import type_of_target
 
@@ -66,9 +65,6 @@ def test_type_of_target_multilabel():
     """Test multilabel-indicator target types detection."""
     y = np.array([[0, 1], [1, 1]])
     assert type_of_target(y) == "multilabel-indicator"
-
-    y_sparse = sparse.csr_matrix(y)
-    assert type_of_target(y_sparse) == "multilabel-indicator"
 
 
 def test_type_of_target_unknown():

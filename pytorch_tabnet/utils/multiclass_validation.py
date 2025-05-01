@@ -1,21 +1,17 @@
 """Validation utilities for multiclass classification in TabNet."""
 
-from typing import Union
-
 import numpy as np
 import pandas as pd
-from scipy import sparse as sp  # todo: replace scipy with numpy
-from scipy.sparse.base import spmatrix  # todo: replace scipy with numpy
 
 from pytorch_tabnet.utils._assert_all_finite import _assert_all_finite
 from pytorch_tabnet.utils.label_processing import unique_labels
 
 
-def _get_sparse_data(X: Union[np.ndarray, spmatrix]) -> Union[np.ndarray, spmatrix]:
-    return X.data if sp.issparse(X) else X
+def _get_sparse_data(X: np.ndarray) -> np.ndarray:
+    return X
 
 
-def assert_all_finite(X: Union[np.ndarray, spmatrix], allow_nan: bool = False) -> None:
+def assert_all_finite(X: np.ndarray, allow_nan: bool = False) -> None:
     """Throw a ValueError if X contains NaN or infinity.
 
     Parameters
