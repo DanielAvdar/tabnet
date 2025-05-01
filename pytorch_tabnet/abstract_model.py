@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
-import scipy  # todo: replace scipy with numpy
 import torch
 from scipy.sparse import csc_matrix  # todo: replace scipy with numpy
 from sklearn.base import BaseEstimator
@@ -25,7 +24,7 @@ from pytorch_tabnet.callbacks import (
     History,
     LRSchedulerCallback,
 )
-from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, TBDataLoader
+from pytorch_tabnet.data_handlers import PredictDataset, TBDataLoader
 from pytorch_tabnet.utils import (
     ComplexEncoder,
     check_embedding_parameters,
@@ -125,31 +124,32 @@ class TabModel(BaseEstimator):
 
         """
         self.network.eval()
+        device = self.device
+        network = self.network
+        reducing_matrix = self.reducing_matrix
+        batch_size = self.batch_size
 
-        if scipy.sparse.issparse(X):
-            dataloader = TBDataLoader(
-                name="predict",
-                dataset=SparsePredictDataset(X),
-                batch_size=self.batch_size,
-                predict=True,
-            )
-        else:
-            dataloader = TBDataLoader(
-                name="predict",
-                dataset=PredictDataset(X),
-                batch_size=self.batch_size,
-                predict=True,
-            )
+        res_explain, res_masks = self._explain_v1(X, batch_size, device, network, normalize, reducing_matrix)
 
+        return res_explain, res_masks
+
+    @staticmethod
+    def _explain_v1(X, batch_size, device, network, normalize, reducing_matrix):
+        dataloader = TBDataLoader(
+            name="predict",
+            dataset=PredictDataset(X),
+            batch_size=batch_size,
+            predict=True,
+        )
         res_explain = []
         with torch.no_grad():
             for batch_nb, (data, _, _) in enumerate(dataloader):  # type: ignore
-                data = data.to(self.device, non_blocking=True).float()  # type: ignore
+                data = data.to(device, non_blocking=True).float()  # type: ignore
 
-                M_explain, masks = self.network.forward_masks(data)
+                M_explain, masks = network.forward_masks(data)
                 for key, value in masks.items():
-                    masks[key] = csc_matrix.dot(value.cpu().detach().numpy(), self.reducing_matrix)
-                original_feat_explain = csc_matrix.dot(M_explain.cpu().detach().numpy(), self.reducing_matrix)
+                    masks[key] = csc_matrix.dot(value.cpu().detach().numpy(), reducing_matrix)
+                original_feat_explain = csc_matrix.dot(M_explain.cpu().detach().numpy(), reducing_matrix)
                 res_explain.append(original_feat_explain)
 
                 if batch_nb == 0:
@@ -157,12 +157,9 @@ class TabModel(BaseEstimator):
                 else:
                     for key, value in masks.items():
                         res_masks[key] = np.vstack([res_masks[key], value])
-
         res_explain = np.vstack(res_explain)
-
         if normalize:
             res_explain /= np.sum(res_explain, axis=1)[:, None]
-
         return res_explain, res_masks
 
     def load_weights_from_unsupervised(self, unsupervised_model: "TabModel") -> None:
