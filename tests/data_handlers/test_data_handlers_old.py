@@ -24,10 +24,10 @@ def sample_data():
 
 @pytest.fixture
 def sparse_sample_data():
-    X_train = csr_matrix(np.random.rand(100, 20).astype(np.float32))
+    X_train = csr_matrix(np.random.rand(100, 20).astype(np.float32)).toarray()
     y_train = np.random.randint(0, 2, size=100).astype(np.float32)
     eval_set = [
-        (csr_matrix(np.random.rand(20, 20).astype(np.float32)), np.random.randint(0, 2, size=20).astype(np.float32)),
+        (csr_matrix(np.random.rand(20, 20).astype(np.float32)).toarray(), np.random.randint(0, 2, size=20).astype(np.float32)),
     ]
     return X_train, y_train, eval_set
 
@@ -84,15 +84,15 @@ def test_create_dataloaders_sparse_data(sparse_sample_data):
         ),
         (
             np.random.rand(100),
-            csr_matrix(np.random.rand(100, 20).astype(np.float32)),
+            csr_matrix(np.random.rand(100, 20).astype(np.float32)).toarray(),
             np.random.randint(0, 2, size=100).astype(np.float32),
-            [(csr_matrix(np.random.rand(20, 20).astype(np.float32)), np.random.randint(0, 2, size=20).astype(np.float32))],
+            [(csr_matrix(np.random.rand(20, 20).astype(np.float32)).toarray(), np.random.randint(0, 2, size=20).astype(np.float32))],
         ),
         (
             1,
-            csr_matrix(np.random.rand(100, 20).astype(np.float32)),
+            csr_matrix(np.random.rand(100, 20).astype(np.float32)).toarray(),
             np.random.randint(0, 2, size=100),
-            [(csr_matrix(np.random.rand(20, 20).astype(np.float32)), np.random.randint(0, 2, size=20))],
+            [(csr_matrix(np.random.rand(20, 20).astype(np.float32)).toarray(), np.random.randint(0, 2, size=20))],
         ),
         (
             1,
