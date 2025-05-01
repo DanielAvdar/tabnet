@@ -325,8 +325,8 @@ class TestDataHandlerFuncs(unittest.TestCase):
         mock_tbdataloader.return_value = MagicMock()
 
         # Create test data (sparse matrices)
-        X_train = scipy.sparse.csr_matrix(np.random.rand(10, 5))
-        X_val = scipy.sparse.csr_matrix(np.random.rand(8, 5))
+        X_train = scipy.sparse.csr_matrix(np.random.rand(10, 5)).toarray()
+        X_val = scipy.sparse.csr_matrix(np.random.rand(8, 5)).toarray()
         eval_set = [X_val]
 
         # Call create_dataloaders_pt
