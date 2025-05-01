@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pytorch_tabnet.multiclass_utils.type_detection import check_classification_targets
+from pytorch_tabnet.utils.type_detection import check_classification_targets
 
 
 def test_check_classification_targets_binary():

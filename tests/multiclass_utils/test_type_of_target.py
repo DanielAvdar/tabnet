@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from scipy import sparse
 
-from pytorch_tabnet.multiclass_utils.type_of_target import type_of_target
+from pytorch_tabnet.utils.type_of_target import type_of_target
 
 
 def test_type_of_target_binary():
@@ -279,7 +279,7 @@ def test_assert_all_finite_direct_replacement():
     """A direct test that replaces line 22 in _assert_all_finite.py with instrumentation."""
     # Import the module directly to modify it
 
-    import pytorch_tabnet.multiclass_utils._assert_all_finite as module
+    import pytorch_tabnet.utils._assert_all_finite as module
 
     # Save the original function for restoration
     original_fn = module._assert_all_finite

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pytorch_tabnet.multiclass_utils.dimension import infer_multitask_output, infer_output_dim
+from pytorch_tabnet.utils.dimension import infer_multitask_output, infer_output_dim
 
 
 def test_infer_output_dim_binary():

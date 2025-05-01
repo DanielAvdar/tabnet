@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pytorch_tabnet.multiclass_utils._assert_all_finite import _assert_all_finite
+from pytorch_tabnet.utils._assert_all_finite import _assert_all_finite
 
 
 def test_assert_all_finite_normal_float():
@@ -160,7 +160,7 @@ def test_assert_all_finite_direct_call():
     # This test is specifically designed to cover line 22
     import sys
 
-    from pytorch_tabnet.multiclass_utils._assert_all_finite import _assert_all_finite
+    from pytorch_tabnet.utils._assert_all_finite import _assert_all_finite
 
     # Create a safe test object array that will work with np.isnan
     X = np.array([1.0, 2.0, 3.0], dtype=object)

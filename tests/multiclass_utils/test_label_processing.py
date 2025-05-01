@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pytorch_tabnet.multiclass_utils.label_processing import _unique_multiclass, unique_labels
+from pytorch_tabnet.utils.label_processing import _unique_multiclass, unique_labels
 
 
 def test_unique_labels_single_array():
