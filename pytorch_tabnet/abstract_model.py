@@ -134,7 +134,14 @@ class TabModel(BaseEstimator):
         return res_explain, res_masks
 
     @staticmethod
-    def _explain_v1(X, batch_size, device, network, normalize, reducing_matrix):
+    def _explain_v1(
+        X: Union[np.ndarray, torch.Tensor],
+        batch_size: int,
+        device: torch.device,
+        network: torch.nn.Module,
+        normalize: bool,
+        reducing_matrix: csc_matrix,
+    ) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
         dataloader = TBDataLoader(
             name="predict",
             dataset=PredictDataset(X),
