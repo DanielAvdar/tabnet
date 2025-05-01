@@ -7,6 +7,65 @@ from pytorch_tabnet.multiclass_utils._assert_all_finite import _assert_all_finit
 from pytorch_tabnet.multiclass_utils.is_multilabel import is_multilabel
 
 
+def _is_valid_input_type(y: Union[np.ndarray, spmatrix]) -> bool:
+    return (isinstance(y, (Sequence, spmatrix)) or hasattr(y, "__array__")) and not isinstance(y, str)
+
+
+def _is_sparse_series(y: Union[np.ndarray, spmatrix]) -> bool:
+    return y.__class__.__name__ == "SparseSeries"
+
+
+def _is_legacy_multilabel_format(y: Union[np.ndarray, spmatrix]) -> bool:
+    try:
+        if not hasattr(y[0], "__array__") and isinstance(y[0], Sequence) and not isinstance(y[0], str):
+            return True
+    except IndexError:
+        pass
+    return False
+
+
+def _is_invalid_dimension(y: np.ndarray) -> bool:
+    return y.ndim > 2 or (y.dtype == object and len(y) and not isinstance(y.flat[0], str))
+
+
+def _is_empty_2d_array(y: np.ndarray) -> bool:
+    return y.ndim == 2 and y.shape[1] == 0
+
+
+def _get_multioutput_suffix(y: np.ndarray) -> str:
+    if y.ndim == 2 and y.shape[1] > 1:
+        return "-multioutput"  # [[1, 2], [1, 2]]
+    else:
+        return ""  # [1, 2, 3] or [[1], [2], [3]]
+
+
+def _is_continuous_float(y: np.ndarray) -> bool:
+    return y.dtype.kind == "f" and np.any(y != y.astype(int))
+
+
+def _is_multiclass(y: np.ndarray) -> bool:
+    return (len(np.unique(y)) > 2) or (y.ndim >= 2 and len(y[0]) > 1)
+
+
+def _handle_legacy_multilabel(y: Union[np.ndarray, spmatrix]) -> None:
+    if _is_legacy_multilabel_format(y):
+        raise ValueError(
+            "You appear to be using a legacy multi-label data"
+            " representation. Sequence of sequences are no"
+            " longer supported; use a binary array or sparse"
+            " matrix instead - the MultiLabelBinarizer"
+            " transformer can convert to this format."
+        )
+
+
+def _validate_input(y: Union[np.ndarray, spmatrix]) -> None:
+    if not _is_valid_input_type(y):
+        raise ValueError("Expected array-like (array or non-string sequence), got %r" % y)
+
+    if _is_sparse_series(y):
+        raise ValueError("y cannot be class 'SparseSeries'.")
+
+
 def type_of_target(y: Union[np.ndarray, spmatrix]) -> str:
     """Determine the type of data indicated by the target.
 
@@ -72,14 +131,7 @@ def type_of_target(y: Union[np.ndarray, spmatrix]) -> str:
     'multilabel-indicator'
 
     """
-    valid = (isinstance(y, (Sequence, spmatrix)) or hasattr(y, "__array__")) and not isinstance(y, str)
-
-    if not valid:
-        raise ValueError("Expected array-like (array or non-string sequence), got %r" % y)
-
-    sparseseries = y.__class__.__name__ == "SparseSeries"
-    if sparseseries:
-        raise ValueError("y cannot be class 'SparseSeries'.")
+    _validate_input(y)
 
     if is_multilabel(y):
         return "multilabel-indicator"
@@ -91,37 +143,24 @@ def type_of_target(y: Union[np.ndarray, spmatrix]) -> str:
         return "unknown"
 
     # The old sequence of sequences format
-    try:
-        if not hasattr(y[0], "__array__") and isinstance(y[0], Sequence) and not isinstance(y[0], str):
-            raise ValueError(
-                "You appear to be using a legacy multi-label data"
-                " representation. Sequence of sequences are no"
-                " longer supported; use a binary array or sparse"
-                " matrix instead - the MultiLabelBinarizer"
-                " transformer can convert to this format."
-            )
-    except IndexError:
-        pass
+    _handle_legacy_multilabel(y)
 
     # Invalid inputs
-    if y.ndim > 2 or (y.dtype == object and len(y) and not isinstance(y.flat[0], str)):
+    if _is_invalid_dimension(y):
         return "unknown"  # [[[1, 2]]] or [obj_1] and not ["label_1"]
 
-    if y.ndim == 2 and y.shape[1] == 0:
+    if _is_empty_2d_array(y):
         return "unknown"  # [[]]
 
-    if y.ndim == 2 and y.shape[1] > 1:
-        suffix = "-multioutput"  # [[1, 2], [1, 2]]
-    else:
-        suffix = ""  # [1, 2, 3] or [[1], [2], [3]]
+    suffix = _get_multioutput_suffix(y)
 
     # check float and contains non-integer float values
-    if y.dtype.kind == "f" and np.any(y != y.astype(int)):
+    if _is_continuous_float(y):
         # [.1, .2, 3] or [[.1, .2, 3]] or [[1., .2]] and not [1., 2., 3.]
         _assert_all_finite(y)
         return "continuous" + suffix
 
-    if (len(np.unique(y)) > 2) or (y.ndim >= 2 and len(y[0]) > 1):
+    if _is_multiclass(y):
         return "multiclass" + suffix  # [1, 2, 3] or [[1., 2., 3]] or [[1, 2]]
     else:
         return "binary"  # [1, 2] or [["a"], ["b"]]

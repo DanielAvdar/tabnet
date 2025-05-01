@@ -1,8 +1,24 @@
 """Type detection utilities for multiclass classification in TabNet."""
 
+from typing import List
+
 import numpy as np
 
 from .type_of_target import type_of_target
+
+
+def _get_allowed_classification_types() -> List[str]:
+    return [
+        "binary",
+        "multiclass",
+        "multiclass-multioutput",
+        "multilabel-indicator",
+        "multilabel-sequences",
+    ]
+
+
+def _is_valid_classification_type(y_type: str) -> bool:
+    return y_type in _get_allowed_classification_types()
 
 
 def check_classification_targets(y: np.ndarray) -> None:
@@ -18,11 +34,5 @@ def check_classification_targets(y: np.ndarray) -> None:
 
     """
     y_type = type_of_target(y)
-    if y_type not in [
-        "binary",
-        "multiclass",
-        "multiclass-multioutput",
-        "multilabel-indicator",
-        "multilabel-sequences",
-    ]:
+    if not _is_valid_classification_type(y_type):
         raise ValueError("Unknown label type: %r" % y_type)
