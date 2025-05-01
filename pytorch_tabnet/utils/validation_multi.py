@@ -1,19 +1,24 @@
 """Import from utils module for backward compatibility."""
 
-from .multiclass_validation import check_unique_type as _original_check_unique_type, assert_all_finite  # noqa
+from typing import Optional
+
+import numpy as np
+
+from .multiclass_validation import check_unique_type as _original_check_unique_type  # noqa
 
 # assert_all_finite
 
 
 # For backward compatibility with tests that monkey patch this function
-def check_unique_type(y):
+def check_unique_type(y: Optional[np.ndarray]) -> None:
     if y is not None and len(y) == 0:
-        return  # Do nothing for empty arrays
-    return _original_check_unique_type(y)
+        return None  # Do nothing for empty arrays
+    _original_check_unique_type(y)
+    return None
 
 
 # Override check_output_dim to use our patched check_unique_type
-def check_output_dim(labels, y):
+def check_output_dim(labels: np.ndarray, y: Optional[np.ndarray]) -> None:
     """Check that all labels in y are present in the training labels.
 
     Parameters
@@ -40,4 +45,4 @@ def check_output_dim(labels, y):
                 "contains unkown targets from training --\n" +
                 f"{set(labels)}"""
             )
-    return
+    return None

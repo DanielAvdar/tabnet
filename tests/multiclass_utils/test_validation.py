@@ -2,7 +2,8 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 
-from pytorch_tabnet.utils.validation_multi import assert_all_finite, check_output_dim, check_unique_type
+import pytorch_tabnet.utils.multiclass_validation as validation
+from pytorch_tabnet.utils.multiclass_validation import assert_all_finite, check_output_dim, check_unique_type
 
 
 def test_assert_all_finite_numpy():
@@ -87,7 +88,6 @@ def test_check_output_dim_valid():
 def test_check_output_dim_empty_array():
     """Test check_output_dim with an empty array by monkeypatching check_unique_type."""
     # We need to patch the validation module's check_unique_type function to handle empty arrays
-    import pytorch_tabnet.utils.validation_multi as validation
 
     original_check_unique_type = validation.check_unique_type
 

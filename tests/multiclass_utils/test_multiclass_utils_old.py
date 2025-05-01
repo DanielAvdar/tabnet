@@ -15,8 +15,8 @@ from pytorch_tabnet.utils import (
     # type_of_target,  # Import from pytorch_tabnet, not sklearn
 )
 from pytorch_tabnet.utils.is_multilabel import is_multilabel
+from pytorch_tabnet.utils.multiclass_validation import assert_all_finite
 from pytorch_tabnet.utils.type_of_target import type_of_target
-from pytorch_tabnet.utils.validation_multi import assert_all_finite
 
 
 # Tests for unique_labels

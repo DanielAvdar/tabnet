@@ -1,7 +1,7 @@
 """Label processing utilities for TabNet."""
 
 from itertools import chain
-from typing import List, Set
+from typing import Callable, List, Set
 
 import numpy as np
 
@@ -48,14 +48,14 @@ def _validate_label_types(ys_types: Set[str]) -> str:
     return ys_types.pop()
 
 
-def _get_unique_labels_function(label_type: str) -> callable:
+def _get_unique_labels_function(label_type: str) -> Callable[[np.ndarray], np.ndarray]:
     _unique_labels = _FN_UNIQUE_LABELS.get(label_type, None)
     if not _unique_labels:
         raise ValueError("Unknown label type: %s" % repr(label_type))
     return _unique_labels
 
 
-def _extract_all_labels(ys: List[np.ndarray], unique_labels_fn: callable) -> Set:
+def _extract_all_labels(ys: List[np.ndarray], unique_labels_fn: Callable[[np.ndarray], np.ndarray]) -> Set:
     return set(chain.from_iterable(unique_labels_fn(y) for y in ys))
 
 

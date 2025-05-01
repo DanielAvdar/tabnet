@@ -27,7 +27,8 @@ def _is_legacy_multilabel_format(y: Union[np.ndarray, spmatrix]) -> bool:
 
 
 def _is_invalid_dimension(y: np.ndarray) -> bool:
-    return y.ndim > 2 or (y.dtype == object and len(y) and not isinstance(y.flat[0], str))
+    """Check if y has invalid dimensions."""
+    return bool(y.ndim > 2 or (y.dtype == object and len(y) and not isinstance(y.flat[0], str)))
 
 
 def _is_empty_2d_array(y: np.ndarray) -> bool:
@@ -46,7 +47,8 @@ def _is_continuous_float(y: np.ndarray) -> bool:
 
 
 def _is_multiclass(y: np.ndarray) -> bool:
-    return (len(np.unique(y)) > 2) or (y.ndim >= 2 and len(y[0]) > 1)
+    """Check if y contains more than two discrete values."""
+    return bool((len(np.unique(y)) > 2) or (y.ndim >= 2 and len(y[0]) > 1))
 
 
 def _handle_legacy_multilabel(y: Union[np.ndarray, spmatrix]) -> None:
