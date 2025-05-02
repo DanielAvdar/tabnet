@@ -46,7 +46,6 @@ Welcome to pytorch-tabnet2's documentation!
    guides/categorical_embeding_example
    guides/custom_metrics_and_losses
    guides/pretraining_and_transfer
-   guides/augmentation_and_callbacks
    guides/saving_and_loading
 
 .. toctree::
