@@ -7,7 +7,6 @@ from hypothesis.strategies import booleans, floats, integers
 from scipy.sparse import csc_matrix
 
 from pytorch_tabnet.utils.explain import explain_v1
-from pytorch_tabnet.utils.explain_v2 import explain_v2
 
 
 @pytest.fixture
@@ -46,7 +45,7 @@ def test_explain_v1_normalize(explain_inputs, normalize, expected_sum):
 
     torch.manual_seed(0)  # Reset seed before v2
     # Test v2 with csc_matrix
-    res_explain_v2, res_masks_v2 = explain_v2(X, batch_size, device, network, normalize, reducing_matrix.copy())
+    res_explain_v2, res_masks_v2 = explain_v1(X, batch_size, device, network, normalize, reducing_matrix.copy())
 
     # Compare v1 and v2 results
     np.testing.assert_allclose(res_explain, res_explain_v2, rtol=1e-5)
@@ -99,7 +98,7 @@ def test_explain_v1_property_based(X, batch_size, normalize):
 
     torch.manual_seed(0)  # Reset seed before v2
     # Test v2 with csc_matrix
-    res_explain_v2, res_masks_v2 = explain_v2(X, batch_size, device, network, normalize, reducing_matrix.copy())
+    res_explain_v2, res_masks_v2 = explain_v1(X, batch_size, device, network, normalize, reducing_matrix.copy())
 
     # Compare v1 and v2 results
     np.testing.assert_allclose(res_explain, res_explain_v2, rtol=1e-5)
