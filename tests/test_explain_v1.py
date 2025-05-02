@@ -6,7 +6,8 @@ from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import booleans, floats, integers
 from scipy.sparse import csc_matrix
 
-from pytorch_tabnet.utils.explain import explain_v1, explain_v2
+from pytorch_tabnet.utils.explain import explain_v1
+from pytorch_tabnet.utils.explain_v2 import explain_v2
 
 
 @pytest.fixture
@@ -40,7 +41,7 @@ def test_explain_v1_normalize(explain_inputs, normalize, expected_sum):
 
     network.forward_masks = mock_forward_masks
 
-    res_explain, res_masks = explain_v1(X, batch_size, device, network, normalize, reducing_matrix)
+    res_explain, res_masks = explain_v1(X, batch_size, device, network, normalize, reducing_matrix.copy())
 
     # Test v2 with numpy array
     res_explain_v2, res_masks_v2 = explain_v2(X, batch_size, device, network, normalize, reducing_matrix.toarray())
