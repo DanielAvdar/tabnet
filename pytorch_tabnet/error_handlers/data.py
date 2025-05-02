@@ -30,7 +30,7 @@ def check_data_general(
     if not isinstance(data, np.ndarray):
         raise TypeError("Input data must be a numpy array.")
 
-    allowed_types = [np.float_, np.int_, np.bool_]
+    allowed_types = [np.floating, np.integer, np.bool_]
     if not any(np.issubdtype(data.dtype, t) for t in allowed_types):
         raise TypeError(f"Data type {data.dtype} not supported. Allowed types: float, int, bool.")
 
