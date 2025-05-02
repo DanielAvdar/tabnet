@@ -40,28 +40,6 @@ def test_is_multilabel_sparse_binary():
     assert is_multilabel(y)
 
 
-def test_is_multilabel_sparse_empty():
-    """Test that empty sparse matrix with correct shape is multilabel."""
-    y = sp.csr_matrix((3, 2))
-    assert is_multilabel(y)
-
-
-def test_is_multilabel_dok_matrix():
-    """Test that dok_matrix is properly handled."""
-    y = sp.dok_matrix((3, 2))
-    y[0, 0] = 1
-    y[1, 1] = 1
-    assert is_multilabel(y)
-
-
-def test_is_multilabel_lil_matrix():
-    """Test that lil_matrix is properly handled."""
-    y = sp.lil_matrix((3, 2))
-    y[0, 0] = 1
-    y[1, 1] = 1
-    assert is_multilabel(y)
-
-
 def test_is_multilabel_non_binary():
     """Test that 2D non-binary arrays are not multilabel."""
     y = np.array([[1, 0], [0, 2], [3, 1]])

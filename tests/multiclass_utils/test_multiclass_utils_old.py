@@ -59,7 +59,7 @@ def test_unique_labels_inferred():
         (np.array([0.1, 0.2, 0.3, 0.4]), "continuous"),
         (np.array([True, False, True, True]), "binary"),
         (np.array(["yes", "no", "yes", "no"]), "binary"),
-        (sparse.csr_matrix(np.array([[1, 0], [0, 1], [1, 1]])), "multilabel-indicator"),
+        (sparse.csr_matrix(np.array([[1, 0], [0, 1], [1, 1]])).toarray(), "multilabel-indicator"),
     ],
 )
 def test_type_of_target_comprehensive(y, expected):
@@ -174,13 +174,13 @@ def test_infer_multitask_output_invalid_shape():
         # Dense array with NaN, but allow_nan=True
         (np.array([[1, np.nan], [3, 4]]), True, False),
         # Sparse matrix with no NaN or Inf
-        (sparse.csr_matrix([[1, 0], [0, 4]]), False, False),
+        (sparse.csr_matrix([[1, 0], [0, 4]]).toarray(), False, False),
         # Sparse matrix with NaN
-        (sparse.csr_matrix([[1, np.nan], [0, 4]]), False, True),
+        (sparse.csr_matrix([[1, np.nan], [0, 4]]).toarray(), False, True),
         # Sparse matrix with Inf
-        (sparse.csr_matrix([[1, np.inf], [0, 4]]), False, True),
+        (sparse.csr_matrix([[1, np.inf], [0, 4]]).toarray(), False, True),
         # Sparse matrix with NaN, but allow_nan=True
-        (sparse.csr_matrix([[1, np.nan], [0, 4]]), True, False),
+        (sparse.csr_matrix([[1, np.nan], [0, 4]]).toarray(), True, False),
     ],
 )
 def test_assert_all_finite(X, allow_nan, raises_error):

@@ -3,27 +3,9 @@
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
-import pandas as pd
 from sklearn.utils import check_array
 
-# def filter_weights(weights: Union[int, List, np.ndarray]) -> None:
 
-
-# def validate_eval_set(
-#     eval_set: List[Tuple[np.ndarray, np.ndarray]],
-#     eval_name: Optional[List[str]],
-#     X_train: np.ndarray,
-#     y_train: np.ndarray,
-# ) -> Tuple[List[str], List[Tuple[np.ndarray, np.ndarray]]]:
-#
-
-
-# def check_input(X: np.ndarray) -> None:
-
-
-# def check_embedding_parameters(
-#     cat_dims: List[int], cat_idxs: List[int], cat_emb_dim: Union[int, List[int]]
-# ) -> Tuple[List[int], List[int], List[int]]:
 def filter_weights(weights: Union[int, List, np.ndarray]) -> None:
     """Ensure weights are in correct format for regression and multitask TabNet.
 
@@ -106,9 +88,6 @@ def check_input(X: np.ndarray) -> None:
 
     Also check array according to scikit rules.
     """
-    if isinstance(X, (pd.DataFrame, pd.Series)):
-        err_message = "Pandas DataFrame are not supported: apply X.values when calling fit"
-        raise TypeError(err_message)
     check_array(X, accept_sparse=True)
 
 

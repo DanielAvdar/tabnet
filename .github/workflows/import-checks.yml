@@ -1,0 +1,26 @@
+name: Python Import Check
+on:
+  pull_request:
+    paths:
+      - 'pytorch_tabnet/**'
+      - 'tests/**'
+      - '.github/workflows/import-checks.yml'
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  check-imports:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv python install 3.11
+      - run: make build
+      - run: pip install dist/*.whl
+      - run: python -m tests.import_test
+
+
+    continue-on-error: true

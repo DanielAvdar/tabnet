@@ -1,29 +1,19 @@
 """Target type detection utilities for TabNet."""
 
-from typing import Sequence, Union
+from typing import Sequence
 
 import numpy as np
-from scipy.sparse.base import spmatrix
 
 from pytorch_tabnet.utils._assert_all_finite import _assert_all_finite
 from pytorch_tabnet.utils.is_multilabel import is_multilabel
 
 
-def _is_valid_input_type(y: Union[np.ndarray, spmatrix]) -> bool:
-    return (isinstance(y, (Sequence, spmatrix)) or hasattr(y, "__array__")) and not isinstance(y, str)
+def _is_valid_input_type(y: np.ndarray) -> bool:
+    return (isinstance(y, (Sequence)) or hasattr(y, "__array__")) and not isinstance(y, str)
 
 
-def _is_sparse_series(y: Union[np.ndarray, spmatrix]) -> bool:
+def _is_sparse_series(y: np.ndarray) -> bool:
     return y.__class__.__name__ == "SparseSeries"
-
-
-def _is_legacy_multilabel_format(y: Union[np.ndarray, spmatrix]) -> bool:
-    try:
-        if not hasattr(y[0], "__array__") and isinstance(y[0], Sequence) and not isinstance(y[0], str):
-            return True
-    except IndexError:
-        pass
-    return False
 
 
 def _is_invalid_dimension(y: np.ndarray) -> bool:
@@ -51,26 +41,12 @@ def _is_multiclass(y: np.ndarray) -> bool:
     return bool((len(np.unique(y)) > 2) or (y.ndim >= 2 and len(y[0]) > 1))
 
 
-def _handle_legacy_multilabel(y: Union[np.ndarray, spmatrix]) -> None:
-    if _is_legacy_multilabel_format(y):
-        raise ValueError(
-            "You appear to be using a legacy multi-label data"
-            " representation. Sequence of sequences are no"
-            " longer supported; use a binary array or sparse"
-            " matrix instead - the MultiLabelBinarizer"
-            " transformer can convert to this format."
-        )
-
-
-def _validate_input(y: Union[np.ndarray, spmatrix]) -> None:
+def _validate_input(y: np.ndarray) -> None:
     if not _is_valid_input_type(y):
         raise ValueError("Expected array-like (array or non-string sequence), got %r" % y)
 
-    if _is_sparse_series(y):
-        raise ValueError("y cannot be class 'SparseSeries'.")
 
-
-def type_of_target(y: Union[np.ndarray, spmatrix]) -> str:
+def type_of_target(y: np.ndarray) -> str:
     """Determine the type of data indicated by the target.
 
     Note that this type is the most specific type that can be inferred.
@@ -145,9 +121,6 @@ def type_of_target(y: Union[np.ndarray, spmatrix]) -> str:
     except ValueError:
         # Known to fail in numpy 1.3 for array of arrays
         return "unknown"
-
-    # The old sequence of sequences format
-    _handle_legacy_multilabel(y)
 
     # Invalid inputs
     if _is_invalid_dimension(y):

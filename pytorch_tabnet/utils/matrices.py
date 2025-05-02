@@ -3,50 +3,15 @@
 from typing import List, Union
 
 import numpy as np
-import scipy
 import torch
 
-# def create_explain_matrix(
-#     input_dim: int,
-#     cat_emb_dim: Union[int, List[int]],
-#     cat_idxs: List[int],
-#     post_embed_dim: int,
-# ) -> scipy.sparse.csc_matrix:
-#
 
-
-# def create_group_matrix(list_groups: List[List[int]], input_dim: int) -> torch.Tensor:
-
-
-# def check_list_groups(list_groups: List[List[int]], input_dim: int) -> None:
-def create_explain_matrix(
+def _create_explain_matrix(
     input_dim: int,
     cat_emb_dim: Union[int, List[int]],
     cat_idxs: List[int],
     post_embed_dim: int,
-) -> scipy.sparse.csc_matrix:
-    """Create a reducing matrix for summing importances from embeddings to initial indices.
-
-    In order to rapidly sum importances from same embeddings to the initial index.
-
-    Parameters
-    ----------
-    input_dim : int
-        Initial input dim
-    cat_emb_dim : int or list of int
-        if int : size of embedding for all categorical feature
-        if list of int : size of embedding for each categorical feature
-    cat_idxs : list of int
-        Initial position of categorical features
-    post_embed_dim : int
-        Post embedding inputs dimension
-
-    Returns
-    -------
-    reducing_matrix : np.array
-        Matrix of dim (post_embed_dim, input_dim) to perform reduce
-
-    """
+) -> np.ndarray:
     if isinstance(cat_emb_dim, int):
         all_emb_impact = [cat_emb_dim - 1] * len(cat_idxs)
     else:
@@ -69,7 +34,7 @@ def create_explain_matrix(
     for i, cols in enumerate(indices_trick):
         reducing_matrix[cols, i] = 1
 
-    return scipy.sparse.csc_matrix(reducing_matrix)
+    return reducing_matrix
 
 
 def create_group_matrix(list_groups: List[List[int]], input_dim: int) -> torch.Tensor:

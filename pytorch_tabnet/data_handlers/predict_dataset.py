@@ -1,7 +1,6 @@
 # Empty file for PredictDataset class
 from typing import Union
 
-import scipy
 import torch
 from torch.utils.data import Dataset
 
@@ -21,8 +20,7 @@ class PredictDataset(Dataset):
     def __init__(self, x: Union[X_type, torch.Tensor]):
         if isinstance(x, torch.Tensor):
             self.x = x
-        elif scipy.sparse.issparse(x):
-            self.x = torch.from_numpy(x.toarray())
+
         else:
             self.x = torch.from_numpy(x)
         self.x = self.x.float()

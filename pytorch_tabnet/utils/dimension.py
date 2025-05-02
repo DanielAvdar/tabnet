@@ -5,7 +5,6 @@ from typing import List, Tuple
 import numpy as np
 
 from pytorch_tabnet.utils.label_processing import unique_labels
-from pytorch_tabnet.utils.multiclass_validation import check_unique_type
 
 
 def infer_output_dim(y_train: np.ndarray) -> tuple[int, np.ndarray]:
@@ -24,7 +23,6 @@ def infer_output_dim(y_train: np.ndarray) -> tuple[int, np.ndarray]:
         Sorted list of initial classes
 
     """
-    check_unique_type(y_train)
     train_labels = unique_labels(y_train)
     output_dim = len(train_labels)
 

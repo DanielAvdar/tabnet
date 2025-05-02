@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import pytest
 
 from pytorch_tabnet.utils.validation import (
@@ -148,20 +147,6 @@ class TestValidation:
         X = np.array([[1, 2], [3, 4]])
         # Should not raise any exceptions
         check_input(X)
-
-    def test_check_input_invalid_pandas(self):
-        """Test check_input with invalid pandas DataFrame."""
-        X = pd.DataFrame({"A": [1, 2], "B": [3, 4]})
-
-        with pytest.raises(TypeError, match="Pandas DataFrame are not supported"):
-            check_input(X)
-
-    def test_check_input_invalid_pandas_series(self):
-        """Test check_input with invalid pandas Series."""
-        X = pd.Series([1, 2, 3])
-
-        with pytest.raises(TypeError, match="Pandas DataFrame are not supported"):
-            check_input(X)
 
     def test_check_embedding_parameters_valid(self):
         """Test check_embedding_parameters with valid inputs."""

@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
-import scipy
 import torch
 from torch.nn.utils import clip_grad_norm_
 
@@ -18,16 +17,16 @@ from pytorch_tabnet.abstract_model import TabModel
 # from torch.utils.data import DataLoader
 # from torch.utils.data import DataLoader
 # from torch.utils.data import DataLoader
-from pytorch_tabnet.data_handlers import PredictDataset, SparsePredictDataset, TBDataLoader, create_dataloaders
+from pytorch_tabnet.data_handlers import PredictDataset, TBDataLoader, create_dataloaders
 from pytorch_tabnet.metrics import MetricContainer, check_metrics
 
 # from torch.utils.data import DataLoader
 from pytorch_tabnet.utils import (
     check_input,
-    create_explain_matrix,
     create_group_matrix,
     validate_eval_set,
 )
+from pytorch_tabnet.utils.matrices import _create_explain_matrix
 
 
 @dataclass
@@ -128,14 +127,6 @@ class TabSupervisedModel(TabModel):
                 stacklevel=2,
             )
             self.augmentations._set_seed()
-
-        # Add deprecation warning for sparse input support
-        if scipy.sparse.issparse(X_train):
-            warnings.warn(
-                "Support for scipy.sparse inputs is deprecated and will be removed in a future version.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
 
         eval_set = eval_set if eval_set else []
 
@@ -292,7 +283,7 @@ class TabSupervisedModel(TabModel):
         if self.compile_backend in self.compile_backends:
             self.network = torch.compile(self.network, backend=self.compile_backend)
 
-        self.reducing_matrix = create_explain_matrix(
+        self.reducing_matrix = _create_explain_matrix(
             self.network.input_dim,
             self.network.cat_emb_dim,
             self.network.cat_idxs,
@@ -439,20 +430,12 @@ class TabSupervisedModel(TabModel):
         """
         self.network.eval()
 
-        if scipy.sparse.issparse(X):
-            dataloader = TBDataLoader(
-                name="predict",
-                dataset=SparsePredictDataset(X),
-                batch_size=self.batch_size,
-                predict=True,
-            )
-        else:
-            dataloader = TBDataLoader(
-                name="predict",
-                dataset=PredictDataset(X),
-                batch_size=self.batch_size,
-                predict=True,
-            )
+        dataloader = TBDataLoader(
+            name="predict",
+            dataset=PredictDataset(X),
+            batch_size=self.batch_size,
+            predict=True,
+        )
 
         results = []
         with torch.no_grad():
