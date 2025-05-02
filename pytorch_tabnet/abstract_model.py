@@ -169,6 +169,70 @@ class TabModel(BaseEstimator):
             res_explain /= np.sum(res_explain, axis=1)[:, None]
         return res_explain, res_masks
 
+    @staticmethod
+    def _explain_v2(
+        X: Union[np.ndarray, torch.Tensor],
+        batch_size: int,
+        device: torch.device,
+        network: torch.nn.Module,
+        normalize: bool,
+        reducing_matrix: np.ndarray,
+    ) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
+        """Return local feature importance using numpy operations.
+
+        Parameters
+        ----------
+        X : Union[np.ndarray, torch.Tensor]
+            Input data
+        batch_size : int
+            Batch size for DataLoader
+        device : torch.device
+            Device to run computations on
+        network : torch.nn.Module
+            Network to compute masks
+        normalize : bool
+            Whether to normalize importance so that contributions sum to 1
+        reducing_matrix : np.ndarray
+            Matrix for dimensionality reduction in numpy format
+
+        Returns
+        -------
+        Tuple[np.ndarray, Dict[str, np.ndarray]]
+            Tuple containing:
+            - Feature importance matrix (n_samples, n_features)
+            - Dictionary of masks
+
+        """
+        dataloader = TBDataLoader(
+            name="predict",
+            dataset=PredictDataset(X),
+            batch_size=batch_size,
+            predict=True,
+        )
+        res_explain = []
+        with torch.no_grad():
+            for batch_nb, (data, _, _) in enumerate(dataloader):  # type: ignore
+                data = data.to(device, non_blocking=True).float()  # type: ignore
+
+                M_explain, masks = network.forward_masks(data)
+                for key, value in masks.items():
+                    masks[key] = np.dot(value.cpu().detach().numpy(), reducing_matrix)
+
+                original_feat_explain = np.dot(M_explain.cpu().detach().numpy(), reducing_matrix)
+                res_explain.append(original_feat_explain)
+
+                if batch_nb == 0:
+                    res_masks = masks
+                else:
+                    for key, value in masks.items():
+                        res_masks[key] = np.vstack([res_masks[key], value])
+
+        res_explain = np.vstack(res_explain)
+        if normalize:
+            res_explain /= np.sum(res_explain, axis=1)[:, None]
+
+        return res_explain, res_masks
+
     def load_weights_from_unsupervised(self, unsupervised_model: "TabModel") -> None:
         """Load weights from a previously trained unsupervised TabNet model.
 
