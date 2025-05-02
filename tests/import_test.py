@@ -3,7 +3,7 @@ def test_imports():
     from pytorch_tabnet.multitask import TabNetMultiTaskClassifier  # noqa
     from pytorch_tabnet.pretraining import TabNetPretrainer  # noqa
 
-    assert False
+    assert True
 
 
 if __name__ == "__main__":
