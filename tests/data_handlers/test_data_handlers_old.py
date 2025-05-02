@@ -9,7 +9,7 @@ from torch.utils.data import WeightedRandomSampler
 
 import pytorch_tabnet
 from pytorch_tabnet.data_handlers import TBDataLoader, create_dataloaders, create_dataloaders_pt, create_sampler, validate_eval_set
-from pytorch_tabnet.utils import check_embedding_parameters
+from pytorch_tabnet.error_handlers.embedding_errors import check_embedding_parameters
 
 
 @pytest.fixture

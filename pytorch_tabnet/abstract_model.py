@@ -22,9 +22,9 @@ from pytorch_tabnet.callbacks import (
     History,
     LRSchedulerCallback,
 )
+from pytorch_tabnet.error_handlers.embedding_errors import check_embedding_parameters
 from pytorch_tabnet.utils import (
     ComplexEncoder,
-    check_embedding_parameters,
     define_device,
 )
 from pytorch_tabnet.utils.explain import explain_v1
