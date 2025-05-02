@@ -13,10 +13,8 @@ from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 import torch
-from scipy.sparse import csc_matrix  # todo: replace scipy with numpy
 from sklearn.base import BaseEstimator
 
-# from torch.utils.data import DataLoader
 from pytorch_tabnet.callbacks import (
     Callback,
     CallbackContainer,
@@ -24,12 +22,12 @@ from pytorch_tabnet.callbacks import (
     History,
     LRSchedulerCallback,
 )
-from pytorch_tabnet.data_handlers import PredictDataset, TBDataLoader
 from pytorch_tabnet.utils import (
     ComplexEncoder,
     check_embedding_parameters,
     define_device,
 )
+from pytorch_tabnet.utils.explain import explain_v1
 
 
 @dataclass
@@ -129,107 +127,7 @@ class TabModel(BaseEstimator):
         reducing_matrix = self.reducing_matrix
         batch_size = self.batch_size
 
-        res_explain, res_masks = self._explain_v1(X, batch_size, device, network, normalize, reducing_matrix)
-
-        return res_explain, res_masks
-
-    @staticmethod
-    def _explain_v1(
-        X: Union[np.ndarray, torch.Tensor],
-        batch_size: int,
-        device: torch.device,
-        network: torch.nn.Module,
-        normalize: bool,
-        reducing_matrix: csc_matrix,
-    ) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
-        dataloader = TBDataLoader(
-            name="predict",
-            dataset=PredictDataset(X),
-            batch_size=batch_size,
-            predict=True,
-        )
-        res_explain = []
-        with torch.no_grad():
-            for batch_nb, (data, _, _) in enumerate(dataloader):  # type: ignore
-                data = data.to(device, non_blocking=True).float()  # type: ignore
-
-                M_explain, masks = network.forward_masks(data)
-                for key, value in masks.items():
-                    masks[key] = csc_matrix.dot(value.cpu().detach().numpy(), reducing_matrix)
-                original_feat_explain = csc_matrix.dot(M_explain.cpu().detach().numpy(), reducing_matrix)
-                res_explain.append(original_feat_explain)
-
-                if batch_nb == 0:
-                    res_masks = masks
-                else:
-                    for key, value in masks.items():
-                        res_masks[key] = np.vstack([res_masks[key], value])
-        res_explain = np.vstack(res_explain)
-        if normalize:
-            res_explain /= np.sum(res_explain, axis=1)[:, None]
-        return res_explain, res_masks
-
-    @staticmethod
-    def _explain_v2(
-        X: Union[np.ndarray, torch.Tensor],
-        batch_size: int,
-        device: torch.device,
-        network: torch.nn.Module,
-        normalize: bool,
-        reducing_matrix: np.ndarray,
-    ) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
-        """Return local feature importance using numpy operations.
-
-        Parameters
-        ----------
-        X : Union[np.ndarray, torch.Tensor]
-            Input data
-        batch_size : int
-            Batch size for DataLoader
-        device : torch.device
-            Device to run computations on
-        network : torch.nn.Module
-            Network to compute masks
-        normalize : bool
-            Whether to normalize importance so that contributions sum to 1
-        reducing_matrix : np.ndarray
-            Matrix for dimensionality reduction in numpy format
-
-        Returns
-        -------
-        Tuple[np.ndarray, Dict[str, np.ndarray]]
-            Tuple containing:
-            - Feature importance matrix (n_samples, n_features)
-            - Dictionary of masks
-
-        """
-        dataloader = TBDataLoader(
-            name="predict",
-            dataset=PredictDataset(X),
-            batch_size=batch_size,
-            predict=True,
-        )
-        res_explain = []
-        with torch.no_grad():
-            for batch_nb, (data, _, _) in enumerate(dataloader):  # type: ignore
-                data = data.to(device, non_blocking=True).float()  # type: ignore
-
-                M_explain, masks = network.forward_masks(data)
-                for key, value in masks.items():
-                    masks[key] = np.dot(value.cpu().detach().numpy(), reducing_matrix)
-
-                original_feat_explain = np.dot(M_explain.cpu().detach().numpy(), reducing_matrix)
-                res_explain.append(original_feat_explain)
-
-                if batch_nb == 0:
-                    res_masks = masks
-                else:
-                    for key, value in masks.items():
-                        res_masks[key] = np.vstack([res_masks[key], value])
-
-        res_explain = np.vstack(res_explain)
-        if normalize:
-            res_explain /= np.sum(res_explain, axis=1)[:, None]
+        res_explain, res_masks = explain_v1(X, batch_size, device, network, normalize, reducing_matrix)
 
         return res_explain, res_masks
 
