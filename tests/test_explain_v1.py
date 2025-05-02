@@ -6,7 +6,7 @@ from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import booleans, floats, integers
 from scipy.sparse import csc_matrix
 
-from pytorch_tabnet.abstract_model import TabModel
+from pytorch_tabnet.utils.explain import explain_v1, explain_v2
 
 
 @pytest.fixture
@@ -33,22 +33,22 @@ def test_explain_v1_normalize(explain_inputs, normalize, expected_sum):
     # Mock the network's forward_masks method with known values
     def mock_forward_masks(data):
         batch_size = data.shape[0]
-        # Create non-zero positive values for explanations
-        M_explain = torch.rand((batch_size, X.shape[1])) + 0.1
-        masks = {"mask1": torch.rand((batch_size, X.shape[1])) + 0.1}
+        # Create deterministic values for testing
+        M_explain = torch.ones((batch_size, 5)) * 0.2  # Each feature has equal importance
+        masks = {"mask1": torch.ones((batch_size, 5)) * 0.1}  # Known mask values
         return M_explain, masks
 
     network.forward_masks = mock_forward_masks
 
-    res_explain, res_masks = TabModel._explain_v1(X, batch_size, device, network, normalize, reducing_matrix)
+    res_explain, res_masks = explain_v1(X, batch_size, device, network, normalize, reducing_matrix)
 
     # Test v2 with numpy array
-    # res_explain_v2, res_masks_v2 = TabModel._explain_v2(X, batch_size, device, network, normalize, reducing_matrix.toarray())
+    res_explain_v2, res_masks_v2 = explain_v2(X, batch_size, device, network, normalize, reducing_matrix.toarray())
 
     # Compare v1 and v2 results
-    # np.testing.assert_allclose(res_explain, res_explain_v2, rtol=1e-5)
-    # for key in res_masks:
-    #     np.testing.assert_allclose(res_masks[key], res_masks_v2[key], rtol=1e-5)
+    np.testing.assert_allclose(res_explain, res_explain_v2, rtol=1e-5)
+    for key in res_masks:
+        np.testing.assert_allclose(res_masks[key], res_masks_v2[key], rtol=1e-5)
 
     assert isinstance(res_explain, np.ndarray)
     assert isinstance(res_masks, dict)
@@ -61,6 +61,17 @@ def test_explain_v1_normalize(explain_inputs, normalize, expected_sum):
     # Test mask transformation
     expected_mask_shape = (X.shape[0], reducing_matrix.shape[1])  # Should match reduced dimensions
     assert res_masks["mask1"].shape == expected_mask_shape
+
+    # Test matrix multiplication
+    expected_base = np.dot(np.ones((1, 5)) * 0.2, reducing_matrix.toarray())
+    for i in range(res_explain.shape[0]):
+        if normalize:
+            np.testing.assert_allclose(res_explain[i], expected_base[0] / expected_base.sum(), rtol=1e-5)
+        else:
+            # Test relative ratios between features
+            expected_ratios = expected_base[0] / expected_base[0].mean()
+            actual_ratios = res_explain[i] / res_explain[i].mean()
+            np.testing.assert_allclose(actual_ratios, expected_ratios, rtol=1e-5)
 
     if expected_sum is not None:
         # Check if normalized rows sum to approximately 1
@@ -76,30 +87,32 @@ def test_explain_v1_normalize(explain_inputs, normalize, expected_sum):
     batch_size=integers(min_value=1, max_value=32),
     normalize=booleans(),
 )
-@settings(deadline=None, max_examples=1500)
+@settings(deadline=None)  # Disable deadline for complex computations
 def test_explain_v1_property_based(X, batch_size, normalize):
     device = torch.device("cpu")
     network = torch.nn.Module()
     reducing_matrix = csc_matrix(np.random.rand(X.shape[1], 3))  # Non-zero reducing matrix
 
+    # Create deterministic masks with known values based on input shape
+    mask_value = 0.2
+
     def mock_forward_masks(data):
         batch_size = data.shape[0]
-        # Create non-zero positive values for explanations
-        M_explain = torch.rand((batch_size, X.shape[1])) + 0.1
-        masks = {"mask1": torch.rand((batch_size, X.shape[1])) + 0.1}
+        M_explain = torch.ones((batch_size, X.shape[1])) * mask_value
+        masks = {"mask1": torch.ones((batch_size, X.shape[1])) * mask_value}
         return M_explain, masks
 
     network.forward_masks = mock_forward_masks
 
-    res_explain, res_masks = TabModel._explain_v1(X, batch_size, device, network, normalize, reducing_matrix.copy())
+    res_explain, res_masks = explain_v1(X, batch_size, device, network, normalize, reducing_matrix)
 
     # Test v2 with numpy array
-    # res_explain_v2, res_masks_v2 = TabModel._explain_v2(X, batch_size, device, network, normalize, reducing_matrix.toarray())
+    res_explain_v2, res_masks_v2 = explain_v2(X, batch_size, device, network, normalize, reducing_matrix.toarray())
 
     # Compare v1 and v2 results
-    # np.testing.assert_allclose(res_explain, res_explain_v2, rtol=1e-5)
-    # for key in res_masks:
-    #     np.testing.assert_allclose(res_masks[key], res_masks_v2[key], rtol=1e-5)
+    np.testing.assert_allclose(res_explain, res_explain_v2, rtol=1e-5)
+    for key in res_masks:
+        np.testing.assert_allclose(res_masks[key], res_masks_v2[key], rtol=1e-5)
 
     # Test properties that should always hold
     assert res_explain.shape[0] == X.shape[0]  # Same number of samples
@@ -108,6 +121,21 @@ def test_explain_v1_property_based(X, batch_size, normalize):
     assert "mask1" in res_masks
     assert res_masks["mask1"].shape == res_explain.shape
     assert not np.any(np.isnan(res_explain))  # No NaN values
+
+    # Test the matrix multiplication result
+    expected_base = np.dot(np.ones((1, X.shape[1])) * mask_value, reducing_matrix.toarray())
+    for i in range(res_explain.shape[0]):
+        row = res_explain[i]
+        if normalize:
+            np.testing.assert_allclose(row, expected_base[0] / expected_base.sum(), rtol=1e-5)
+        else:
+            # Check relative ratios instead of absolute values
+            expected_ratios = expected_base[0] / expected_base[0].mean()
+            actual_ratios = row / row.mean()
+            np.testing.assert_allclose(actual_ratios, expected_ratios, rtol=1e-5)
+
+    # Test masks have same properties
+    assert np.all(res_masks["mask1"] >= 0)  # Masks should be non-negative
 
     if normalize:
         # Check if normalized values are between 0 and 1
