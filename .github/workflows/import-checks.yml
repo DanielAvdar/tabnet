@@ -10,7 +10,7 @@ on:
       - main
   workflow_dispatch:
 jobs:
-  upload-coverage-report:
+  check-imports:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
