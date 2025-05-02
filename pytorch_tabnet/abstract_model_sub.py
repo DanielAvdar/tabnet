@@ -23,10 +23,10 @@ from pytorch_tabnet.metrics import MetricContainer, check_metrics
 # from torch.utils.data import DataLoader
 from pytorch_tabnet.utils import (
     check_input,
-    create_explain_matrix,
     create_group_matrix,
     validate_eval_set,
 )
+from pytorch_tabnet.utils.matrices import _create_explain_matrix
 
 
 @dataclass
@@ -283,7 +283,7 @@ class TabSupervisedModel(TabModel):
         if self.compile_backend in self.compile_backends:
             self.network = torch.compile(self.network, backend=self.compile_backend)
 
-        self.reducing_matrix = create_explain_matrix(
+        self.reducing_matrix = _create_explain_matrix(
             self.network.input_dim,
             self.network.cat_emb_dim,
             self.network.cat_idxs,

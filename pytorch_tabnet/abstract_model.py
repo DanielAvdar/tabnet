@@ -27,7 +27,7 @@ from pytorch_tabnet.utils import (
     check_embedding_parameters,
     define_device,
 )
-from pytorch_tabnet.utils.explain import explain_v1
+from pytorch_tabnet.utils.explain_v2 import explain_v2
 
 
 @dataclass
@@ -127,7 +127,7 @@ class TabModel(BaseEstimator):
         reducing_matrix = self.reducing_matrix
         batch_size = self.batch_size
 
-        res_explain, res_masks = explain_v1(X, batch_size, device, network, normalize, reducing_matrix)
+        res_explain, res_masks = explain_v2(X, batch_size, device, network, normalize, reducing_matrix)
 
         return res_explain, res_masks
 
