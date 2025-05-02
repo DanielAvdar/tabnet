@@ -98,8 +98,7 @@ def test_census():
 
     max_epochs = 6
 
-    from pytorch_tabnet.augmentations import ClassificationSMOTE
-    aug = ClassificationSMOTE(p=0.2)
+
 
     sparse_X_train = X_train
     sparse_X_valid = X_valid
@@ -150,7 +149,6 @@ def test_census():
             virtual_batch_size=128,
             weights=1,
             drop_last=False,
-            augmentations=aug,
             compute_importance=True
         )
         save_history.append(clf.history["valid_auc"])

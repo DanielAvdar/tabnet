@@ -20,7 +20,7 @@ jobs:
       - run: uv python install 3.11
       - run: make build
       - run: pip install dist/*.whl
-      - run: python -m tests.import_test
+      - run: python -m nbs.import_check
 
 
     continue-on-error: true
