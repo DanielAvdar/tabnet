@@ -2,10 +2,10 @@ import numpy as np
 import pytest
 
 from pytorch_tabnet.error_handlers.data import (
-    _model_target_check,  # Import the private function for testing
     check_data_general,
     model_input_and_target_data_check,
     model_input_data_check,
+    model_target_check,  # Import the private function for testing
 )
 
 
@@ -94,34 +94,34 @@ def test_model_input_data_check_contains_inf():
 # Tests for _model_target_check
 def test__model_target_check_valid(valid_target_array):
     """Test _model_target_check with valid 1D input."""
-    _model_target_check(valid_target_array)
+    model_target_check(valid_target_array)
 
 
 def test__model_target_check_valid_2d():
     """Test _model_target_check with valid 2D input."""
     target = np.array([[0], [1]])
-    _model_target_check(target)
+    model_target_check(target)
 
 
 def test__model_target_check_invalid_dim():
     """Test _model_target_check with invalid dimensions."""
     target = np.array([[[0]], [[1]]])  # 3D array
     with pytest.raises(ValueError, match="Input target must be 1D or 2D, but got 3 dimensions."):
-        _model_target_check(target)
+        model_target_check(target)
 
 
 def test__model_target_check_contains_nan():
     """Test _model_target_check with NaN values."""
     target = np.array([0, np.nan])
     with pytest.raises(ValueError, match="Input target contains NaN values."):
-        _model_target_check(target)
+        model_target_check(target)
 
 
 def test__model_target_check_contains_inf():
     """Test _model_target_check with infinite values."""
     target = np.array([0, np.inf])
     with pytest.raises(ValueError, match="Input target contains infinite values."):
-        _model_target_check(target)
+        model_target_check(target)
 
 
 # Tests for model_input_and_target_data_check

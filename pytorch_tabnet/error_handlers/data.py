@@ -66,7 +66,7 @@ def model_input_data_check(data: Any) -> None:
         raise ValueError("Input data contains infinite values.")
 
 
-def _model_target_check(target: Any) -> None:
+def model_target_check(target: Any) -> None:
     """Check target format and values.
 
     - 1: target should be check_data_general compatible
@@ -115,6 +115,6 @@ def model_input_and_target_data_check(data: Any, target: Any) -> None:
 
     """
     model_input_data_check(data)
-    _model_target_check(target)
+    model_target_check(target)
     if data.shape[0] != target.shape[0]:
         raise ValueError(f"Number of samples in data ({data.shape[0]}) does not match target ({target.shape[0]}).")

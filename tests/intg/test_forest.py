@@ -129,7 +129,7 @@ def test_forest():
         max_epochs=max_epochs, patience=100,
         batch_size=16384,
         # virtual_batch_size=256,
-        augmentations=aug
+        # augmentations=aug
     )
 
     plt.plot(clf.history['loss'])

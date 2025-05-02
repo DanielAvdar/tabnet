@@ -4,6 +4,7 @@ from typing import Union
 import torch
 from torch.utils.data import Dataset
 
+from ..error_handlers.data import model_input_data_check
 from .data_types import X_type
 
 
@@ -22,6 +23,7 @@ class PredictDataset(Dataset):
             self.x = x
 
         else:
+            model_input_data_check(x)
             self.x = torch.from_numpy(x)
         self.x = self.x.float()
 
