@@ -66,12 +66,39 @@ def model_input_data_check(data: Any) -> None:
         raise ValueError("Input data contains infinite values.")
 
 
+def _model_target_check(target: Any) -> None:
+    """Check target format and values.
+
+    - 1: target should be check_data_general compatible
+    - 2: shape should be 1D or 2D
+    - 3: target should not contain NaN values
+    - 4: target should not contain infinite values.
+
+    Parameters
+    ----------
+    target : Any
+        Object to check
+
+    Raises
+    ------
+    ValueError
+        If target is not 1D or 2D, contains NaN, or contains infinite values.
+
+    """
+    check_data_general(target)
+    if target.ndim not in [1, 2]:
+        raise ValueError(f"Input target must be 1D or 2D, but got {target.ndim} dimensions.")
+    if np.isnan(target).any():
+        raise ValueError("Input target contains NaN values.")
+    if np.isinf(target).any():
+        raise ValueError("Input target contains infinite values.")
+
+
 def model_input_and_target_data_check(data: Any, target: Any) -> None:
     """Check data format and values.
 
-    - 1: data should be check_data_general compatible
-    - 2: target should be check_data_general compatible
-    - 3: data model_input_data_check compatible
+    - 2: target should be _model_target_check compatible
+    - 3: data should be model_input_data_check compatible
     - 4: data shape[0] should be equal to target shape[0].
 
     Parameters
@@ -88,6 +115,6 @@ def model_input_and_target_data_check(data: Any, target: Any) -> None:
 
     """
     model_input_data_check(data)
-    check_data_general(target)
+    _model_target_check(target)
     if data.shape[0] != target.shape[0]:
         raise ValueError(f"Number of samples in data ({data.shape[0]}) does not match target ({target.shape[0]}).")
