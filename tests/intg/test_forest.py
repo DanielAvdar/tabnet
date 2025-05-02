@@ -1,6 +1,4 @@
 from pytorch_tabnet.tab_model import TabNetClassifier
-from pytorch_tabnet.augmentations import ClassificationSMOTE
-
 import torch
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score
@@ -120,7 +118,6 @@ def test_forest():
 
     max_epochs = 5
 
-    aug = ClassificationSMOTE(p=0.2)
 
     clf.fit(
         X_train=X_train, y_train=y_train,

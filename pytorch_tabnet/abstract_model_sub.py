@@ -52,7 +52,6 @@ class TabSupervisedModel(TabModel):
         pin_memory: bool = True,
         from_unsupervised: Union[None, "TabModel"] = None,
         warm_start: bool = False,
-        augmentations: Union[None, Any] = None,
         compute_importance: bool = False,
         *args: Any,
         **kwargs: Any,
@@ -116,17 +115,7 @@ class TabSupervisedModel(TabModel):
         self.input_dim: int = X_train.shape[1]
         self._stop_training: bool = False
         self.pin_memory: bool = pin_memory and (self.device.type != "cpu")
-        self.augmentations = augmentations
         self.compute_importance: bool = compute_importance
-
-        # Add deprecation warning for augmentations parameter
-        if self.augmentations is not None:
-            warnings.warn(
-                "The 'augmentations' parameter is deprecated and will be removed in a future version.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            self.augmentations._set_seed()
 
         eval_set = eval_set if eval_set else []
 
@@ -358,9 +347,6 @@ class TabSupervisedModel(TabModel):
 
         """
         batch_logs = {"batch_size": X.shape[0]}
-
-        if self.augmentations is not None:
-            X, y = self.augmentations(X, y)
 
         for param in self.network.parameters():
             param.grad = None

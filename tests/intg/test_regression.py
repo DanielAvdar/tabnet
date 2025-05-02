@@ -72,8 +72,6 @@ def test_regression():
     # %%
     max_epochs =  5
     # %%
-    from pytorch_tabnet.augmentations import RegressionSMOTE
-    aug = RegressionSMOTE(p=0.2)
     # %%
     clf.fit(
         X_train=X_train, y_train=y_train,
@@ -86,7 +84,6 @@ def test_regression():
         batch_size=1024, #virtual_batch_size=128,
         num_workers=0,
         drop_last=False,
-        augmentations=aug,  # aug
     )
     # %%
     preds = clf.predict(X_test)
