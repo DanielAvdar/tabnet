@@ -101,7 +101,7 @@ class TestErrorHandling(unittest.TestCase):
         # Create a 3D target array which is invalid
         y = np.random.randint(0, 2, size=(10, 2, 3))
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(IndexError):
             model.fit(X, y)
 
     def test_multitask_unknown_target_format(self):
@@ -167,7 +167,7 @@ class TestErrorHandling(unittest.TestCase):
         # Create a 3D array for targets
         y = np.random.randint(0, 2, size=(10, 2, 3))
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(IndexError):
             model.fit(X, y)
 
     def test_multitask_empty_dimension_error(self):

@@ -16,15 +16,6 @@ def _is_sparse_series(y: np.ndarray) -> bool:
     return y.__class__.__name__ == "SparseSeries"
 
 
-def _is_legacy_multilabel_format(y: np.ndarray) -> bool:
-    try:
-        if not hasattr(y[0], "__array__") and isinstance(y[0], Sequence) and not isinstance(y[0], str):
-            return True
-    except IndexError:
-        pass
-    return False
-
-
 def _is_invalid_dimension(y: np.ndarray) -> bool:
     """Check if y has invalid dimensions."""
     return bool(y.ndim > 2 or (y.dtype == object and len(y) and not isinstance(y.flat[0], str)))
@@ -50,23 +41,9 @@ def _is_multiclass(y: np.ndarray) -> bool:
     return bool((len(np.unique(y)) > 2) or (y.ndim >= 2 and len(y[0]) > 1))
 
 
-def _handle_legacy_multilabel(y: np.ndarray) -> None:
-    if _is_legacy_multilabel_format(y):
-        raise ValueError(
-            "You appear to be using a legacy multi-label data"
-            " representation. Sequence of sequences are no"
-            " longer supported; use a binary array or sparse"
-            " matrix instead - the MultiLabelBinarizer"
-            " transformer can convert to this format."
-        )
-
-
 def _validate_input(y: np.ndarray) -> None:
     if not _is_valid_input_type(y):
         raise ValueError("Expected array-like (array or non-string sequence), got %r" % y)
-
-    if _is_sparse_series(y):
-        raise ValueError("y cannot be class 'SparseSeries'.")
 
 
 def type_of_target(y: np.ndarray) -> str:
@@ -144,9 +121,6 @@ def type_of_target(y: np.ndarray) -> str:
     except ValueError:
         # Known to fail in numpy 1.3 for array of arrays
         return "unknown"
-
-    # The old sequence of sequences format
-    _handle_legacy_multilabel(y)
 
     # Invalid inputs
     if _is_invalid_dimension(y):
