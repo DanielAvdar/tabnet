@@ -3,9 +3,8 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
+from sklearn.utils import check_array
 from torch.utils.data import DataLoader, WeightedRandomSampler
-
-from pytorch_tabnet.utils import check_input
 
 from .data_types import X_type
 from .predict_dataset import PredictDataset
@@ -245,7 +244,7 @@ def validate_eval_set(eval_set: List[np.ndarray], eval_name: List[str], X_train:
     assert len(eval_set) == len(eval_names), "eval_set and eval_name have not the same length"
 
     for set_nb, X in enumerate(eval_set):
-        check_input(X)
+        check_array(X)
         msg = f"Number of columns is different between eval set {set_nb}" + f"({X.shape[1]}) and X_train ({X_train.shape[1]})"
         assert X.shape[1] == X_train.shape[1], msg
     return eval_names

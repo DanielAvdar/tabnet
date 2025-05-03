@@ -35,7 +35,7 @@ def validate_eval_set(
     eval_name: Optional[List[str]],
     X_train: np.ndarray,
     y_train: np.ndarray,
-) -> Tuple[List[str], List[Tuple[np.ndarray, np.ndarray]]]:
+) -> None:
     """Check if the shapes of eval_set are compatible with (X_train, y_train).
 
     Parameters
@@ -58,13 +58,12 @@ def validate_eval_set(
         Validated list of eval_set.
 
     """
-    eval_name = eval_name or [f"val_{i}" for i in range(len(eval_set))]
 
     assert len(eval_set) == len(eval_name), "eval_set and eval_name have not the same length"
     if len(eval_set) > 0:
         assert all(len(elem) == 2 for elem in eval_set), "Each tuple of eval_set need to have two elements"
     for name, (X, y) in zip(eval_name, eval_set, strict=False):
-        check_input(X)
+        check_array(X)
         msg = f"Dimension mismatch between X_{name} " + f"{X.shape} and X_train {X_train.shape}"
         assert len(X.shape) == len(X_train.shape), msg
 
@@ -79,13 +78,3 @@ def validate_eval_set(
             assert y.shape[1] == y_train.shape[1], msg
         msg = f"You need the same number of rows between X_{name} " + f"({X.shape[0]}) and y_{name} ({y.shape[0]})"
         assert X.shape[0] == y.shape[0], msg
-
-    return eval_name, eval_set
-
-
-def check_input(X: np.ndarray) -> None:
-    """Raise a clear error if X is a pandas dataframe.
-
-    Also check array according to scikit rules.
-    """
-    check_array(X, accept_sparse=True)

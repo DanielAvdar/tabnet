@@ -5,6 +5,7 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
+from sklearn.utils import check_array
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader
 
@@ -17,7 +18,6 @@ from pytorch_tabnet.metrics import (
     check_metrics,
 )
 from pytorch_tabnet.utils import (
-    check_input,
     create_group_matrix,
     filter_weights,
 )
@@ -160,7 +160,7 @@ class TabNetPretrainer(TabModel):
         else:
             self.loss_fn = loss_fn
 
-        check_input(X_train)
+        check_array(X_train)
 
         self.update_fit_params(
             weights,

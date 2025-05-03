@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
+from sklearn.utils import check_array
 
 from pytorch_tabnet.utils.validation import (
-    check_input,
     filter_weights,
     validate_eval_set,
 )
@@ -44,15 +44,16 @@ class TestValidation:
         X_val = np.array([[7, 8], [9, 10]])
         y_val = np.array([1, 0])
         eval_set = [(X_val, y_val)]
+        eval_name = [f"val_{i}" for i in range(len(eval_set))]
 
         # Call without providing eval_name
-        eval_name, validated_eval_set = validate_eval_set(eval_set, None, X_train, y_train)
+        validate_eval_set(eval_set, eval_name, X_train, y_train)
 
         # Check results
         assert eval_name == ["val_0"]
-        assert len(validated_eval_set) == 1
-        assert np.array_equal(validated_eval_set[0][0], X_val)
-        assert np.array_equal(validated_eval_set[0][1], y_val)
+        assert len(eval_set) == 1
+        assert np.array_equal(eval_set[0][0], X_val)
+        assert np.array_equal(eval_set[0][1], y_val)
 
     def test_validate_eval_set_with_custom_names(self):
         """Test validate_eval_set with custom evaluation set names."""
@@ -66,11 +67,11 @@ class TestValidation:
         eval_name = ["custom_val"]
 
         # Call with custom eval_name
-        validated_name, validated_eval_set = validate_eval_set(eval_set, eval_name, X_train, y_train)
+        validate_eval_set(eval_set, eval_name, X_train, y_train)
 
         # Check results
-        assert validated_name == ["custom_val"]
-        assert len(validated_eval_set) == 1
+        assert eval_name == ["custom_val"]
+        assert len(eval_set) == 1
 
     def test_validate_eval_set_mismatched_name_length(self):
         """Test validate_eval_set with mismatched lengths of eval_set and eval_name."""
@@ -96,8 +97,9 @@ class TestValidation:
         eval_set = [(np.array([[7, 8]]), np.array([1]), np.array([2]))]  # Tuple with 3 elements
 
         # Should raise AssertionError about tuple lengths
+        eval_names = [f"val_{i}" for i in range(len(eval_set))]
         with pytest.raises(AssertionError, match="Each tuple of eval_set need to have two elements"):
-            validate_eval_set(eval_set, None, X_train, y_train)
+            validate_eval_set(eval_set, eval_names, X_train, y_train)
 
     def test_validate_eval_set_dimension_mismatch_X(self):
         """Test validate_eval_set with a dimension mismatch in X."""
@@ -108,10 +110,11 @@ class TestValidation:
         X_val = np.array([[7, 8, 9]])  # 3 columns instead of 2
         y_val = np.array([1])
         eval_set = [(X_val, y_val)]
+        eval_names = [f"val_{i}" for i in range(len(eval_set))]
 
         # Should raise AssertionError about dimension mismatch
         with pytest.raises(AssertionError, match="Number of columns is different between X_val_0"):
-            validate_eval_set(eval_set, None, X_train, y_train)
+            validate_eval_set(eval_set, eval_names, X_train, y_train)
 
     def test_validate_eval_set_dimension_mismatch_y_2d(self):
         """Test validate_eval_set with a dimension mismatch in y when y_train is 2D."""
@@ -122,10 +125,11 @@ class TestValidation:
         X_val = np.array([[7, 8]])
         y_val = np.array([[1]])  # Only 1 column instead of 2
         eval_set = [(X_val, y_val)]
+        eval_names = [f"val_{i}" for i in range(len(eval_set))]
 
         # Should raise AssertionError about dimension mismatch
         with pytest.raises(AssertionError):
-            validate_eval_set(eval_set, None, X_train, y_train)
+            validate_eval_set(eval_set, eval_names, X_train, y_train)
 
     def test_validate_eval_set_row_count_mismatch(self):
         """Test validate_eval_set with a row count mismatch between X and y."""
@@ -136,13 +140,14 @@ class TestValidation:
         X_val = np.array([[7, 8], [9, 10]])
         y_val = np.array([1])  # Only 1 row instead of 2
         eval_set = [(X_val, y_val)]
+        eval_names = [f"val_{i}" for i in range(len(eval_set))]
 
         # Should raise AssertionError about row count mismatch
         with pytest.raises(AssertionError, match="You need the same number of rows between X_val_0"):
-            validate_eval_set(eval_set, None, X_train, y_train)
+            validate_eval_set(eval_set, eval_names, X_train, y_train)
 
     def test_check_input_valid_numpy(self):
         """Test check_input with valid numpy array."""
         X = np.array([[1, 2], [3, 4]])
         # Should not raise any exceptions
-        check_input(X)
+        check_array(X)

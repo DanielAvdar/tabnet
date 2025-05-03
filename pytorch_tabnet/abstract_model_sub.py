@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
+from sklearn.utils import check_array
 from torch.nn.utils import clip_grad_norm_
 
 # from torch.utils.data import DataLoader
@@ -22,7 +23,6 @@ from pytorch_tabnet.metrics import MetricContainer, check_metrics
 
 # from torch.utils.data import DataLoader
 from pytorch_tabnet.utils import (
-    check_input,
     create_group_matrix,
     validate_eval_set,
 )
@@ -124,7 +124,7 @@ class TabSupervisedModel(TabModel):
         else:
             self.loss_fn = loss_fn
 
-        check_input(X_train)
+        check_array(X_train)
 
         self.update_fit_params(
             X_train,
@@ -132,8 +132,9 @@ class TabSupervisedModel(TabModel):
             eval_set,
             weights,
         )
+        eval_names = eval_name or [f"val_{i}" for i in range(len(eval_set))]
 
-        eval_names, eval_set = validate_eval_set(eval_set, eval_name, X_train, y_train)
+        validate_eval_set(eval_set, eval_names, X_train, y_train)
 
         train_dataloader, valid_dataloaders = self._construct_loaders(
             X_train,

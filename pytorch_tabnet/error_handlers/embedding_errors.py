@@ -1,4 +1,6 @@
-from typing import List, Union, Tuple
+"""Error handling utilities for embedding-related operations in TabNet."""
+
+from typing import List, Tuple, Union
 
 import numpy as np
 
@@ -6,7 +8,29 @@ import numpy as np
 def check_embedding_parameters(
     cat_dims: List[int], cat_idxs: List[int], cat_emb_dim: Union[int, List[int]]
 ) -> Tuple[List[int], List[int], List[int]]:
-    """Check parameters related to embeddings and rearrange them in a unique manner."""
+    """Check parameters related to embeddings and rearrange them in a unique manner.
+
+    Parameters
+    ----------
+    cat_dims : List[int]
+        List of dimensions for each categorical feature.
+    cat_idxs : List[int]
+        List of indices for categorical features.
+    cat_emb_dim : Union[int, List[int]]
+        Size of embedding for categorical features. If int, same embedding size
+        for all categorical features. If list, dimension must match cat_dims.
+
+    Returns
+    -------
+    Tuple[List[int], List[int], List[int]]
+        Sorted cat_dims, cat_idxs, and cat_emb_dims.
+
+    Raises
+    ------
+    ValueError
+        If dimensions of categorical parameters are inconsistent.
+
+    """
     if (cat_dims == []) ^ (cat_idxs == []):
         if cat_dims == []:
             msg = "If cat_idxs is non-empty, cat_dims must be defined as a list of same length."

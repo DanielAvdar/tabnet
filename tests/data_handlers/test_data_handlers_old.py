@@ -7,7 +7,6 @@ import torch
 from scipy.sparse import csr_matrix
 from torch.utils.data import WeightedRandomSampler
 
-import pytorch_tabnet
 from pytorch_tabnet.data_handlers import TBDataLoader, create_dataloaders, create_dataloaders_pt, create_sampler, validate_eval_set
 from pytorch_tabnet.error_handlers.embedding_errors import check_embedding_parameters
 
@@ -278,8 +277,6 @@ def mock_check_input(X):
     ],
 )
 def test_validate_eval_set(eval_set, eval_name, expected_eval_names, monkeypatch):
-    monkeypatch.setattr(pytorch_tabnet.utils, "check_input", mock_check_input)
-
     X_train = np.random.rand(100, 10)
     eval_names = validate_eval_set(eval_set, eval_name, X_train)
 
@@ -295,8 +292,6 @@ def test_validate_eval_set_mismatched_lengths():
 
 
 def test_validate_eval_set_mismatched_columns(monkeypatch):
-    monkeypatch.setattr(pytorch_tabnet.utils, "check_input", mock_check_input)
-
     eval_set = [np.random.rand(50, 5)]
     X_train = np.random.rand(100, 10)
     with pytest.raises(AssertionError):
