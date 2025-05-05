@@ -154,7 +154,7 @@ class TabNetMultiTaskClassifier(TabSupervisedModel):
 
         Parameters
         ----------
-        X : torch.Tensor, np.ndarray, or scipy.sparse.csr_matrix
+        X : torch.Tensor, np.ndarray, or scipy.sparse.csr.matrix
             Input data.
 
         Returns
