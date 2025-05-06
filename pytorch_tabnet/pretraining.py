@@ -6,7 +6,6 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 import numpy as np
 import torch
 from torch.nn.utils import clip_grad_norm_
-from torch.utils.data import DataLoader
 
 from pytorch_tabnet import tab_network
 from pytorch_tabnet.abstract_model import TabModel
@@ -266,7 +265,7 @@ class TabNetPretrainer(TabModel):
         X_train: np.ndarray,
         eval_set: List[Union[np.ndarray, List[np.ndarray]]],
         weights: Union[int, Dict, np.array],
-    ) -> tuple[DataLoader, List[DataLoader]]:
+    ) -> tuple[torch.utils.data.DataLoader, List[torch.utils.data.DataLoader]]:
         """Generate dataloaders for unsupervised train and eval set.
 
         Parameters
@@ -295,7 +294,7 @@ class TabNetPretrainer(TabModel):
         )
         return train_dataloader, valid_dataloaders
 
-    def _train_epoch(self, train_loader: DataLoader) -> None:  # todo: replace loader
+    def _train_epoch(self, train_loader: torch.utils.data.DataLoader) -> None:
         """Train one epoch of the network.
 
         Parameters
@@ -306,7 +305,7 @@ class TabNetPretrainer(TabModel):
         """
         self.network.train()
 
-        for batch_idx, (X, _, _) in enumerate(train_loader):  # todo: replace loader
+        for batch_idx, (X, _, _) in enumerate(train_loader):
             self._callback_container.on_batch_begin(batch_idx)
             X = X.to(self.device, non_blocking=True)
 
@@ -352,7 +351,7 @@ class TabNetPretrainer(TabModel):
 
         return batch_logs
 
-    def _predict_epoch(self, name: str, loader: DataLoader) -> None:  # todo: replace loader
+    def _predict_epoch(self, name: str, loader: torch.utils.data.DataLoader) -> None:
         """Predict an epoch and update metrics.
 
         Parameters
@@ -442,7 +441,7 @@ class TabNetPretrainer(TabModel):
         """
         self.network.eval()
 
-        dataloader = DataLoader(
+        dataloader = torch.utils.data.DataLoader(
             PredictDataset(X),
             batch_size=self.batch_size,
             shuffle=False,
