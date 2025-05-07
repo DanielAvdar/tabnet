@@ -1,9 +1,9 @@
 .. _multi_classifier:
 
 TabNet Multi-Task Classifier
-===========================
+============================
 
-.. automodule:: pytorch_tabnet.multitask
+.. automodule:: pytorch_tabnet
     :members: TabNetMultiTaskClassifier
     :undoc-members:
     :show-inheritance:

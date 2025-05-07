@@ -3,7 +3,7 @@
 TabNet Classifier
 =================
 
-.. automodule:: pytorch_tabnet.tab_model
+.. automodule:: pytorch_tabnet
     :members: TabNetClassifier
     :undoc-members:
     :show-inheritance:

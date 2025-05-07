@@ -4,7 +4,7 @@ Model Saving and Loading
 This guide demonstrates how to save and load TabNet models. Each example is standalone.
 
 Saving and Loading a Classifier
-------------------------------
+-------------------------------
 
 .. code-block:: python
 
@@ -30,7 +30,7 @@ Saving and Loading a Classifier
    print("Model loaded successfully.")
 
 Saving and Loading a Regressor
------------------------------
+------------------------------
 
 .. code-block:: python
 

@@ -1,10 +1,10 @@
 Custom Metrics and Losses
-==============================
+=========================
 
 This guide demonstrates how to use custom evaluation metrics and custom loss functions with TabNet. Each example is standalone.
 
 Custom Evaluation Metric Example
--------------------------------
+--------------------------------
 
 .. code-block:: python
 
@@ -41,7 +41,7 @@ Custom Evaluation Metric Example
    clf.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], eval_metric=[Gini])
 
 Custom Loss Function Example
----------------------------
+----------------------------
 
 .. code-block:: python
 

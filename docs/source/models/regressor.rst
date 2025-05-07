@@ -3,10 +3,11 @@
 TabNet Regressor
 ================
 
-.. automodule:: pytorch_tabnet.tab_model
+.. automodule:: pytorch_tabnet
     :members: TabNetRegressor
     :undoc-members:
     :show-inheritance:
+    :no-index:
 
 Example
 -------

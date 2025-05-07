@@ -1,5 +1,5 @@
 Pretraining and Transfer Learning
-=======================================
+=================================
 
 This guide demonstrates how to use TabNet's semi-supervised pretraining and transfer learning. Each example is standalone.
 
@@ -28,7 +28,7 @@ Pretraining Example
    )
 
 Transfer Learning Example
-------------------------
+-------------------------
 
 .. code-block:: python
 

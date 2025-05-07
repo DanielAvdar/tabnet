@@ -33,6 +33,17 @@ extensions = [
     "sphinx.ext.intersphinx",
 ]
 
+# Intersphinx mapping for external references
+intersphinx_mapping = {
+    'sklearn': ('https://scikit-learn.org/stable', None),
+
+}
+
+# Define external references for scikit-learn's metadata routing
+extlinks = {
+    'metadata_routing': ('https://scikit-learn.org/stable/metadata_routing.html%s', ''),
+}
+
 templates_path = ["_templates"]
 exclude_patterns = []
 
