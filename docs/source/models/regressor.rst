@@ -13,7 +13,7 @@ Example
 
 .. code-block:: python
 
-    from pytorch_tabnet.tab_model import TabNetRegressor
+    from pytorch_tabnet import TabNetRegressor
     import numpy as np
     X = np.random.rand(100, 10)
     y = np.random.rand(100, 1)

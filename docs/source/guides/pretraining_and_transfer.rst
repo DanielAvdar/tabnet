@@ -10,7 +10,7 @@ Pretraining Example
 
    import numpy as np
    import torch
-   from pytorch_tabnet.pretraining import TabNetPretrainer
+   from pytorch_tabnet import TabNetPretrainer
 
    # Generate dummy data
    X_train = np.random.rand(100, 10).astype(np.float32)
@@ -34,8 +34,8 @@ Transfer Learning Example
 
    import numpy as np
    import torch
-   from pytorch_tabnet.tab_model import TabNetClassifier
-   from pytorch_tabnet.pretraining import TabNetPretrainer
+   from pytorch_tabnet import TabNetClassifier
+   from pytorch_tabnet import TabNetPretrainer
 
    # Generate dummy data
    X_train = np.random.rand(100, 10).astype(np.float32)

@@ -13,7 +13,7 @@ Example
 
 .. code-block:: python
 
-    from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
+    from pytorch_tabnet import TabNetMultiTaskClassifier
     import numpy as np
     X = np.random.rand(100, 10)
     y = np.random.randint(0, 2, size=(100, 2))  # 2 classification tasks

@@ -9,7 +9,7 @@ Saving and Loading a Classifier
 .. code-block:: python
 
    import numpy as np
-   from pytorch_tabnet.tab_model import TabNetClassifier
+   from pytorch_tabnet import TabNetClassifier
 
    # Generate dummy data
    X_train = np.random.rand(100, 10)
@@ -35,7 +35,7 @@ Saving and Loading a Regressor
 .. code-block:: python
 
    import numpy as np
-   from pytorch_tabnet.tab_model import TabNetRegressor
+   from pytorch_tabnet import TabNetRegressor
 
    # Generate dummy data
    X_train = np.random.rand(100, 10)
