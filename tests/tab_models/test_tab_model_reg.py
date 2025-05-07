@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 import torch
 
+from pytorch_tabnet import TabNetRegressor
 from pytorch_tabnet.callbacks import Callback
-from pytorch_tabnet.tab_models.tab_model import TabNetRegressor
 
 
 @pytest.fixture(

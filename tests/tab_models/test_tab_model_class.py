@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 import torch
 
-from pytorch_tabnet.tab_models.tab_model import TabNetClassifier
+from pytorch_tabnet import TabNetClassifier
 
 
 @pytest.fixture(
