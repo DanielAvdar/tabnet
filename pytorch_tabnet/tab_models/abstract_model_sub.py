@@ -12,7 +12,6 @@ from torch.nn.utils import clip_grad_norm_
 
 # from torch.utils.data import DataLoader
 from pytorch_tabnet import tab_network
-from pytorch_tabnet.abstract_model import TabModel
 
 # from torch.utils.data import DataLoader
 # from torch.utils.data import DataLoader
@@ -27,6 +26,8 @@ from pytorch_tabnet.utils import (
     validate_eval_set,
 )
 from pytorch_tabnet.utils.matrices import _create_explain_matrix
+
+from .abstract_model import TabModel
 
 
 @dataclass
