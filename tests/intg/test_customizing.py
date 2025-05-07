@@ -1,22 +1,18 @@
-
-
+import os
+import numpy as np
+import pandas as pd
+import torch
+import wget
+from pathlib import Path
+from matplotlib import pyplot as plt
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import roc_auc_score
+from pytorch_tabnet import TabNetClassifier
+from pytorch_tabnet.metrics import Metric
 
 def test_customizing():
-    from pytorch_tabnet.tab_model import TabNetClassifier
-
-    import torch
-    from sklearn.preprocessing import LabelEncoder
-    from sklearn.metrics import roc_auc_score
-
-    import pandas as pd
-    import numpy as np
     np.random.seed(0)
 
-    import os
-    import wget
-    from pathlib import Path
-
-    from matplotlib import pyplot as plt
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data"
     dataset_name = 'census-income'
     out = Path(os.getcwd() + '/data/' + dataset_name + '.csv')
@@ -87,7 +83,6 @@ def test_customizing():
         logloss += y_true * torch.log(softmax_pred[:, 1])
         return -logloss
 
-    from pytorch_tabnet.metrics import Metric
     class my_metric(Metric):
 
         def __init__(self):

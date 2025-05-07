@@ -1,24 +1,20 @@
-from pytorch_tabnet.tab_model import TabNetClassifier
+import os
+import shutil
+import gzip
+import numpy as np
+import pandas as pd
 import torch
+import wget
+from pathlib import Path
+from matplotlib import pyplot as plt
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
-import pandas as pd
-import numpy as np
+from pytorch_tabnet import TabNetClassifier
 
 np.random.seed(0)
 
-import os
-import wget
-from pathlib import Path
-import shutil
-import gzip
-
-from matplotlib import pyplot as plt
-
 def test_forest():
-
-
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/covtype/covtype.data.gz"
     dataset_name = 'forest-cover-type'
     tmp_out = Path('./data/' + dataset_name + '.gz')

@@ -1,30 +1,16 @@
-
-
-
-
-
-
-
-
-
-
-
+import os
+import numpy as np
+import pandas as pd
+import torch
+import wget
+from pathlib import Path
+from matplotlib import pyplot as plt
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import mean_squared_error
+from pytorch_tabnet import TabNetRegressor
 
 def test_multi_regression():
-    from pytorch_tabnet.tab_model import TabNetRegressor
-
-    import torch
-    from sklearn.preprocessing import LabelEncoder
-    from sklearn.metrics import mean_squared_error
-
-    import pandas as pd
-    import numpy as np
     np.random.seed(0)
-
-    import os
-    import wget
-    from pathlib import Path
-
 
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data"
     dataset_name = 'census-income'
@@ -108,7 +94,6 @@ def test_multi_regression():
     # clf.feature_importances_
 
     explain_matrix, masks = clf.explain(X_test)
-    from matplotlib import pyplot as plt
     fig, axs = plt.subplots(1, 3, figsize=(20, 20))
 
     for i in range(3):

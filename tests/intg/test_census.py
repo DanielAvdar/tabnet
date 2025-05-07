@@ -1,25 +1,18 @@
+import os
+import numpy as np
+import pandas as pd
+import torch
+import wget
+from pathlib import Path
+from matplotlib import pyplot as plt
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import roc_auc_score
+from pytorch_tabnet import TabNetClassifier
+
 def test_census():
-    from pytorch_tabnet.tab_model import TabNetClassifier
-
-    from sklearn.preprocessing import LabelEncoder
-    from sklearn.metrics import roc_auc_score
-
-    import pandas as pd
-    import numpy as np
     np.random.seed(0)
 
     # import scipy
-
-    import wget
-    from pathlib import Path
-
-    from matplotlib import pyplot as plt
-
-    import os
-
-    import torch
-    torch.__version__
-    torch.cuda.is_available()
 
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data"
     dataset_name = 'census-income'
