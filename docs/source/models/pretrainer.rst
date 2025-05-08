@@ -7,6 +7,7 @@ TabNet Pretrainer
     :members: TabNetPretrainer
     :undoc-members:
     :show-inheritance:
+    :no-index:
 
 Example
 -------

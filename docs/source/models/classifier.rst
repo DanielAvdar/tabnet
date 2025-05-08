@@ -7,6 +7,7 @@ TabNet Classifier
     :members: TabNetClassifier
     :undoc-members:
     :show-inheritance:
+    :no-index:
 
 Example
 -------
