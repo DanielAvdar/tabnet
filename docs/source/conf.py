@@ -18,7 +18,7 @@ version = version(project)
 release = version
 
 copyright = "2019 DreamQuark, 2025 Daniel Avdar"  # noqa
-author = "DreamQuark, DanielAvdar"
+author = "DanielAvdar, DreamQuark"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

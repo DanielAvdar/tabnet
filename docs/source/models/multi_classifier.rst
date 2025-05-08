@@ -8,6 +8,7 @@ TabNet Multi-Task Classifier
     :undoc-members:
     :show-inheritance:
     :no-index:
+
 Example
 -------
 
