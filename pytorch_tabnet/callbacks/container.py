@@ -2,7 +2,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from pytorch_tabnet.callbacks import Callback
+from .callback import Callback
 
 
 @dataclass

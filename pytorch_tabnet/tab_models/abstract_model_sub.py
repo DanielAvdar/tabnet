@@ -11,22 +11,21 @@ from sklearn.utils import check_array
 from torch.nn.utils import clip_grad_norm_
 
 # from torch.utils.data import DataLoader
-from pytorch_tabnet import tab_network
+from .. import tab_network
 
 # from torch.utils.data import DataLoader
 # from torch.utils.data import DataLoader
 # from torch.utils.data import DataLoader
 # from torch.utils.data import DataLoader
-from pytorch_tabnet.data_handlers import PredictDataset, TBDataLoader, create_dataloaders
-from pytorch_tabnet.metrics import MetricContainer, check_metrics
+from ..data_handlers import PredictDataset, TBDataLoader, create_dataloaders
+from ..metrics import MetricContainer, check_metrics
 
 # from torch.utils.data import DataLoader
-from pytorch_tabnet.utils import (
+from ..utils import (
     create_group_matrix,
     validate_eval_set,
 )
-from pytorch_tabnet.utils.matrices import _create_explain_matrix
-
+from ..utils.matrices import _create_explain_matrix
 from .abstract_model import TabModel
 
 

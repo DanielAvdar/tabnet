@@ -3,7 +3,7 @@ from typing import Dict, Tuple, Union
 import numpy as np
 import torch
 
-from pytorch_tabnet.data_handlers import PredictDataset, TBDataLoader
+from ..data_handlers import PredictDataset, TBDataLoader
 
 
 def explain_v1(

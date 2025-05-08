@@ -5,7 +5,8 @@ Provides metrics for evaluating unsupervised loss during model training and eval
 
 import torch
 
-from pytorch_tabnet.metrics import Metric, UnsupervisedLoss
+from .base_metrics import Metric
+from .unsupervised_loss import UnsupervisedLoss
 
 
 class UnsupervisedMetric(Metric):

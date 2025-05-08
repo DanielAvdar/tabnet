@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from pytorch_tabnet.utils._is_integral_float import _is_integral_float
+from ._is_integral_float import _is_integral_float
 
 
 def _has_array_like_properties(y: np.ndarray) -> bool:

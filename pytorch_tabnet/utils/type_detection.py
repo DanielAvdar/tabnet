@@ -4,7 +4,7 @@ from typing import List
 
 import numpy as np
 
-from pytorch_tabnet.utils.type_of_target import type_of_target
+from .type_of_target import type_of_target
 
 
 def _get_allowed_classification_types() -> List[str]:

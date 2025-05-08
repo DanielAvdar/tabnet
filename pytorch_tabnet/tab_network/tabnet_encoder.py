@@ -6,9 +6,6 @@ import torch
 from torch.nn import BatchNorm1d, Linear, ReLU
 
 from .attentive_transformer import AttentiveTransformer
-
-# from pytorch_tabnet.tab_network.feat_transformer import FeatTransformer
-# from pytorch_tabnet.tab_network.attentive_transformer import AttentiveTransformer
 from .feat_transformer import FeatTransformer
 
 

@@ -5,7 +5,6 @@ from typing import List, Optional, Union
 import torch
 from torch.nn import BatchNorm1d, Linear
 
-# from pytorch_tabnet.tab_network import TabNetEncoder, initialize_non_glu
 from .tabnet_encoder import TabNetEncoder
 from .utils_funcs import initialize_non_glu
 

@@ -7,8 +7,8 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 import torch
 
-from pytorch_tabnet.data_handlers import PredictDataset, TBDataLoader
-from pytorch_tabnet.utils import check_output_dim, filter_weights, infer_output_dim
+from ..data_handlers import PredictDataset, TBDataLoader
+from ..utils import check_output_dim, filter_weights, infer_output_dim
 
 # from torch.utils.data import DataLoader
 from .abstract_model_sub import TabSupervisedModel

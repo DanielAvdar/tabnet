@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
-from pytorch_tabnet.callbacks import Callback
+from .callback import Callback
 
 
 @dataclass
