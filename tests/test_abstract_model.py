@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 
-from pytorch_tabnet.tab_models.abstract_model_sub import TabSupervisedModel
+from pytorch_tabnet.tab_models.abstract_models import TabSupervisedModel
 
 
 @dataclass  # Assuming TabModel is a dataclass
