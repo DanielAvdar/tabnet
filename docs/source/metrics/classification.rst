@@ -1,5 +1,5 @@
 Classification Metrics
-=====================
+======================
 
 This section documents the classification metrics available in ``pytorch_tabnet.metrics``.
 

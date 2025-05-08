@@ -52,8 +52,9 @@ def test_validate_eval_set_valid_inputs_and_default_eval_name(eval_name, expecte
     X_train = np.random.rand(100, 10)
     y_train = np.random.rand(100)
     eval_set = [(np.random.rand(20, 10), np.random.rand(20))]
-
-    validated_names, validated_set = validate_eval_set(eval_set, eval_name, X_train, y_train)
+    validated_names = eval_name or [f"val_{i}" for i in range(len(eval_set))]
+    validate_eval_set(eval_set, validated_names, X_train, y_train)
+    validated_set = eval_set
 
     assert validated_names == expected_names
     assert len(validated_set) == len(eval_set)

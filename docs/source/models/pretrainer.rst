@@ -3,10 +3,11 @@
 TabNet Pretrainer
 =================
 
-.. automodule:: pytorch_tabnet.pretraining
+.. automodule:: pytorch_tabnet
     :members: TabNetPretrainer
     :undoc-members:
     :show-inheritance:
+    :no-index:
 
 Example
 -------

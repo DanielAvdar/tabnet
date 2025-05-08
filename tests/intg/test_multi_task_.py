@@ -1,30 +1,16 @@
-
-
-
-
-
-
-
-
-
-
+import os
+import numpy as np
+import pandas as pd
+import torch
+import wget
+from pathlib import Path
+from matplotlib import pyplot as plt
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import roc_auc_score
+from pytorch_tabnet import TabNetMultiTaskClassifier
 
 def test_multi_task():
-    from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
-
-    import torch
-    from sklearn.preprocessing import LabelEncoder
-    from sklearn.metrics import roc_auc_score
-
-    import pandas as pd
-    import numpy as np
     np.random.seed(0)
-
-    import os
-    import wget
-    from pathlib import Path
-
-    from matplotlib import pyplot as plt
 
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data"
     dataset_name = 'census-income'

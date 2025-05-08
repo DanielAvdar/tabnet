@@ -1,25 +1,18 @@
+import os
+import numpy as np
+import pandas as pd
+import torch
+import wget
+from pathlib import Path
+from matplotlib import pyplot as plt
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import roc_auc_score
+from pytorch_tabnet import TabNetClassifier
+from pytorch_tabnet import TabNetPretrainer
 
-
-
+np.random.seed(0)
 
 def test_pretraining():
-
-    from pytorch_tabnet.tab_model import TabNetClassifier
-
-    import torch
-    from sklearn.preprocessing import LabelEncoder
-    from sklearn.metrics import roc_auc_score
-
-    import pandas as pd
-    import numpy as np
-    np.random.seed(0)
-
-    import os
-    import wget
-    from pathlib import Path
-
-    from matplotlib import pyplot as plt
-
     url = "https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data"
     dataset_name = 'census-income'
     out = Path(os.getcwd() + '/data/' + dataset_name + '.csv')
@@ -72,8 +65,6 @@ def test_pretraining():
 
     X_test = train[features].values[test_indices]
     y_test = train[target].values[test_indices]
-
-    from pytorch_tabnet.pretraining import TabNetPretrainer
 
     unsupervised_model = TabNetPretrainer(
         cat_idxs=cat_idxs,

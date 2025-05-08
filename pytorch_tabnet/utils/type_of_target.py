@@ -4,8 +4,8 @@ from typing import Sequence
 
 import numpy as np
 
-from pytorch_tabnet.utils._assert_all_finite import _assert_all_finite
-from pytorch_tabnet.utils.is_multilabel import is_multilabel
+from ._assert_all_finite import _assert_all_finite
+from .is_multilabel import is_multilabel
 
 
 def _is_valid_input_type(y: np.ndarray) -> bool:

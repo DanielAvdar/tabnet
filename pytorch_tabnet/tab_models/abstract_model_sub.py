@@ -7,26 +7,26 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
+from sklearn.utils import check_array
 from torch.nn.utils import clip_grad_norm_
 
 # from torch.utils.data import DataLoader
-from pytorch_tabnet import tab_network
-from pytorch_tabnet.abstract_model import TabModel
+from .. import tab_network
 
 # from torch.utils.data import DataLoader
 # from torch.utils.data import DataLoader
 # from torch.utils.data import DataLoader
 # from torch.utils.data import DataLoader
-from pytorch_tabnet.data_handlers import PredictDataset, TBDataLoader, create_dataloaders
-from pytorch_tabnet.metrics import MetricContainer, check_metrics
+from ..data_handlers import PredictDataset, TBDataLoader, create_dataloaders
+from ..metrics import MetricContainer, check_metrics
 
 # from torch.utils.data import DataLoader
-from pytorch_tabnet.utils import (
-    check_input,
+from ..utils import (
     create_group_matrix,
     validate_eval_set,
 )
-from pytorch_tabnet.utils.matrices import _create_explain_matrix
+from ..utils.matrices import _create_explain_matrix
+from .abstract_model import TabModel
 
 
 @dataclass
@@ -124,7 +124,7 @@ class TabSupervisedModel(TabModel):
         else:
             self.loss_fn = loss_fn
 
-        check_input(X_train)
+        check_array(X_train)
 
         self.update_fit_params(
             X_train,
@@ -132,8 +132,9 @@ class TabSupervisedModel(TabModel):
             eval_set,
             weights,
         )
+        eval_names = eval_name or [f"val_{i}" for i in range(len(eval_set))]
 
-        eval_names, eval_set = validate_eval_set(eval_set, eval_name, X_train, y_train)
+        validate_eval_set(eval_set, eval_names, X_train, y_train)
 
         train_dataloader, valid_dataloaders = self._construct_loaders(
             X_train,

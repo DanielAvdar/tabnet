@@ -4,7 +4,6 @@ from typing import Optional
 
 import torch
 
-# from pytorch_tabnet.tab_network.glu_block import GLU_Block
 from .glu_block import GLU_Block
 
 

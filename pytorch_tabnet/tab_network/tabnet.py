@@ -5,9 +5,6 @@ from typing import List, Optional, Union
 import torch
 
 from .embedding_generator import EmbeddingGenerator
-
-# from pytorch_tabnet.tab_network import TabNetNoEmbeddings
-# from pytorch_tabnet.tab_network.embedding_generator import EmbeddingGenerator
 from .tabnet_noembeddings import TabNetNoEmbeddings
 
 

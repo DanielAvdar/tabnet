@@ -1,9 +1,7 @@
 import numpy as np
 import pytest
 
-from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
-from pytorch_tabnet.pretraining import TabNetPretrainer
-from pytorch_tabnet.tab_model import TabNetClassifier, TabNetRegressor
+from pytorch_tabnet import TabNetClassifier, TabNetMultiTaskClassifier, TabNetPretrainer, TabNetRegressor
 
 
 @pytest.mark.parametrize(

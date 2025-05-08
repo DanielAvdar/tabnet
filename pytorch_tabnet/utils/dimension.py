@@ -4,7 +4,7 @@ from typing import List, Tuple
 
 import numpy as np
 
-from pytorch_tabnet.utils.label_processing import unique_labels
+from .label_processing import unique_labels
 
 
 def infer_output_dim(y_train: np.ndarray) -> tuple[int, np.ndarray]:

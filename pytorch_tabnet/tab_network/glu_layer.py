@@ -6,8 +6,6 @@ import torch
 from torch.nn import Linear
 
 from .gbn import GBN
-
-# from pytorch_tabnet.tab_network import initialize_glu, GBN
 from .utils_funcs import initialize_glu
 
 

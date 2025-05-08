@@ -15,19 +15,19 @@ import numpy as np
 import torch
 from sklearn.base import BaseEstimator
 
-from pytorch_tabnet.callbacks import (
+from ..callbacks import (
     Callback,
     CallbackContainer,
     EarlyStopping,
     History,
     LRSchedulerCallback,
 )
-from pytorch_tabnet.utils import (
+from ..error_handlers.embedding_errors import check_embedding_parameters
+from ..utils import (
     ComplexEncoder,
-    check_embedding_parameters,
     define_device,
 )
-from pytorch_tabnet.utils.explain import explain_v1
+from ..utils.explain import explain_v1
 
 
 @dataclass

@@ -1,7 +1,8 @@
-name: build-docs
+name: Publish docs GH Pages
 on:
   pull_request:
-
+  release:
+    types: [ published ]
   workflow_dispatch:
 
 permissions:
@@ -19,7 +20,11 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
-      - run: uv python install 3.12
-
-      - run: make install-docs
-      - run: make doc
+      - run: uv python install 3.11
+      - run: make doctest
+#      - name: Deploy
+#        uses: peaceiris/actions-gh-pages@v4
+#        with:
+#          github_token: ${{ secrets.GITHUB_TOKEN }}
+#          publish_dir: ./docs/build
+#          keep_files: true

@@ -5,23 +5,23 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
+from sklearn.utils import check_array
 from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader
 
-from pytorch_tabnet import tab_network
-from pytorch_tabnet.abstract_model import TabModel
-from pytorch_tabnet.data_handlers import PredictDataset, create_dataloaders_pt, validate_eval_set
-from pytorch_tabnet.metrics import (
+from .. import tab_network
+from ..data_handlers import PredictDataset, create_dataloaders_pt, validate_eval_set
+from ..metrics import (
     UnsupervisedLoss,
     UnsupMetricContainer,
     check_metrics,
 )
-from pytorch_tabnet.utils import (
-    check_input,
+from ..utils import (
     create_group_matrix,
     filter_weights,
 )
-from pytorch_tabnet.utils.matrices import _create_explain_matrix
+from ..utils.matrices import _create_explain_matrix
+from .abstract_model import TabModel
 
 
 @dataclass
@@ -160,7 +160,7 @@ class TabNetPretrainer(TabModel):
         else:
             self.loss_fn = loss_fn
 
-        check_input(X_train)
+        check_array(X_train)
 
         self.update_fit_params(
             weights,

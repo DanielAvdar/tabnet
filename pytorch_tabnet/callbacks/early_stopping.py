@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 import numpy as np
 import torch
 
-from pytorch_tabnet.callbacks import Callback
+from .callback import Callback
 
 
 @dataclass

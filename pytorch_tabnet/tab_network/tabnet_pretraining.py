@@ -7,10 +7,6 @@ import torch
 from .embedding_generator import EmbeddingGenerator
 from .random_obfuscator import RandomObfuscator
 from .tabnet_decoder import TabNetDecoder
-
-# from pytorch_tabnet.tab_network import TabNetEncoder, TabNetDecoder
-# from pytorch_tabnet.tab_network.random_obfuscator import RandomObfuscator
-# from pytorch_tabnet.tab_network.embedding_generator import EmbeddingGenerator
 from .tabnet_encoder import TabNetEncoder
 
 

@@ -5,7 +5,7 @@ from typing import Callable, List, Set
 
 import numpy as np
 
-from pytorch_tabnet.utils.type_of_target import type_of_target
+from .type_of_target import type_of_target
 
 
 def _unique_multiclass(y: np.ndarray) -> np.ndarray:

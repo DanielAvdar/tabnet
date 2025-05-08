@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from pytorch_tabnet.error_handlers.data import model_input_data_check, model_target_check
+from ..error_handlers.data import model_input_data_check, model_target_check
 
 
 class TorchDataset(Dataset):

@@ -2,8 +2,8 @@
 
 import numpy as np
 
-from pytorch_tabnet.utils._assert_all_finite import _assert_all_finite
-from pytorch_tabnet.utils.label_processing import unique_labels
+from ._assert_all_finite import _assert_all_finite
+from .label_processing import unique_labels
 
 
 def _get_sparse_data(X: np.ndarray) -> np.ndarray:

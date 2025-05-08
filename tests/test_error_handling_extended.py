@@ -3,9 +3,10 @@ import unittest
 import numpy as np
 from scipy.sparse import csr_matrix
 
-from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
-from pytorch_tabnet.tab_model import TabNetClassifier
-from pytorch_tabnet.utils import check_embedding_parameters, filter_weights, infer_output_dim
+from pytorch_tabnet.error_handlers.embedding_errors import check_embedding_parameters
+from pytorch_tabnet.tab_models.multitask import TabNetMultiTaskClassifier
+from pytorch_tabnet.tab_models.tab_model import TabNetClassifier
+from pytorch_tabnet.utils import filter_weights, infer_output_dim
 from pytorch_tabnet.utils.is_multilabel import is_multilabel
 from pytorch_tabnet.utils.label_processing import unique_labels
 from pytorch_tabnet.utils.multiclass_validation import assert_all_finite

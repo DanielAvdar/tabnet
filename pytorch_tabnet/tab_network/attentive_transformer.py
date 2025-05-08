@@ -7,8 +7,6 @@ from activations_plus import Entmax, Sparsemax
 from torch.nn import Linear
 
 from .gbn import GBN
-
-# from pytorch_tabnet.tab_network import initialize_non_glu, GBN
 from .utils_funcs import initialize_non_glu
 
 

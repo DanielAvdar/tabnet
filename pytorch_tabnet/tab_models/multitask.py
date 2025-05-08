@@ -9,10 +9,11 @@ import numpy as np
 # import scipy
 import torch
 
+from ..data_handlers import PredictDataset, TBDataLoader
+from ..utils import check_output_dim, filter_weights, infer_multitask_output
+
 # from torch.utils.data import DataLoader
-from pytorch_tabnet.abstract_model_sub import TabSupervisedModel
-from pytorch_tabnet.data_handlers import PredictDataset, TBDataLoader
-from pytorch_tabnet.utils import check_output_dim, filter_weights, infer_multitask_output
+from .abstract_model_sub import TabSupervisedModel
 
 
 @dataclass

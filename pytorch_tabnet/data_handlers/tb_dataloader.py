@@ -5,8 +5,7 @@ from typing import Iterable, Optional, Tuple, Union
 
 import torch
 
-from pytorch_tabnet.data_handlers.data_types import tn_type
-
+from .data_types import tn_type
 from .predict_dataset import PredictDataset
 from .sparse_predict_dataset import SparsePredictDataset
 from .torch_dataset import TorchDataset

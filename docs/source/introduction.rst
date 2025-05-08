@@ -45,13 +45,15 @@ Install TabNet using pip:
 
 
 Original Repository
-------------------
+--------------------
+
 This project is a maintained fork of the original DreamQuark TabNet implementation:
 
 - `dreamquark-ai/tabnet <https://github.com/dreamquark-ai/tabnet>`_
 
 Key Features
-------------
+-------------
+
 - Supports classification, regression, multitask, and unsupervised pretraining
 - GPU acceleration and efficient data handling
 - Interpretable feature masks and explanations
@@ -60,17 +62,17 @@ Key Features
 For more details, see the original paper: https://arxiv.org/pdf/1908.07442.pdf
 
 Project Changes from the Original Implementation
------------------------------------------------
+-------------------------------------------------
 
 Key Changes from Original
-~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Removed the PyTorch DataLoader, which previously accessed each datapoint individually and limited vectorization, resulting in slow performance. Data is now processed in a more efficient, vectorized manner.
 - Replaced sklearn metrics with torcheval, enabling fast, GPU-accelerated metric computation without the need to move data to the CPU or convert to numpy.
 - Shifted data weighting from the sampling/data loading stage to the loss function and metric calculations, providing more flexibility and efficiency.
 
 Key Improvements
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 - Added comprehensive unittests, achieving over 90% code coverage for improved reliability and maintainability.
 - Significantly reduced training time on both CPU and GPU, primarily due to the removal of the DataLoader and improved vectorization.

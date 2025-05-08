@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import torch
 
-from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
+from pytorch_tabnet.tab_models.multitask import TabNetMultiTaskClassifier
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
