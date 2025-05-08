@@ -1,4 +1,4 @@
-"""Abstract model definitions for TabNet."""
+"""Abstract base model definition for TabNet."""
 
 import copy
 import io
@@ -15,19 +15,19 @@ import numpy as np
 import torch
 from sklearn.base import BaseEstimator
 
-from ..callbacks import (
+from ...callbacks import (
     Callback,
     CallbackContainer,
     EarlyStopping,
     History,
     LRSchedulerCallback,
 )
-from ..error_handlers.embedding_errors import check_embedding_parameters
-from ..utils import (
+from ...error_handlers.embedding_errors import check_embedding_parameters
+from ...utils import (
     ComplexEncoder,
     define_device,
 )
-from ..utils.explain import explain_v1
+from ...utils.explain import explain_v1
 
 
 @dataclass

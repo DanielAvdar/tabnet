@@ -9,7 +9,7 @@ import torch
 
 from ..data_handlers import PredictDataset, TBDataLoader
 from ..utils import check_output_dim, infer_output_dim
-from .abstract_model_sub import TabSupervisedModel
+from .abstract_models import TabSupervisedModel
 
 
 @dataclass

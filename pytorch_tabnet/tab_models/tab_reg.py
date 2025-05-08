@@ -1,4 +1,4 @@
-"""TabNet regressor model class and training logic."""
+"""TabNet regression model class and training logic."""
 
 from dataclasses import dataclass
 from functools import partial
@@ -8,7 +8,7 @@ import numpy as np
 import torch
 
 from ..utils import filter_weights
-from .abstract_model_sub import TabSupervisedModel
+from .abstract_models import TabSupervisedModel
 
 
 @dataclass

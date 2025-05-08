@@ -21,7 +21,7 @@ from ..utils import (
     filter_weights,
 )
 from ..utils.matrices import _create_explain_matrix
-from .abstract_model import TabModel
+from .abstract_models import TabModel
 
 
 @dataclass

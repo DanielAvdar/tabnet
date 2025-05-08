@@ -10,12 +10,15 @@ These models implement the TabNet architecture as described in the paper
 "TabNet: Attentive Interpretable Tabular Learning".
 """
 
+from .abstract_models import TabModel, TabSupervisedModel
 from .multitask import TabNetMultiTaskClassifier
 from .pretraining import TabNetPretrainer
 from .tab_class import TabNetClassifier
 from .tab_reg import MultiTabNetRegressor, TabNetRegressor
 
 __all__ = [
+    "TabModel",
+    "TabSupervisedModel",
     "TabNetClassifier",
     "TabNetRegressor",
     "MultiTabNetRegressor",

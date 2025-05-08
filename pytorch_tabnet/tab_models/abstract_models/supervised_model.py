@@ -1,4 +1,4 @@
-"""Abstract model definitions for TabNet."""
+"""Abstract supervised model definition for TabNet."""
 
 import warnings
 from abc import abstractmethod
@@ -10,28 +10,20 @@ import torch
 from sklearn.utils import check_array
 from torch.nn.utils import clip_grad_norm_
 
-# from torch.utils.data import DataLoader
-from .. import tab_network
-
-# from torch.utils.data import DataLoader
-# from torch.utils.data import DataLoader
-# from torch.utils.data import DataLoader
-# from torch.utils.data import DataLoader
-from ..data_handlers import PredictDataset, TBDataLoader, create_dataloaders
-from ..metrics import MetricContainer, check_metrics
-
-# from torch.utils.data import DataLoader
-from ..utils import (
+from ... import tab_network
+from ...data_handlers import PredictDataset, TBDataLoader, create_dataloaders
+from ...metrics import MetricContainer, check_metrics
+from ...utils import (
     create_group_matrix,
     validate_eval_set,
 )
-from ..utils.matrices import _create_explain_matrix
-from .abstract_model import TabModel
+from ...utils.matrices import _create_explain_matrix
+from .base_model import TabModel
 
 
 @dataclass
 class TabSupervisedModel(TabModel):
-    """Abstract base class for TabNet models."""
+    """Abstract base class for TabNet supervised models."""
 
     def fit(
         self,
