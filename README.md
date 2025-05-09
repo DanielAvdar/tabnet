@@ -51,7 +51,7 @@ Key aspects of TabNet:
 **Classification**
 ```python
 import numpy as np
-from pytorch_tabnet.tab_model import TabNetClassifier
+from pytorch_tabnet import TabNetClassifier
 
 # Generate dummy data
 X_train = np.random.rand(100, 10)
@@ -69,7 +69,7 @@ print('Predictions:', preds)
 **Regression**
 ```python
 import numpy as np
-from pytorch_tabnet.tab_model import TabNetRegressor
+from pytorch_tabnet import TabNetRegressor
 
 # Generate dummy data
 X_train = np.random.rand(100, 10)
@@ -87,7 +87,7 @@ print('Predictions:', preds)
 **Multi-task Classification**
 ```python
 import numpy as np
-from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
+from pytorch_tabnet import TabNetMultiTaskClassifier
 
 # Generate dummy data
 X_train = np.random.rand(100, 10)
