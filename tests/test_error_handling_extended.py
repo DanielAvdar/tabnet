@@ -1,11 +1,9 @@
 import unittest
 
 import numpy as np
-from scipy.sparse import csr_matrix
 
+from pytorch_tabnet import TabNetClassifier, TabNetMultiTaskClassifier
 from pytorch_tabnet.error_handlers.embedding_errors import check_embedding_parameters
-from pytorch_tabnet.tab_models.multitask import TabNetMultiTaskClassifier
-from pytorch_tabnet.tab_models.tab_model import TabNetClassifier
 from pytorch_tabnet.utils import filter_weights, infer_output_dim
 from pytorch_tabnet.utils.is_multilabel import is_multilabel
 from pytorch_tabnet.utils.label_processing import unique_labels
@@ -209,16 +207,18 @@ class TestErrorHandling(unittest.TestCase):
             assert_all_finite(y_with_nan, allow_nan=False)
 
     def test_is_multilabel_dok_matrix(self):
-        """Test is_multilabel with different sparse matrix types"""
+        """Test is_multilabel with different array types (previously sparse matrices)"""
 
-        # Create a sparse matrix with binary values (proper multilabel format)
-        mat = csr_matrix(([1, 1], ([0, 1], [1, 2])), shape=(3, 3))
+        # Create a numpy array with binary values (proper multilabel format)
+        mat = np.zeros((3, 3))
+        mat[0, 1] = 1
+        mat[1, 2] = 1
 
         # This should identify as multilabel based on shape and binary values
         self.assertTrue(is_multilabel(mat))
 
-        # Test with single column sparse matrix
-        mat = csr_matrix((3, 1))
+        # Test with single column array
+        mat = np.zeros((3, 1))
         mat[0, 0] = 1
         self.assertFalse(is_multilabel(mat))
 

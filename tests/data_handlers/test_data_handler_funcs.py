@@ -4,7 +4,6 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 import numpy as np
-import scipy.sparse
 import torch
 
 from pytorch_tabnet.data_handlers.data_handler_funcs import (
@@ -195,10 +194,10 @@ class TestDataHandlerFuncs(unittest.TestCase):
         # Set up mock TBDataLoader to return itself
         mock_tbdataloader.return_value = MagicMock()
 
-        # Create test data (sparse matrices)
-        X_train = scipy.sparse.csr_matrix(np.random.rand(10, 5).astype(np.float32)).toarray()
+        # Create test data (direct numpy arrays)
+        X_train = np.random.rand(10, 5).astype(np.float32)
         y_train = np.random.rand(10, 2).astype(np.float32)
-        X_val = scipy.sparse.csr_matrix(np.random.rand(8, 5).astype(np.float32)).toarray()
+        X_val = np.random.rand(8, 5).astype(np.float32)
         y_val = np.random.rand(8, 2).astype(np.float32)
         eval_set = [(X_val, y_val)]
 
@@ -324,9 +323,9 @@ class TestDataHandlerFuncs(unittest.TestCase):
         # Set up mock TBDataLoader to return itself
         mock_tbdataloader.return_value = MagicMock()
 
-        # Create test data (sparse matrices)
-        X_train = scipy.sparse.csr_matrix(np.random.rand(10, 5)).toarray()
-        X_val = scipy.sparse.csr_matrix(np.random.rand(8, 5)).toarray()
+        # Create test data (as direct arrays instead of sparse matrices)
+        X_train = np.random.rand(10, 5)
+        X_val = np.random.rand(8, 5)
         eval_set = [X_val]
 
         # Call create_dataloaders_pt

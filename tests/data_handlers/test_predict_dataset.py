@@ -3,7 +3,6 @@
 import unittest
 
 import numpy as np
-import scipy.sparse
 import torch
 
 from pytorch_tabnet.data_handlers.predict_dataset import PredictDataset
@@ -30,13 +29,12 @@ class TestPredictDataset(unittest.TestCase):
         np.testing.assert_allclose(dataset.x.numpy(), x)
 
     def test_init_with_sparse_matrix(self):
-        """Test initialization with SciPy sparse matrix."""
-        # Create a sparse matrix
+        """Test initialization with dense array."""
+        # Create a dense array
         x_dense = np.array([[1, 0, 0], [0, 2, 0], [0, 0, 3]], dtype=np.float32)
-        x_sparse = scipy.sparse.csr_matrix(x_dense).toarray()
 
         # Initialize the dataset
-        dataset = PredictDataset(x_sparse)
+        dataset = PredictDataset(x_dense)
 
         # Check that data was correctly converted to PyTorch tensor
         self.assertIsInstance(dataset.x, torch.Tensor)

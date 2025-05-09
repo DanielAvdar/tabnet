@@ -13,7 +13,7 @@ from ..data_handlers import PredictDataset, TBDataLoader
 from ..utils import check_output_dim, filter_weights, infer_multitask_output
 
 # from torch.utils.data import DataLoader
-from .abstract_model_sub import TabSupervisedModel
+from .abstract_models import TabSupervisedModel
 
 
 @dataclass
