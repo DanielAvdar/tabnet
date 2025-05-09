@@ -1,5 +1,4 @@
 import numpy as np
-import scipy.sparse as sp
 
 from pytorch_tabnet.utils.is_multilabel import is_multilabel
 
@@ -35,8 +34,8 @@ def test_is_multilabel_2d_single_row():
 
 
 def test_is_multilabel_sparse_binary():
-    """Test that sparse binary matrix is multilabel."""
-    y = sp.csr_matrix([[1, 0], [0, 1], [1, 1]])
+    """Test that binary matrix is multilabel (previously sparse)."""
+    y = np.array([[1, 0], [0, 1], [1, 1]])
     assert is_multilabel(y)
 
 

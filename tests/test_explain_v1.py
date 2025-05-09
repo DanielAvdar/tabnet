@@ -4,7 +4,6 @@ import torch
 from hypothesis import given, settings
 from hypothesis.extra.numpy import arrays
 from hypothesis.strategies import booleans, floats, integers
-from scipy.sparse import csc_matrix
 
 from pytorch_tabnet.utils.explain import explain_v1
 
@@ -16,7 +15,7 @@ def explain_inputs():
     device = torch.device("cpu")
     network = torch.nn.Module()  # Mock network
     normalize = False
-    reducing_matrix = csc_matrix(np.random.rand(5, 3))  # Non-zero reducing matrix
+    reducing_matrix = np.random.rand(5, 3)  # Using direct numpy array instead of sparse matrix
     return X, batch_size, device, network, normalize, reducing_matrix
 
 
@@ -44,7 +43,7 @@ def test_explain_v1_normalize(explain_inputs, normalize, expected_sum):
     res_explain, res_masks = explain_v1(X, batch_size, device, network, normalize, reducing_matrix.copy())
 
     torch.manual_seed(0)  # Reset seed before v2
-    # Test v2 with csc_matrix
+    # Test v2 with numpy array
     res_explain_v2, res_masks_v2 = explain_v1(X, batch_size, device, network, normalize, reducing_matrix.copy())
 
     # Compare v1 and v2 results
@@ -82,7 +81,7 @@ def test_explain_v1_normalize(explain_inputs, normalize, expected_sum):
 def test_explain_v1_property_based(X, batch_size, normalize):
     device = torch.device("cpu")
     network = torch.nn.Module()
-    reducing_matrix = csc_matrix(np.random.rand(X.shape[1], 3))  # Non-zero reducing matrix
+    reducing_matrix = np.random.rand(X.shape[1], 3)  # Using direct numpy array instead of sparse matrix
 
     def mock_forward_masks(data):
         batch_size = data.shape[0]
@@ -97,7 +96,7 @@ def test_explain_v1_property_based(X, batch_size, normalize):
     res_explain, res_masks = explain_v1(X, batch_size, device, network, normalize, reducing_matrix.copy())
 
     torch.manual_seed(0)  # Reset seed before v2
-    # Test v2 with csc_matrix
+    # Test v2 with numpy array
     res_explain_v2, res_masks_v2 = explain_v1(X, batch_size, device, network, normalize, reducing_matrix.copy())
 
     # Compare v1 and v2 results

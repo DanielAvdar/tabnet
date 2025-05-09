@@ -70,7 +70,7 @@ def test_multi_regression():
     y_test = train[target].values[test_indices]
     y_test = np.transpose(np.tile(y_test, (n_targets, 1)))
 
-    max_epochs =  2
+    max_epochs =  14
 
     clf.fit(
         X_train=X_train, y_train=y_train,
@@ -87,15 +87,10 @@ def test_multi_regression():
     preds = clf.predict(X_test)
 
     test_mse = mean_squared_error(y_pred=preds, y_true=y_test)
-
+    assert test_mse < 0.11
     print(f"BEST VALID SCORE FOR {dataset_name} : {clf.best_cost}")
     print(f"FINAL TEST SCORE FOR {dataset_name} : {test_mse}")
 
     # clf.feature_importances_
 
     explain_matrix, masks = clf.explain(X_test)
-    fig, axs = plt.subplots(1, 3, figsize=(20, 20))
-
-    for i in range(3):
-        axs[i].imshow(masks[i][:50])
-        axs[i].set_title(f"mask {i}")
