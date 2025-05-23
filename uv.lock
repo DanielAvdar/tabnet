@@ -697,25 +697,25 @@ wheels = [
 
 [[package]]
 name = "hypothesis"
-version = "6.131.23"
+version = "6.131.24"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
     { name = "exceptiongroup", marker = "python_full_version < '3.11'" },
     { name = "sortedcontainers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4b/08/4abb1d608a5a4c3a16bc9dc05a7e9f2a0664b0d6aaa787c1a09574306302/hypothesis-6.131.23.tar.gz", hash = "sha256:7723d82885b6cddc39d0ce5b2d8c5b890b3ebc2263a3707d9430ceaf368de402", size = 438101, upload-time = "2025-05-23T05:18:49.585Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b0/9f/7170779fc48d25cd9d8d0cd6aef6f2ab5225dc4482e95067b4f90ac7d70e/hypothesis-6.131.24.tar.gz", hash = "sha256:769f6882fb1383d5d6035a889f9bc539549524cef4221facc35115c6a64c631f", size = 438764, upload-time = "2025-05-23T16:08:18.226Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/af/5f/1bbfed2cc039eed31d4389bf6429ebbf0304b27466ad4e04f3e35fc5a506/hypothesis-6.131.23-py3-none-any.whl", hash = "sha256:5c1212d000aec42c949a1e41415aef2bba297cde807cea50058d162520da7d3f", size = 502615, upload-time = "2025-05-23T05:18:45.87Z" },
+    { url = "https://files.pythonhosted.org/packages/1a/ef/f3df34176b17e97fa8529c81592e04197d729c9e40469e1b3fc0d874e2ae/hypothesis-6.131.24-py3-none-any.whl", hash = "sha256:d5b81dd8b38f85f728472489bf537bf4a6e2a85055df668d2638443ad10aed72", size = 503305, upload-time = "2025-05-23T16:08:14.856Z" },
 ]
 
 [[package]]
 name = "identify"
-version = "2.6.10"
+version = "2.6.11"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/0c/83/b6ea0334e2e7327084a46aaaf71f2146fc061a192d6518c0d020120cd0aa/identify-2.6.10.tar.gz", hash = "sha256:45e92fd704f3da71cc3880036633f48b4b7265fd4de2b57627cb157216eb7eb8", size = 99201, upload-time = "2025-04-19T15:10:38.32Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9c/15/bf10fcc32e9386a88f06c7dcb5358adbba7b30abb1bcf256819d5c35698f/identify-2.6.11.tar.gz", hash = "sha256:7c637280b88b37110c4b7955c055fc93dcad386973fd9023db5d770c3eed878f", size = 99234, upload-time = "2025-05-23T18:19:53.443Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2b/d3/85feeba1d097b81a44bcffa6a0beab7b4dfffe78e82fc54978d3ac380736/identify-2.6.10-py2.py3-none-any.whl", hash = "sha256:5f34248f54136beed1a7ba6a6b5c4b6cf21ff495aac7c359e1ef831ae3b8ab25", size = 99101, upload-time = "2025-04-19T15:10:36.701Z" },
+    { url = "https://files.pythonhosted.org/packages/84/dd/ddcef21317a544a7ea810eea4f806a88f8e47b918382396c6c6f947ef149/identify-2.6.11-py2.py3-none-any.whl", hash = "sha256:63e98071a592f1dc14ab71c0c50644b3e056387aa04cc8c3849f8f0a2d290aea", size = 99112, upload-time = "2025-05-23T18:19:51.88Z" },
 ]
 
 [[package]]
