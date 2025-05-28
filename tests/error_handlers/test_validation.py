@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from sklearn.utils import check_array
 
-from pytorch_tabnet.utils.validation import (
+from pytorch_tabnet.error_handlers.validation import (
     filter_weights,
     validate_eval_set,
 )

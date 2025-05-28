@@ -7,5 +7,5 @@ from .matrices import _create_explain_matrix as create_explain_matrix  # noqa
 from .matrices import create_group_matrix as create_group_matrix
 from .multiclass_validation import check_output_dim as check_output_dim
 from .serialization import ComplexEncoder as ComplexEncoder
-from .validation import filter_weights as filter_weights
-from .validation import validate_eval_set as validate_eval_set
+from ..error_handlers import filter_weights as filter_weights
+from ..error_handlers import validate_eval_set as validate_eval_set
