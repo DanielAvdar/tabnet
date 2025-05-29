@@ -10,7 +10,8 @@ import numpy as np
 import torch
 
 from ..data_handlers import PredictDataset, TBDataLoader
-from ..utils import check_output_dim, filter_weights, infer_multitask_output
+from ..error_handlers import filter_weights
+from ..utils import check_output_dim, infer_multitask_output
 
 # from torch.utils.data import DataLoader
 from .abstract_models import TabSupervisedModel
