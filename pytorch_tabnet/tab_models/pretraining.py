@@ -18,8 +18,8 @@ from ..metrics import (
 )
 from ..utils import (
     create_group_matrix,
-    filter_weights,
 )
+from ..error_handlers import filter_weights
 from ..utils.matrices import _create_explain_matrix
 from .abstract_models import TabModel
 
