@@ -7,9 +7,7 @@ from typing import Any, Callable, Dict, List, Tuple, Union
 import numpy as np
 from sklearn.utils import check_array
 
-from ...utils import (
-    validate_eval_set,
-)
+from ...error_handlers import validate_eval_set
 from . import TabModel
 from .base_supervised_model import _TabSupervisedModel
 

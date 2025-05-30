@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 import torch
 
+from pytorch_tabnet.error_handlers import validate_eval_set
 from pytorch_tabnet.utils import (
     create_group_matrix,
-    validate_eval_set,
 )
 from pytorch_tabnet.utils.matrices import check_list_groups
 

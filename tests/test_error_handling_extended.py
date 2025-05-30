@@ -3,8 +3,9 @@ import unittest
 import numpy as np
 
 from pytorch_tabnet import TabNetClassifier, TabNetMultiTaskClassifier
+from pytorch_tabnet.error_handlers import filter_weights
 from pytorch_tabnet.error_handlers.embedding_errors import check_embedding_parameters
-from pytorch_tabnet.utils import filter_weights, infer_output_dim
+from pytorch_tabnet.utils import infer_output_dim
 from pytorch_tabnet.utils.is_multilabel import is_multilabel
 from pytorch_tabnet.utils.label_processing import unique_labels
 from pytorch_tabnet.utils.multiclass_validation import assert_all_finite

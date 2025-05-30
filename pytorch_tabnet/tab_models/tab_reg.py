@@ -7,7 +7,7 @@ from typing import Any, List, Optional, Tuple, Union
 import numpy as np
 import torch
 
-from ..utils import filter_weights
+from ..error_handlers import filter_weights
 from .abstract_models import TabSupervisedModel
 
 

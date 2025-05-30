@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader
 
 from .. import tab_network
 from ..data_handlers import PredictDataset, create_dataloaders_pt, validate_eval_set
+from ..error_handlers import filter_weights
 from ..metrics import (
     UnsupervisedLoss,
     UnsupMetricContainer,
@@ -18,7 +19,6 @@ from ..metrics import (
 )
 from ..utils import (
     create_group_matrix,
-    filter_weights,
 )
 from ..utils.matrices import _create_explain_matrix
 from .abstract_models import TabModel
