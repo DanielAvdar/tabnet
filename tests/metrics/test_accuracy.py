@@ -28,11 +28,13 @@ class TestAccuracy(unittest.TestCase):
         """Test imperfect prediction case."""
         metric = Accuracy()
         y_true = torch.tensor([0, 1, 2])
-        y_pred = torch.tensor([
-            [0.0, 1.0, 0.0],  # incorrect
-            [0.0, 1.0, 0.0],  # correct
-            [0.0, 0.0, 1.0],  # correct
-        ])
+        y_pred = torch.tensor(
+            [
+                [0.0, 1.0, 0.0],  # incorrect
+                [0.0, 1.0, 0.0],  # correct
+                [0.0, 0.0, 1.0],  # correct
+            ]
+        )
         score = metric(y_true, y_pred)
         self.assertAlmostEqual(score, 2 / 3, places=5)
 
@@ -40,11 +42,13 @@ class TestAccuracy(unittest.TestCase):
         """Test with sample weights."""
         metric = Accuracy()
         y_true = torch.tensor([0, 1, 2])
-        y_pred = torch.tensor([
-            [1.0, 0.0, 0.0],  # correct
-            [0.0, 1.0, 0.0],  # correct
-            [1.0, 0.0, 0.0],  # incorrect
-        ])
+        y_pred = torch.tensor(
+            [
+                [1.0, 0.0, 0.0],  # correct
+                [0.0, 1.0, 0.0],  # correct
+                [1.0, 0.0, 0.0],  # incorrect
+            ]
+        )
         # Weights don't actually affect accuracy calculation for now
         weights = torch.tensor([1.0, 1.0, 1.0])
         score = metric(y_true, y_pred, weights)

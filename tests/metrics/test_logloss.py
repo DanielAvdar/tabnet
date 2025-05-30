@@ -20,11 +20,13 @@ class TestLogLoss(unittest.TestCase):
         """Test perfect prediction case."""
         metric = LogLoss()
         y_true = torch.tensor([0, 1, 2])
-        y_pred = torch.tensor([
-            [100.0, 0.0, 0.0],  # Very confident correct prediction
-            [0.0, 100.0, 0.0],  # Very confident correct prediction
-            [0.0, 0.0, 100.0],  # Very confident correct prediction
-        ])
+        y_pred = torch.tensor(
+            [
+                [100.0, 0.0, 0.0],  # Very confident correct prediction
+                [0.0, 100.0, 0.0],  # Very confident correct prediction
+                [0.0, 0.0, 100.0],  # Very confident correct prediction
+            ]
+        )
         score = metric(y_true, y_pred)
         # Perfect predictions should have a very low logloss
         self.assertLess(score, 0.01)
@@ -33,11 +35,13 @@ class TestLogLoss(unittest.TestCase):
         """Test imperfect prediction case."""
         metric = LogLoss()
         y_true = torch.tensor([0, 1, 2])
-        y_pred = torch.tensor([
-            [0.5, 0.3, 0.2],  # Uncertain prediction
-            [0.1, 0.5, 0.4],  # Uncertain prediction
-            [0.2, 0.3, 0.5],  # Uncertain prediction
-        ])
+        y_pred = torch.tensor(
+            [
+                [0.5, 0.3, 0.2],  # Uncertain prediction
+                [0.1, 0.5, 0.4],  # Uncertain prediction
+                [0.2, 0.3, 0.5],  # Uncertain prediction
+            ]
+        )
         score = metric(y_true, y_pred)
         # Uncertain predictions should have higher logloss
         self.assertGreater(score, 0.5)
@@ -48,11 +52,13 @@ class TestLogLoss(unittest.TestCase):
         y_true = torch.tensor([0, 1, 2])
 
         # First sample has confident wrong prediction, others are correct
-        y_pred = torch.tensor([
-            [0.0, 1.0, 0.0],  # Wrong prediction for class 0
-            [0.0, 1.0, 0.0],  # Correct prediction for class 1
-            [0.0, 0.0, 1.0],  # Correct prediction for class 2
-        ])
+        y_pred = torch.tensor(
+            [
+                [0.0, 1.0, 0.0],  # Wrong prediction for class 0
+                [0.0, 1.0, 0.0],  # Correct prediction for class 1
+                [0.0, 0.0, 1.0],  # Correct prediction for class 2
+            ]
+        )
 
         # Higher weight on the incorrect prediction
         weights = torch.tensor([2.0, 1.0, 1.0])

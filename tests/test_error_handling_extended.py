@@ -3,8 +3,8 @@ import unittest
 import numpy as np
 
 from pytorch_tabnet import TabNetClassifier, TabNetMultiTaskClassifier
-from pytorch_tabnet.error_handlers.embedding_errors import check_embedding_parameters
 from pytorch_tabnet.error_handlers import filter_weights
+from pytorch_tabnet.error_handlers.embedding_errors import check_embedding_parameters
 from pytorch_tabnet.utils import infer_output_dim
 from pytorch_tabnet.utils.is_multilabel import is_multilabel
 from pytorch_tabnet.utils.label_processing import unique_labels
@@ -150,10 +150,12 @@ class TestErrorHandling(unittest.TestCase):
 
         X_val = np.random.rand(5, 5)
         # Create validation targets with labels not in training set
-        y_val = np.column_stack((
-            np.random.randint(0, 3, size=5),
-            np.random.randint(3, 5, size=5),  # These labels (3,4) aren't in training
-        ))
+        y_val = np.column_stack(
+            (
+                np.random.randint(0, 3, size=5),
+                np.random.randint(3, 5, size=5),  # These labels (3,4) aren't in training
+            )
+        )
 
         with self.assertRaises(ValueError):
             model.fit(X_train, y_train, eval_set=[(X_val, y_val)])

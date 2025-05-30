@@ -58,7 +58,6 @@ def validate_eval_set(
         Validated list of eval_set.
 
     """
-
     assert len(eval_set) == len(eval_name), "eval_set and eval_name have not the same length"
     if len(eval_set) > 0:
         assert all(len(elem) == 2 for elem in eval_set), "Each tuple of eval_set need to have two elements"
