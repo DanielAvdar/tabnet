@@ -5,5 +5,5 @@ from .dimension import infer_multitask_output as infer_multitask_output
 from .dimension import infer_output_dim as infer_output_dim
 from .matrices import _create_explain_matrix as create_explain_matrix  # noqa
 from .matrices import create_group_matrix as create_group_matrix
-from .multiclass_validation import check_output_dim as check_output_dim
+from pytorch_tabnet.error_handlers.validation import check_output_dim as check_output_dim
 from .serialization import ComplexEncoder as ComplexEncoder

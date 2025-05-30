@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pytorch_tabnet.utils.multiclass_validation import assert_all_finite, check_output_dim
+from pytorch_tabnet.error_handlers.validation import assert_all_finite, check_output_dim
 
 
 def test_assert_all_finite_numpy():
