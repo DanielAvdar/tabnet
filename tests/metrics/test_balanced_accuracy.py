@@ -29,15 +29,13 @@ class TestBalancedAccuracy(unittest.TestCase):
         metric = BalancedAccuracy()
         # Imbalanced class distribution
         y_true = torch.tensor([0, 0, 0, 1, 2])
-        y_pred = torch.tensor(
-            [
-                [1.0, 0.0, 0.0],
-                [1.0, 0.0, 0.0],
-                [0.0, 1.0, 0.0],  # incorrect for class 0
-                [0.0, 1.0, 0.0],  # correct for class 1
-                [0.0, 0.0, 1.0],  # correct for class 2
-            ]
-        )
+        y_pred = torch.tensor([
+            [1.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],  # incorrect for class 0
+            [0.0, 1.0, 0.0],  # correct for class 1
+            [0.0, 0.0, 1.0],  # correct for class 2
+        ])
         score = metric(y_true, y_pred)
         # Balanced accuracy should give equal weight to each class
         # Class 0: 2/3 correct, Class 1: 1/1 correct, Class 2: 1/1 correct
@@ -48,13 +46,11 @@ class TestBalancedAccuracy(unittest.TestCase):
         """Test with sample weights."""
         metric = BalancedAccuracy()
         y_true = torch.tensor([0, 1, 2])
-        y_pred = torch.tensor(
-            [
-                [1.0, 0.0, 0.0],  # correct
-                [0.0, 1.0, 0.0],  # correct
-                [1.0, 0.0, 0.0],  # incorrect for class 2
-            ]
-        )
+        y_pred = torch.tensor([
+            [1.0, 0.0, 0.0],  # correct
+            [0.0, 1.0, 0.0],  # correct
+            [1.0, 0.0, 0.0],  # incorrect for class 2
+        ])
         # Weights don't actually affect balanced accuracy calculation in current implementation
         torch.tensor([1.0, 1.0, 1.0])
         score = metric(y_true, y_pred)

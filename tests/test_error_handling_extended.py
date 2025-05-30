@@ -150,12 +150,10 @@ class TestErrorHandling(unittest.TestCase):
 
         X_val = np.random.rand(5, 5)
         # Create validation targets with labels not in training set
-        y_val = np.column_stack(
-            (
-                np.random.randint(0, 3, size=5),
-                np.random.randint(3, 5, size=5),  # These labels (3,4) aren't in training
-            )
-        )
+        y_val = np.column_stack((
+            np.random.randint(0, 3, size=5),
+            np.random.randint(3, 5, size=5),  # These labels (3,4) aren't in training
+        ))
 
         with self.assertRaises(ValueError):
             model.fit(X_train, y_train, eval_set=[(X_val, y_val)])
