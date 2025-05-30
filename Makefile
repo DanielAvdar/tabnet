@@ -6,17 +6,16 @@ default: install
 
 install:
 	uv sync --all-extras --all-groups --frozen
-	uv pip install pre-commit
-	uv run pre-commit install
+	uvx pre-commit install
 
 install-docs:
 	uv sync --group docs --frozen --no-group dev
 
-test:
+test: install
 	uv run pytest
 
-check:
-	uv run pre-commit run --all-files
+check: install
+	uvx  pre-commit run --all-files
 
 
 build:
