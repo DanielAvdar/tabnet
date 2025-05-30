@@ -50,12 +50,7 @@ def validate_eval_set(
     y_train : np.array
         Train targeted products
 
-    Returns
-    -------
-    eval_names : list of str
-        Validated list of eval_names.
-    eval_set : list of tuple
-        Validated list of eval_set.
+
 
     """
     assert len(eval_set) == len(eval_name), "eval_set and eval_name have not the same length"
