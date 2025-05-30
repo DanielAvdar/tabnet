@@ -57,3 +57,6 @@ doc-ignore-warnings:
 
 # Run all checks in sequence: tests, code quality, type checking, and documentation
 check-all: check test mypy doc
+
+vs-code:
+	uvx --from dev-kit-mcp-server dkmcp-vscode
