@@ -20,4 +20,4 @@ jobs:
         run: uv python install 3.11
 
       - name: Pre-build project
-        run: make
+        run: make install check
