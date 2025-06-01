@@ -5,6 +5,9 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 from sklearn.utils import check_array
 
+from ..utils._assert_all_finite import _assert_all_finite
+from ..utils.label_processing import unique_labels
+
 
 def filter_weights(weights: Union[int, List, np.ndarray]) -> None:
     """Ensure weights are in correct format for regression and multitask TabNet.
@@ -72,3 +75,57 @@ def validate_eval_set(
             assert y.shape[1] == y_train.shape[1], msg
         msg = f"You need the same number of rows between X_{name} " + f"({X.shape[0]}) and y_{name} ({y.shape[0]})"
         assert X.shape[0] == y.shape[0], msg
+
+
+def _get_sparse_data(X: np.ndarray) -> np.ndarray:
+    return X
+
+
+def assert_all_finite(X: np.ndarray, allow_nan: bool = False) -> None:
+    """Throw a ValueError if X contains NaN or infinity.
+
+    Parameters
+    ----------
+    X : np.ndarray
+        Array to check for NaN or infinity values.
+    allow_nan : bool, default=False
+        Whether to allow NaN values.
+
+    Raises
+    ------
+    ValueError
+        If X contains NaN or infinity values.
+
+    """  # noqa: DOC502
+    _assert_all_finite(_get_sparse_data(X), allow_nan)
+
+
+def _are_all_labels_valid(valid_labels: np.ndarray, labels: np.ndarray) -> bool:
+    return set(valid_labels).issubset(set(labels))
+
+
+def check_output_dim(labels: np.ndarray, y: np.ndarray) -> None:
+    """Check that all labels in y are present in the training labels.
+
+    Parameters
+    ----------
+    labels : np.ndarray
+        Array of valid labels from training.
+    y : np.ndarray
+        Array of labels to check.
+
+    Raises
+    ------
+    ValueError
+        If y contains labels not present in labels.
+
+    """
+    if y is not None:
+        valid_labels = unique_labels(y)
+        if not _are_all_labels_valid(valid_labels, labels):
+            raise ValueError(
+                f"""Valid set -- {set(valid_labels)} --\n" +
+                "contains unkown targets from training --\n" +
+                f"{set(labels)}"""
+            )
+    return
