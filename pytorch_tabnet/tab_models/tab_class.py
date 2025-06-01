@@ -8,7 +8,8 @@ import numpy as np
 import torch
 
 from ..data_handlers import PredictDataset, TBDataLoader
-from ..utils import check_output_dim, infer_output_dim
+from ..error_handlers import check_output_dim
+from ..utils import infer_output_dim
 from .abstract_models import TabSupervisedModel
 
 
