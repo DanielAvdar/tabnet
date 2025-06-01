@@ -11,7 +11,10 @@ data/
 *.pt
 *~
 .vscode/
-
+**.xml
+**.zip
+**.csv
+.idea/**
 # Notebook to python
 forest_example.py
 regression_example.py

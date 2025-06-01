@@ -3,8 +3,7 @@
 from typing import List, Tuple
 
 import numpy as np
-
-from .label_processing import unique_labels
+from sklearn.utils.multiclass import unique_labels
 
 
 def infer_output_dim(y_train: np.ndarray) -> tuple[int, np.ndarray]:
