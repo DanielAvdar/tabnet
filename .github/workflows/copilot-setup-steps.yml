@@ -16,4 +16,4 @@ jobs:
         with:
           enable-cache: true
       - run: uv python install 3.11
-      - run: uv sync --all-extras --all-groups --frozen
+      - run: make
