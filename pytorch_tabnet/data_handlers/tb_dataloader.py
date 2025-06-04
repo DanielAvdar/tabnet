@@ -25,9 +25,13 @@ class TBDataLoader:
 
     def __iter__(self) -> Iterable[Tuple[torch.Tensor, tn_type, tn_type]]:
         if self.all_at_once:
-            if self.pre_training or isinstance(self.dataset, PredictDataset) or isinstance(self.dataset, SparsePredictDataset):
+            if self.dataset.y is None:
+                if not self.pre_training:
+                    raise ValueError("Dataset has no labels (y), but pre_training is False.")
                 yield self.dataset.x, None, None
-            else:
+            elif self.pre_training or isinstance(self.dataset, PredictDataset) or isinstance(self.dataset, SparsePredictDataset): # self.dataset.y is not None here
+                yield self.dataset.x, None, None # Pretraining still yields None for y
+            else: # not pre_training and self.dataset.y is not None
                 yield self.dataset.x, self.dataset.y, None
             return
         ds_len = len(self.dataset)
@@ -47,12 +51,17 @@ class TBDataLoader:
         if end_at > ds_len:
             end_at = ds_len
         x, y, w = None, None, None
-        if self.pre_training or isinstance(self.dataset, PredictDataset) or isinstance(self.dataset, SparsePredictDataset):
-            # return self.dataset.x[start:end_at], None, None
-            x = self.dataset.x[start:end_at]
-
+        x = self.dataset.x[start:end_at]
+        if self.pre_training:
+            y = None
+        elif isinstance(self.dataset, PredictDataset) or isinstance(self.dataset, SparsePredictDataset):
+            # These datasets might not have 'y' or it might behave differently
+            # For now, assume they might not have y, similar to pre_training
+            y = None
         else:
-            x, y = self.dataset.x[start:end_at], self.dataset.y[start:end_at]
+            if self.dataset.y is None:
+                raise ValueError("Dataset has no labels (y) for supervised learning/prediction.")
+            y = self.dataset.y[start:end_at]
         w = None if self.weights is None else self.weights[start:end_at]
 
         return x, y, w
@@ -67,7 +76,10 @@ class TBDataLoader:
         x, y, w = None, None, None
         if self.pre_training:
             x = self.dataset.x[indexes]
-        else:
+            # y remains None for pre-training
+        else: # not self.pre_training
+            if getattr(self.dataset, 'y', None) is None:
+                raise ValueError("Dataset has no labels (y) for supervised training.")
             x, y = self.dataset.x[indexes], self.dataset.y[indexes]
         w = self.get_weights(indexes)
 
@@ -76,11 +88,28 @@ class TBDataLoader:
 
             if self.pre_training:
                 x = torch.cat((x, self.dataset.x[lo_indexes]))
-                w = self.get_weights(lo_indexes)
-            else:
+                # y remains None for pre-training
+                # For w, if pre_training, we need to handle if self.weights is None then w is None
+                # or if w was None initially (e.g. first batch part was also pretraining)
+                current_w = self.get_weights(lo_indexes)
+                if w is None and current_w is not None: # w was None, but this part has weights
+                     w = current_w
+                elif w is not None and current_w is not None: # w existed, this part has weights, so cat
+                     w = torch.cat((w, current_w))
+                # if current_w is None, w remains as it was (either None or previous weights)
+
+            else: # not self.pre_training
+                # y was already checked for None above, so self.dataset.y exists
                 x = torch.cat((x, self.dataset.x[lo_indexes]))
                 y = torch.cat((y, self.dataset.y[lo_indexes]))
-                w = None if self.weights is None else torch.cat((w, self.get_weights(lo_indexes)))
+                # For w, if not pre_training, self.weights might be None or w might be None
+                current_w = self.get_weights(lo_indexes)
+                if w is None and current_w is not None:
+                    w = current_w
+                elif w is not None and current_w is not None: # Original logic for not pre_training
+                    w = torch.cat((w, current_w))
+                # if current_w is None, w remains as it was
+
         return x, y, w
 
     def __len__(self) -> int:
