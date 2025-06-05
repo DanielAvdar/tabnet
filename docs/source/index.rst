@@ -50,7 +50,7 @@ Welcome to pytorch-tabnet2's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Models & Usage
+   :caption: Models
 
    models/pretrainer
    models/regressor
@@ -65,12 +65,6 @@ Welcome to pytorch-tabnet2's documentation!
    metrics/classification
    metrics/regression
    metrics/unsupervised
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Credits
-
-   credits
 
 Indices and tables
 ==================
