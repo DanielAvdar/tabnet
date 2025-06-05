@@ -50,7 +50,7 @@ Welcome to pytorch-tabnet2's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Models & Usage
+   :caption: Models
 
    models/pretrainer
    models/regressor
@@ -66,11 +66,17 @@ Welcome to pytorch-tabnet2's documentation!
    metrics/regression
    metrics/unsupervised
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Credits
+Credits
+=======
 
-   credits
+- Original implementation and research by DreamQuark team
+- Maintained and improved by Daniel Avdar and contributors
+- Inspired by the paper: Arik, S. O., & Pfister, T. (2019). TabNet: Attentive Interpretable Tabular Learning. arXiv:1908.07442
+- Thanks to all open-source contributors and users
+
+Original Repository
+-------------------
+- DreamQuark original repo: https://github.com/dreamquark-ai/tabnet
 
 Indices and tables
 ==================
