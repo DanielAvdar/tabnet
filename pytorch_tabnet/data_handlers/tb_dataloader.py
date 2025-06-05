@@ -7,7 +7,6 @@ import torch
 
 from .data_types import tn_type
 from .predict_dataset import PredictDataset
-from .sparse_predict_dataset import SparsePredictDataset
 from .torch_dataset import TorchDataset
 
 
@@ -25,7 +24,7 @@ class TBDataLoader:
 
     def __iter__(self) -> Iterable[Tuple[torch.Tensor, tn_type, tn_type]]:
         if self.all_at_once:
-            if self.pre_training or isinstance(self.dataset, PredictDataset) or isinstance(self.dataset, SparsePredictDataset):
+            if self.pre_training or isinstance(self.dataset, PredictDataset):
                 yield self.dataset.x, None, None
             else:
                 yield self.dataset.x, self.dataset.y, None
@@ -47,7 +46,7 @@ class TBDataLoader:
         if end_at > ds_len:
             end_at = ds_len
         x, y, w = None, None, None
-        if self.pre_training or isinstance(self.dataset, PredictDataset) or isinstance(self.dataset, SparsePredictDataset):
+        if self.pre_training or isinstance(self.dataset, PredictDataset):
             # return self.dataset.x[start:end_at], None, None
             x = self.dataset.x[start:end_at]
 

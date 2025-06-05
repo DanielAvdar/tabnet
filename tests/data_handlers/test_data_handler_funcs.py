@@ -216,7 +216,7 @@ class TestDataHandlerFuncs(unittest.TestCase):
         # Check that TBDataLoader was called with correct parameters
         mock_tbdataloader.assert_any_call(
             name="train-data",
-            dataset=unittest.mock.ANY,  # This will be a SparseTorchDataset
+            dataset=unittest.mock.ANY,  # This will be a TorchDataset
             batch_size=32,
             weights=None,
             drop_last=False,
@@ -225,7 +225,7 @@ class TestDataHandlerFuncs(unittest.TestCase):
 
         mock_tbdataloader.assert_any_call(
             name="val-data",
-            dataset=unittest.mock.ANY,  # This will be a SparseTorchDataset
+            dataset=unittest.mock.ANY,  # This will be a TorchDataset
             batch_size=32,
             weights=None,
             pin_memory=False,
@@ -342,7 +342,7 @@ class TestDataHandlerFuncs(unittest.TestCase):
         # Check that TBDataLoader was called with correct parameters
         mock_tbdataloader.assert_any_call(
             name="train-data",
-            dataset=unittest.mock.ANY,  # This will be a SparsePredictDataset
+            dataset=unittest.mock.ANY,  # This will be a PredictDataset
             batch_size=32,
             drop_last=False,
             pin_memory=False,
@@ -351,7 +351,7 @@ class TestDataHandlerFuncs(unittest.TestCase):
 
         mock_tbdataloader.assert_any_call(
             name="val-data",
-            dataset=unittest.mock.ANY,  # This will be a SparsePredictDataset
+            dataset=unittest.mock.ANY,  # This will be a PredictDataset
             batch_size=32,
             drop_last=False,
             pin_memory=False,

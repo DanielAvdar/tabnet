@@ -262,7 +262,7 @@ class TestTBDataLoader(unittest.TestCase):
 
     def test_make_predict_batch_with_torch_dataset(self):
         """Test the make_predict_batch method with a regular TorchDataset."""
-        # Create a TorchDataset (not PredictDataset or SparsePredictDataset)
+        # Create a TorchDataset (not PredictDataset)
         x = np.random.rand(10, 3).astype(np.float32)
         y = np.random.rand(10, 2).astype(np.float32)
         dataset = TorchDataset(x, y)
