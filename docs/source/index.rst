@@ -66,6 +66,12 @@ Welcome to pytorch-tabnet2's documentation!
    metrics/regression
    metrics/unsupervised
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Credits
+
+   credits
+
 Indices and tables
 ==================
 
