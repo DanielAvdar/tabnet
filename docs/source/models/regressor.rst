@@ -1,5 +1,3 @@
-.. _regressor:
-
 TabNet Regressor
 ================
 

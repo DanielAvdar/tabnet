@@ -42,29 +42,19 @@ Welcome to pytorch-tabnet2's documentation!
    :maxdepth: 2
    :caption: Guides
 
-   guides/basic_usage
-   guides/categorical_embeding_example
-   guides/custom_metrics_and_losses
-   guides/pretraining_and_transfer
-   guides/saving_and_loading
+   guides
 
 .. toctree::
    :maxdepth: 2
-   :caption: Models & Usage
+   :caption: Models
 
-   models/pretrainer
-   models/regressor
-   models/classifier
-   models/multi_regressor
-   models/multi_classifier
+   models
 
 .. toctree::
    :maxdepth: 2
    :caption: Metrics
 
-   metrics/classification
-   metrics/regression
-   metrics/unsupervised
+   metrics
 
 .. toctree::
    :maxdepth: 2

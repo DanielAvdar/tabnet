@@ -1,5 +1,3 @@
-.. _pretrainer:
-
 TabNet Pretrainer
 =================
 

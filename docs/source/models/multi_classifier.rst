@@ -1,5 +1,3 @@
-.. _multi_classifier:
-
 TabNet Multi-Task Classifier
 ============================
 

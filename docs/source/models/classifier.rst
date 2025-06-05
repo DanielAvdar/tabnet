@@ -1,5 +1,3 @@
-.. _classifier:
-
 TabNet Classifier
 =================
 
