@@ -8,7 +8,5 @@ from .data_handler_funcs import validate_eval_set as validate_eval_set
 from .data_types import X_type as X_type
 from .data_types import tn_type as tn_type
 from .predict_dataset import PredictDataset as PredictDataset
-from .sparse_predict_dataset import SparsePredictDataset as SparsePredictDataset
-from .sparse_torch_dataset import SparseTorchDataset as SparseTorchDataset
 from .tb_dataloader import TBDataLoader as TBDataLoader
 from .torch_dataset import TorchDataset as TorchDataset
