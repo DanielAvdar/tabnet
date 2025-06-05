@@ -1,5 +1,3 @@
-.. _multi_regressor:
-
 TabNet Multi-Task Regressor
 ===========================
 
