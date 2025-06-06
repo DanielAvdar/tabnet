@@ -10,8 +10,8 @@ from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader
 
 from .. import tab_network
-from ..data_handlers import PredictDataset, create_dataloaders_pt, validate_eval_set
-from ..error_handlers import filter_weights
+from ..data_handlers import PredictDataset, create_dataloaders_pt
+from ..error_handlers import filter_weights, validate_eval_set
 from ..metrics import (
     UnsupervisedLoss,
     UnsupMetricContainer,
@@ -166,7 +166,8 @@ class TabNetPretrainer(TabModel):
             weights,
         )
 
-        eval_names = validate_eval_set(eval_set, eval_name, X_train)
+        eval_names = eval_name or [f"val_{i}" for i in range(len(eval_set))]
+        validate_eval_set(eval_set, eval_names, X_train)  # using the eh version for unsupervised
         train_dataloader, valid_dataloaders = self._construct_loaders(X_train, eval_set, weights=weights)
 
         if not hasattr(self, "network") or not warm_start:

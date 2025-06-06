@@ -34,47 +34,72 @@ def filter_weights(weights: Union[int, List, np.ndarray]) -> None:
 
 
 def validate_eval_set(
-    eval_set: List[Tuple[np.ndarray, np.ndarray]],
+    eval_set: Union[List[Tuple[np.ndarray, np.ndarray]], List[np.ndarray]],
     eval_name: Optional[List[str]],
     X_train: np.ndarray,
-    y_train: np.ndarray,
+    y_train: Optional[np.ndarray] = None,
 ) -> None:
     """Check if the shapes of eval_set are compatible with (X_train, y_train).
 
     Parameters
     ----------
-    eval_set : list of tuple
-        List of eval tuple set (X, y).
+    eval_set : list of tuple or list of arrays
+        For supervised learning: List of eval tuple set (X, y).
+        For unsupervised learning: List of eval arrays (X only).
         The last one is used for early stopping
     eval_name : list of str
         List of eval set names.
     X_train : np.ndarray
         Train owned products
-    y_train : np.array
-        Train targeted products
+    y_train : np.array, optional
+        Train targeted products. If None, only X validation is performed (for pretraining).
 
 
 
     """
     assert len(eval_set) == len(eval_name), "eval_set and eval_name have not the same length"
+
+    # Determine if this is supervised (with y) or unsupervised (X only) validation
+    is_supervised = y_train is not None
+
     if len(eval_set) > 0:
-        assert all(len(elem) == 2 for elem in eval_set), "Each tuple of eval_set need to have two elements"
-    for name, (X, y) in zip(eval_name, eval_set, strict=False):
-        check_array(X)
-        msg = f"Dimension mismatch between X_{name} " + f"{X.shape} and X_train {X_train.shape}"
-        assert len(X.shape) == len(X_train.shape), msg
+        if is_supervised:
+            assert all(len(elem) == 2 for elem in eval_set), "Each tuple of eval_set need to have two elements"
+        else:
+            # For unsupervised, eval_set should be List[np.ndarray]
+            assert all(isinstance(elem, np.ndarray) for elem in eval_set), (
+                "For unsupervised pretraining, eval_set should be a list of arrays"
+            )
 
-        msg = f"Dimension mismatch between y_{name} " + f"{y.shape} and y_train {y_train.shape}"
-        assert len(y.shape) == len(y_train.shape), msg
+    for i, eval_item in enumerate(eval_set):
+        name = eval_name[i]
 
-        msg = f"Number of columns is different between X_{name} " + f"({X.shape[1]}) and X_train ({X_train.shape[1]})"
-        assert X.shape[1] == X_train.shape[1], msg
+        if is_supervised:
+            # Supervised case: eval_item is (X, y) tuple
+            X, y = eval_item
+            check_array(X)
 
-        if len(y_train.shape) == 2:
-            msg = f"Number of columns is different between y_{name} " + f"({y.shape[1]}) and y_train ({y_train.shape[1]})"
-            assert y.shape[1] == y_train.shape[1], msg
-        msg = f"You need the same number of rows between X_{name} " + f"({X.shape[0]}) and y_{name} ({y.shape[0]})"
-        assert X.shape[0] == y.shape[0], msg
+            msg = f"Dimension mismatch between X_{name} " + f"{X.shape} and X_train {X_train.shape}"
+            assert len(X.shape) == len(X_train.shape), msg
+
+            msg = f"Dimension mismatch between y_{name} " + f"{y.shape} and y_train {y_train.shape}"
+            assert len(y.shape) == len(y_train.shape), msg
+
+            msg = f"Number of columns is different between X_{name} " + f"({X.shape[1]}) and X_train ({X_train.shape[1]})"
+            assert X.shape[1] == X_train.shape[1], msg
+
+            if len(y_train.shape) == 2:
+                msg = f"Number of columns is different between y_{name} " + f"({y.shape[1]}) and y_train ({y_train.shape[1]})"
+                assert y.shape[1] == y_train.shape[1], msg
+            msg = f"You need the same number of rows between X_{name} " + f"({X.shape[0]}) and y_{name} ({y.shape[0]})"
+            assert X.shape[0] == y.shape[0], msg
+        else:
+            # Unsupervised case: eval_item is just X array
+            X = eval_item
+            check_array(X)
+
+            msg = f"Number of columns is different between eval set {i}" + f"({X.shape[1]}) and X_train ({X_train.shape[1]})"
+            assert X.shape[1] == X_train.shape[1], msg
 
 
 def _get_sparse_data(X: np.ndarray) -> np.ndarray:

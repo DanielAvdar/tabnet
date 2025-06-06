@@ -11,8 +11,8 @@ from pytorch_tabnet.data_handlers.data_handler_funcs import (
     create_dataloaders,
     create_dataloaders_pt,
     create_sampler,
-    validate_eval_set,
 )
+from pytorch_tabnet.error_handlers.validation import validate_eval_set
 
 
 class TestDataHandlerFuncs(unittest.TestCase):
@@ -125,12 +125,14 @@ class TestDataHandlerFuncs(unittest.TestCase):
 
         # Test with custom eval names
         eval_names = ["validation", "test"]
-        result = validate_eval_set(eval_set, eval_names, X_train)
-        self.assertEqual(result, eval_names)
+        validate_eval_set(eval_set, eval_names, X_train)  # Now returns None
+        # The function should not modify eval_names
+        self.assertEqual(eval_names, ["validation", "test"])
 
         # Test with default eval names
-        result = validate_eval_set(eval_set, [], X_train)
-        self.assertEqual(result, ["val_0", "val_1"])
+        eval_names_default = [f"val_{i}" for i in range(len(eval_set))]
+        validate_eval_set(eval_set, eval_names_default, X_train)
+        self.assertEqual(eval_names_default, ["val_0", "val_1"])
 
         # Test with mismatched number of eval sets and names
         with self.assertRaises(AssertionError):
