@@ -151,3 +151,39 @@ class TestValidation:
         X = np.array([[1, 2], [3, 4]])
         # Should not raise any exceptions
         check_array(X)
+
+    def test_validate_eval_set_unsupervised_valid(self):
+        """Test validate_eval_set with unsupervised (X only) inputs."""
+        X_train = np.array([[1, 2], [3, 4], [5, 6]])
+
+        # Create a valid eval set for unsupervised case
+        X_val = np.array([[7, 8], [9, 10]])
+        eval_set = [X_val]  # List of arrays, not tuples
+        eval_names = ["val_0"]
+
+        # Call without y_train (unsupervised mode)
+        validate_eval_set(eval_set, eval_names, X_train)  # Should pass
+
+    def test_validate_eval_set_unsupervised_column_mismatch(self):
+        """Test validate_eval_set with unsupervised inputs and column mismatch."""
+        X_train = np.array([[1, 2], [3, 4], [5, 6]])
+
+        # Create an invalid eval set with wrong number of columns
+        X_val = np.array([[7, 8, 9]])  # 3 columns instead of 2
+        eval_set = [X_val]
+        eval_names = ["val_0"]
+
+        # Should raise AssertionError about column mismatch
+        with pytest.raises(AssertionError, match="Number of columns is different between eval set 0"):
+            validate_eval_set(eval_set, eval_names, X_train)
+
+    def test_validate_eval_set_unsupervised_length_mismatch(self):
+        """Test validate_eval_set with unsupervised inputs and length mismatch."""
+        X_train = np.array([[1, 2], [3, 4], [5, 6]])
+        X_val = np.array([[7, 8]])
+        eval_set = [X_val]
+        eval_names = ["val_0", "val_1"]  # Too many names
+
+        # Should raise AssertionError about length mismatch
+        with pytest.raises(AssertionError, match="eval_set and eval_name have not the same length"):
+            validate_eval_set(eval_set, eval_names, X_train)
