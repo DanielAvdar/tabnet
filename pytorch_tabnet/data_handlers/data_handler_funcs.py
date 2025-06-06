@@ -3,7 +3,6 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
-from sklearn.utils import check_array
 from torch.utils.data import DataLoader, WeightedRandomSampler
 
 from .data_types import X_type
@@ -218,32 +217,3 @@ def create_dataloaders_pt(
         )
 
     return train_dataloader, valid_dataloaders
-
-
-def validate_eval_set(eval_set: List[np.ndarray], eval_name: List[str], X_train: np.ndarray) -> List[str]:
-    """Check if the shapes of eval_set are compatible with X_train.
-
-    Parameters
-    ----------
-    eval_set : List of numpy array
-        The list evaluation set.
-        The last one is used for early stopping
-    eval_name : List[str]
-        Names for eval sets.
-    X_train : np.ndarray
-        Train owned products
-
-    Returns
-    -------
-    eval_names : list of str
-        Validated list of eval_names.
-
-    """
-    eval_names = eval_name or [f"val_{i}" for i in range(len(eval_set))]
-    assert len(eval_set) == len(eval_names), "eval_set and eval_name have not the same length"
-
-    for set_nb, X in enumerate(eval_set):
-        check_array(X)
-        msg = f"Number of columns is different between eval set {set_nb}" + f"({X.shape[1]}) and X_train ({X_train.shape[1]})"
-        assert X.shape[1] == X_train.shape[1], msg
-    return eval_names

@@ -7,7 +7,8 @@ import torch
 from scipy.sparse import csr_matrix
 from torch.utils.data import WeightedRandomSampler
 
-from pytorch_tabnet.data_handlers import TBDataLoader, create_dataloaders, create_dataloaders_pt, create_sampler, validate_eval_set
+from pytorch_tabnet.data_handlers import TBDataLoader, create_dataloaders, create_dataloaders_pt, create_sampler
+from pytorch_tabnet.error_handlers import validate_eval_set
 from pytorch_tabnet.error_handlers.embedding_errors import check_embedding_parameters
 
 
@@ -278,7 +279,8 @@ def mock_check_input(X):
 )
 def test_validate_eval_set(eval_set, eval_name, expected_eval_names, monkeypatch):
     X_train = np.random.rand(100, 10)
-    eval_names = validate_eval_set(eval_set, eval_name, X_train)
+    eval_names = eval_name or [f"val_{i}" for i in range(len(eval_set))]
+    validate_eval_set(eval_set, eval_names, X_train)  # using the eh version for unsupervised
 
     assert eval_names == expected_eval_names
 
@@ -294,8 +296,9 @@ def test_validate_eval_set_mismatched_lengths():
 def test_validate_eval_set_mismatched_columns(monkeypatch):
     eval_set = [np.random.rand(50, 5)]
     X_train = np.random.rand(100, 10)
+    eval_names = [f"val_{i}" for i in range(len(eval_set))]
     with pytest.raises(AssertionError):
-        validate_eval_set(eval_set, None, X_train)
+        validate_eval_set(eval_set, eval_names, X_train)
 
 
 @pytest.mark.parametrize(
