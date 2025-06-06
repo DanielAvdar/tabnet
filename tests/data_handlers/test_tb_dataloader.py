@@ -6,9 +6,8 @@ from unittest.mock import patch
 import numpy as np
 import torch
 
-from pytorch_tabnet.data_handlers.predict_dataset import PredictDataset
 from pytorch_tabnet.data_handlers.tb_dataloader import TBDataLoader
-from pytorch_tabnet.data_handlers.torch_dataset import TorchDataset
+from pytorch_tabnet.data_handlers.unified_dataset import UnifiedDataset
 
 
 class TestTBDataLoader(unittest.TestCase):
@@ -19,7 +18,7 @@ class TestTBDataLoader(unittest.TestCase):
         # Create a mock dataset
         x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
         y = np.array([[0, 1], [1, 0], [0, 1]], dtype=np.float32)
-        dataset = TorchDataset(x, y)
+        dataset = UnifiedDataset(x, y)
 
         # Create a dataloader
         dataloader = TBDataLoader(
@@ -48,7 +47,7 @@ class TestTBDataLoader(unittest.TestCase):
         # Test with normal batch size
         x = np.random.rand(10, 5).astype(np.float32)
         y = np.random.rand(10, 2).astype(np.float32)
-        dataset = TorchDataset(x, y)
+        dataset = UnifiedDataset(x, y)
 
         dataloader = TBDataLoader(name="test_loader", dataset=dataset, batch_size=3, predict=False)
         # Expected length is ceil(10/3) = 4
@@ -69,7 +68,7 @@ class TestTBDataLoader(unittest.TestCase):
         # Create dataset with weights
         x = np.random.rand(5, 3).astype(np.float32)
         y = np.random.rand(5, 2).astype(np.float32)
-        dataset = TorchDataset(x, y)
+        dataset = UnifiedDataset(x, y)
         weights = torch.tensor([0.5, 1.0, 0.7, 0.3, 0.8])
 
         dataloader = TBDataLoader(name="test_loader", dataset=dataset, batch_size=2, weights=weights)
@@ -92,7 +91,7 @@ class TestTBDataLoader(unittest.TestCase):
         """Test __iter__ with all_at_once=True for predict dataset."""
         # Create predict dataset
         x = np.random.rand(5, 3).astype(np.float32)
-        dataset = PredictDataset(x)
+        dataset = UnifiedDataset(x)
 
         dataloader = TBDataLoader(name="test_loader", dataset=dataset, batch_size=2, all_at_once=True)
 
@@ -114,7 +113,7 @@ class TestTBDataLoader(unittest.TestCase):
         # Create torch dataset
         x = np.random.rand(5, 3).astype(np.float32)
         y = np.random.rand(5, 2).astype(np.float32)
-        dataset = TorchDataset(x, y)
+        dataset = UnifiedDataset(x, y)
 
         dataloader = TBDataLoader(name="test_loader", dataset=dataset, batch_size=2, all_at_once=True)
 
@@ -135,7 +134,7 @@ class TestTBDataLoader(unittest.TestCase):
         """Test the make_predict_batch method."""
         # Create dataset for prediction
         x = np.random.rand(10, 3).astype(np.float32)
-        dataset = PredictDataset(x)
+        dataset = UnifiedDataset(x)
 
         dataloader = TBDataLoader(name="test_loader", dataset=dataset, batch_size=4, predict=True)
 
@@ -165,7 +164,7 @@ class TestTBDataLoader(unittest.TestCase):
         # Create dataset for training
         x = np.random.rand(10, 3).astype(np.float32)
         y = np.random.rand(10, 2).astype(np.float32)
-        dataset = TorchDataset(x, y)
+        dataset = UnifiedDataset(x, y)
 
         dataloader = TBDataLoader(name="test_loader", dataset=dataset, batch_size=4)
 
@@ -198,7 +197,7 @@ class TestTBDataLoader(unittest.TestCase):
         # Create dataset for pre-training
         x = np.random.rand(10, 3).astype(np.float32)
         y = np.random.rand(10, 2).astype(np.float32)
-        dataset = TorchDataset(x, y)
+        dataset = UnifiedDataset(x, y)
 
         dataloader = TBDataLoader(name="test_loader", dataset=dataset, batch_size=4, pre_training=True)
 
@@ -221,7 +220,7 @@ class TestTBDataLoader(unittest.TestCase):
         """Test iteration in predict mode."""
         # Create dataset
         x = np.random.rand(5, 3).astype(np.float32)
-        dataset = PredictDataset(x)
+        dataset = UnifiedDataset(x)
 
         dataloader = TBDataLoader(name="test_loader", dataset=dataset, batch_size=2, predict=True)
 
@@ -241,7 +240,7 @@ class TestTBDataLoader(unittest.TestCase):
         # Create dataset
         x = np.random.rand(5, 3).astype(np.float32)
         y = np.random.rand(5, 2).astype(np.float32)
-        dataset = TorchDataset(x, y)
+        dataset = UnifiedDataset(x, y)
 
         # Mock torch.randperm to return a fixed permutation for deterministic testing
         with patch("torch.randperm", return_value=torch.tensor([0, 1, 2, 3, 4])):
@@ -265,7 +264,7 @@ class TestTBDataLoader(unittest.TestCase):
         # Create a TorchDataset (not PredictDataset)
         x = np.random.rand(10, 3).astype(np.float32)
         y = np.random.rand(10, 2).astype(np.float32)
-        dataset = TorchDataset(x, y)
+        dataset = UnifiedDataset(x, y)
 
         dataloader = TBDataLoader(
             name="test_loader",

@@ -9,7 +9,7 @@ import numpy as np
 # import scipy
 import torch
 
-from ..data_handlers import PredictDataset, TBDataLoader
+from ..data_handlers import TBDataLoader, UnifiedDataset
 from ..error_handlers import check_output_dim, filter_weights
 from ..utils import infer_multitask_output
 
@@ -172,7 +172,7 @@ class TabNetMultiTaskClassifier(TabSupervisedModel):
 
         dataloader = TBDataLoader(
             name="predict",
-            dataset=PredictDataset(X),
+            dataset=UnifiedDataset(X),
             batch_size=self.batch_size,
             predict=True,
         )
@@ -212,7 +212,7 @@ class TabNetMultiTaskClassifier(TabSupervisedModel):
 
         dataloader = TBDataLoader(
             name="predict",
-            dataset=PredictDataset(X),
+            dataset=UnifiedDataset(X),
             batch_size=self.batch_size,
             predict=True,
         )

@@ -7,9 +7,8 @@ from sklearn.utils import check_array
 from torch.utils.data import DataLoader, WeightedRandomSampler
 
 from .data_types import X_type
-from .predict_dataset import PredictDataset
 from .tb_dataloader import TBDataLoader
-from .torch_dataset import TorchDataset
+from .unified_dataset import UnifiedDataset
 
 
 def create_dataloaders(
@@ -65,7 +64,7 @@ def create_dataloaders(
 
     train_dataloader = TBDataLoader(
         name="train-data",
-        dataset=TorchDataset(X_train.astype(np.float32), y_train),
+        dataset=UnifiedDataset(X_train.astype(np.float32), y_train),
         batch_size=batch_size,
         weights=t_weights,
         # sampler=sampler,
@@ -82,7 +81,7 @@ def create_dataloaders(
         valid_dataloaders.append(
             TBDataLoader(
                 name="val-data",
-                dataset=TorchDataset(X.astype(np.float32), y),
+                dataset=UnifiedDataset(X.astype(np.float32), y),
                 batch_size=batch_size,
                 weights=v_t_weights,
                 pin_memory=pin_memory,
@@ -191,7 +190,7 @@ def create_dataloaders_pt(
 
     train_dataloader = TBDataLoader(
         name="train-data",
-        dataset=PredictDataset(X_train),
+        dataset=UnifiedDataset(X_train),
         batch_size=batch_size,
         # sampler=sampler,
         # shuffle=need_shuffle,
@@ -206,7 +205,7 @@ def create_dataloaders_pt(
         valid_dataloaders.append(
             TBDataLoader(
                 name="val-data",
-                dataset=PredictDataset(X),
+                dataset=UnifiedDataset(X),
                 batch_size=batch_size,
                 # sampler=sampler,
                 # shuffle=need_shuffle,

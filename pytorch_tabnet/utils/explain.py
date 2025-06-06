@@ -3,7 +3,7 @@ from typing import Dict, Tuple, Union
 import numpy as np
 import torch
 
-from ..data_handlers import PredictDataset, TBDataLoader
+from ..data_handlers import TBDataLoader, UnifiedDataset
 
 
 def explain_v1(
@@ -40,7 +40,7 @@ def explain_v1(
     """
     dataloader = TBDataLoader(
         name="predict",
-        dataset=PredictDataset(X),
+        dataset=UnifiedDataset(X),
         batch_size=batch_size,
         predict=True,
     )
