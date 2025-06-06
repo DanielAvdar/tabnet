@@ -1,15 +1,15 @@
-"""Tests for the PredictDataset class."""
+"""Tests for the UnifiedDataset class using PredictDataset functionality."""
 
 import unittest
 
 import numpy as np
 import torch
 
-from pytorch_tabnet.data_handlers.predict_dataset import PredictDataset
+from pytorch_tabnet.data_handlers.unified_dataset import UnifiedDataset
 
 
-class TestPredictDataset(unittest.TestCase):
-    """Test cases for PredictDataset class."""
+class TestUnifiedDatasetPredictBehavior(unittest.TestCase):
+    """Test cases for UnifiedDataset class in PredictDataset mode (no y provided)."""
 
     def test_init_with_numpy_array(self):
         """Test initialization with NumPy array."""
@@ -17,7 +17,7 @@ class TestPredictDataset(unittest.TestCase):
         x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
 
         # Initialize the dataset
-        dataset = PredictDataset(x)
+        dataset = UnifiedDataset(x)
 
         # Check that data was correctly converted to PyTorch tensor
         self.assertIsInstance(dataset.x, torch.Tensor)
@@ -34,7 +34,7 @@ class TestPredictDataset(unittest.TestCase):
         x_dense = np.array([[1, 0, 0], [0, 2, 0], [0, 0, 3]], dtype=np.float32)
 
         # Initialize the dataset
-        dataset = PredictDataset(x_dense)
+        dataset = UnifiedDataset(x_dense)
 
         # Check that data was correctly converted to PyTorch tensor
         self.assertIsInstance(dataset.x, torch.Tensor)
@@ -51,7 +51,7 @@ class TestPredictDataset(unittest.TestCase):
         x = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
 
         # Initialize the dataset
-        dataset = PredictDataset(x)
+        dataset = UnifiedDataset(x)
 
         # Check that data remains a PyTorch tensor
         self.assertIsInstance(dataset.x, torch.Tensor)
@@ -66,7 +66,7 @@ class TestPredictDataset(unittest.TestCase):
         """Test the __len__ method."""
         # Create a dataset with 5 samples
         x = np.random.rand(5, 10).astype(np.float32)
-        dataset = PredictDataset(x)
+        dataset = UnifiedDataset(x)
 
         # Check length
         self.assertEqual(len(dataset), 5)
@@ -75,7 +75,7 @@ class TestPredictDataset(unittest.TestCase):
         """Test the __getitem__ method."""
         # Create sample data
         x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
-        dataset = PredictDataset(x)
+        dataset = UnifiedDataset(x)
 
         # Get an item by index
         x_item = dataset[1]

@@ -13,7 +13,7 @@ import torch
 from torch.nn.utils import clip_grad_norm_
 
 from pytorch_tabnet import tab_network
-from pytorch_tabnet.data_handlers import PredictDataset, TBDataLoader, create_dataloaders
+from pytorch_tabnet.data_handlers import TBDataLoader, UnifiedDataset, create_dataloaders
 from pytorch_tabnet.metrics import MetricContainer, check_metrics
 from pytorch_tabnet.tab_models.abstract_models import TabModel
 from pytorch_tabnet.utils import create_group_matrix
@@ -269,7 +269,7 @@ class _TabSupervisedModel(TabModel):
 
         dataloader = TBDataLoader(
             name="predict",
-            dataset=PredictDataset(X),
+            dataset=UnifiedDataset(X),
             batch_size=self.batch_size,
             predict=True,
         )

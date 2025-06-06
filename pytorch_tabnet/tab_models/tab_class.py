@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 import torch
 
-from ..data_handlers import PredictDataset, TBDataLoader
+from ..data_handlers import TBDataLoader, UnifiedDataset
 from ..error_handlers import check_output_dim
 from ..utils import infer_output_dim
 from .abstract_models import TabSupervisedModel
@@ -193,7 +193,7 @@ class TabNetClassifier(TabSupervisedModel):
 
         dataloader = TBDataLoader(
             name="predict",
-            dataset=PredictDataset(X),
+            dataset=UnifiedDataset(X),
             batch_size=self.batch_size,
             # shuffle=False,
             predict=True,

@@ -1,24 +1,24 @@
-"""Tests for the TorchDataset class."""
+"""Tests for the UnifiedDataset class using TorchDataset functionality."""
 
 import unittest
 
 import numpy as np
 import torch
 
-from pytorch_tabnet.data_handlers.torch_dataset import TorchDataset
+from pytorch_tabnet.data_handlers.unified_dataset import UnifiedDataset
 
 
-class TestTorchDataset(unittest.TestCase):
-    """Test cases for TorchDataset class."""
+class TestUnifiedDatasetTorchBehavior(unittest.TestCase):
+    """Test cases for UnifiedDataset class in TorchDataset mode (with y provided)."""
 
     def test_init(self):
-        """Test initialization of TorchDataset."""
+        """Test initialization of UnifiedDataset with y parameter."""
         # Create sample data
         x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
         y = np.array([[0, 1], [1, 0], [0, 1]], dtype=np.float32)
 
         # Initialize the dataset
-        dataset = TorchDataset(x, y)
+        dataset = UnifiedDataset(x, y)
 
         # Check that data was correctly converted to PyTorch tensors
         self.assertIsInstance(dataset.x, torch.Tensor)
@@ -37,7 +37,7 @@ class TestTorchDataset(unittest.TestCase):
         # Create a dataset with 5 samples
         x = np.random.rand(5, 10).astype(np.float32)
         y = np.random.rand(5, 2).astype(np.float32)
-        dataset = TorchDataset(x, y)
+        dataset = UnifiedDataset(x, y)
 
         # Check length
         self.assertEqual(len(dataset), 5)
@@ -47,7 +47,7 @@ class TestTorchDataset(unittest.TestCase):
         # Create sample data
         x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
         y = np.array([[0, 1], [1, 0], [0, 1]], dtype=np.float32)
-        dataset = TorchDataset(x, y)
+        dataset = UnifiedDataset(x, y)
 
         # Get an item by index
         x_item, y_item = dataset[1]

@@ -6,14 +6,13 @@ from typing import Iterable, Optional, Tuple, Union
 import torch
 
 from .data_types import tn_type
-from .predict_dataset import PredictDataset
-from .torch_dataset import TorchDataset
+from .unified_dataset import UnifiedDataset
 
 
 @dataclass
 class TBDataLoader:
     name: str
-    dataset: Union[PredictDataset, TorchDataset]
+    dataset: UnifiedDataset
     batch_size: int
     weights: Optional[torch.Tensor] = None
     pre_training: bool = False

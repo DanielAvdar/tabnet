@@ -10,7 +10,7 @@ from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader
 
 from .. import tab_network
-from ..data_handlers import PredictDataset, create_dataloaders_pt
+from ..data_handlers import UnifiedDataset, create_dataloaders_pt
 from ..error_handlers import filter_weights, validate_eval_set
 from ..metrics import (
     UnsupervisedLoss,
@@ -444,7 +444,7 @@ class TabNetPretrainer(TabModel):
         self.network.eval()
 
         dataloader = DataLoader(
-            PredictDataset(X),
+            UnifiedDataset(X),
             batch_size=self.batch_size,
             shuffle=False,
         )
