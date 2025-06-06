@@ -9,7 +9,7 @@ from ..error_handlers.data import model_input_data_check, model_target_check
 from .data_types import X_type
 
 
-class _UnifiedDataset(Dataset):
+class UnifiedDataset(Dataset):
     """Unified dataset class that supports both prediction and training use cases.
 
     When y is None, behaves like PredictDataset (returns only x).
@@ -54,17 +54,4 @@ class _UnifiedDataset(Dataset):
             return x, y
 
 
-class TorchDataset(_UnifiedDataset):
-    """Format for numpy array.
-
-    Parameters
-    ----------
-    X : 2D array
-        The input matrix
-    y : 2D array
-        The one-hot encoded target
-
-    """
-
-    def __init__(self, x: np.ndarray, y: np.ndarray):
-        super().__init__(x, y)
+TorchDataset = UnifiedDataset
