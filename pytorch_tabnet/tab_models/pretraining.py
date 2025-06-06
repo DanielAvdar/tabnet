@@ -167,7 +167,7 @@ class TabNetPretrainer(TabModel):
         )
 
         eval_names = eval_name or [f"val_{i}" for i in range(len(eval_set))]
-        validate_eval_set(eval_set, eval_names, X_train)  # using the eh version for unsupervised
+        validate_eval_set(eval_set, eval_names, X_train, y_train=None)  # using the eh version for unsupervised
         train_dataloader, valid_dataloaders = self._construct_loaders(X_train, eval_set, weights=weights)
 
         if not hasattr(self, "network") or not warm_start:
