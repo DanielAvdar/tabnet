@@ -24,7 +24,7 @@ class TBDataLoader:
 
     def __iter__(self) -> Iterable[Tuple[torch.Tensor, tn_type, tn_type]]:
         if self.all_at_once:
-            if self.pre_training or isinstance(self.dataset, PredictDataset):
+            if self.pre_training or self.dataset.y is None:
                 yield self.dataset.x, None, None
             else:
                 yield self.dataset.x, self.dataset.y, None
@@ -46,7 +46,7 @@ class TBDataLoader:
         if end_at > ds_len:
             end_at = ds_len
         x, y, w = None, None, None
-        if self.pre_training or isinstance(self.dataset, PredictDataset):
+        if self.pre_training or self.dataset.y is None:
             # return self.dataset.x[start:end_at], None, None
             x = self.dataset.x[start:end_at]
 
