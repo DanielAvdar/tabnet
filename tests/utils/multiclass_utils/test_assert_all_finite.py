@@ -1,3 +1,6 @@
+import sys
+import unittest.mock as mock
+
 import numpy as np
 import pytest
 
@@ -87,8 +90,6 @@ def test_assert_all_finite_object_array_non_float():
     """Test with an object array that doesn't contain NaNs."""
     # Create a mock to check if np.isnan().any() is called
     # This helps us verify code coverage without needing to execute problematic operations
-    import unittest.mock as mock
-
     with mock.patch("numpy.isnan") as mock_isnan:
         # Set up the mock to return False for .any() to avoid the error
         mock_isnan.return_value.any.return_value = False
@@ -158,10 +159,6 @@ def test_assert_all_finite_object_array_with_monkeypatch(monkeypatch):
 def test_assert_all_finite_direct_call():
     """A direct test for the object array code path in _assert_all_finite."""
     # This test is specifically designed to cover line 22
-    import sys
-
-    from pytorch_tabnet.utils._assert_all_finite import _assert_all_finite
-
     # Create a safe test object array that will work with np.isnan
     X = np.array([1.0, 2.0, 3.0], dtype=object)
 

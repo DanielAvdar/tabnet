@@ -2,30 +2,30 @@
 
 import unittest
 
+from pytorch_tabnet.metrics import (
+    AUC,
+    MAE,
+    MSE,
+    RMSE,
+    RMSLE,
+    Accuracy,
+    BalancedAccuracy,
+    LogLoss,
+    Metric,
+    MetricContainer,
+    UnsupervisedLoss,
+    UnsupervisedMetric,
+    UnsupervisedNumpyMetric,
+    UnsupMetricContainer,
+    check_metrics,
+)
+
 
 class TestMetricsInit(unittest.TestCase):
     """Tests for the metrics package initialization."""
 
     def test_import_all_metrics(self):
         """Test that all metrics can be imported from the package."""
-        from pytorch_tabnet.metrics import (
-            AUC,
-            MAE,
-            MSE,
-            RMSE,
-            RMSLE,
-            Accuracy,
-            BalancedAccuracy,
-            LogLoss,
-            Metric,
-            MetricContainer,
-            UnsupervisedLoss,
-            UnsupervisedMetric,
-            UnsupervisedNumpyMetric,
-            UnsupMetricContainer,
-            check_metrics,
-        )
-
         # Verify the metrics are imported correctly
         self.assertIsNotNone(Accuracy)
         self.assertIsNotNone(AUC)
@@ -45,19 +45,6 @@ class TestMetricsInit(unittest.TestCase):
 
     def test_metric_instances(self):
         """Test creating instances of all metric classes."""
-        from pytorch_tabnet.metrics import (
-            AUC,
-            MAE,
-            MSE,
-            RMSE,
-            RMSLE,
-            Accuracy,
-            BalancedAccuracy,
-            LogLoss,
-            UnsupervisedMetric,
-            UnsupervisedNumpyMetric,
-        )
-
         # Create instances of each metric class
         metrics = [
             Accuracy(),
@@ -79,8 +66,6 @@ class TestMetricsInit(unittest.TestCase):
 
     def test_get_metrics_by_names(self):
         """Test getting metrics by names using the Metric.get_metrics_by_names method."""
-        from pytorch_tabnet.metrics import Metric
-
         metric_names = ["accuracy", "auc", "balanced_accuracy", "logloss", "mae", "mse", "rmse", "rmsle"]
 
         metrics = Metric.get_metrics_by_names(metric_names)

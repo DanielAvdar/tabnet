@@ -1,6 +1,8 @@
 import pytest
 import torch
 
+from pytorch_tabnet.tab_network.embedding_generator import EmbeddingGenerator
+
 
 @pytest.fixture
 def input_data():
@@ -15,8 +17,6 @@ def input_data():
 
 @pytest.fixture
 def embedding_generator(input_data):
-    from pytorch_tabnet.tab_network.embedding_generator import EmbeddingGenerator
-
     return EmbeddingGenerator(
         input_data["input_dim"],
         input_data["cat_dims"],
