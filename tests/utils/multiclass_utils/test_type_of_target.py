@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-import pytorch_tabnet.utils._assert_all_finite as module
+import pytorch_tabnet.error_handlers._assert_all_finite as module
 from pytorch_tabnet.utils.type_of_target import type_of_target
 
 

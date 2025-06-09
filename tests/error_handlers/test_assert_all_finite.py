@@ -4,7 +4,7 @@ import unittest.mock as mock
 import numpy as np
 import pytest
 
-from pytorch_tabnet.utils._assert_all_finite import _assert_all_finite
+from pytorch_tabnet.error_handlers._assert_all_finite import _assert_all_finite
 
 
 def test_assert_all_finite_normal_float():
