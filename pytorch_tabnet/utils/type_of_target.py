@@ -105,10 +105,8 @@ def type_of_target(y: np.ndarray) -> str:
     'multilabel-indicator'
 
     """
-    # Use delayed import to avoid circular dependency
-    from ..error_handlers.validation import _validate_input
-
-    _validate_input(y)
+    if not _is_valid_input_type(y):
+        raise ValueError("Expected array-like (array or non-string sequence), got %r" % y)
 
     if is_multilabel(y):
         return "multilabel-indicator"

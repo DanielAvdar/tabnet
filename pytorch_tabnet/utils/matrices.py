@@ -56,10 +56,6 @@ def create_group_matrix(list_groups: List[List[int]], input_dim: int) -> torch.T
         The rows must sum to 1 as each group is equally important a priori.
 
     """
-    # Use delayed import to avoid circular dependency
-    from ..error_handlers.validation import check_list_groups
-
-    check_list_groups(list_groups, input_dim)
 
     if len(list_groups) == 0:
         group_matrix = torch.eye(input_dim)

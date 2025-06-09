@@ -11,6 +11,7 @@ import torch
 
 from ..data_handlers import TBDataLoader, UnifiedDataset
 from ..error_handlers import check_output_dim, filter_weights
+from ..error_handlers.validation import _validate_multitask_shape
 from ..utils import infer_multitask_output
 
 # from torch.utils.data import DataLoader
@@ -142,6 +143,7 @@ class TabNetMultiTaskClassifier(TabSupervisedModel):
             Sample weights.
 
         """
+        _validate_multitask_shape(y_train)
         output_dim, train_labels = infer_multitask_output(y_train)
         for _, y in eval_set:
             for task_idx in range(y.shape[1]):
