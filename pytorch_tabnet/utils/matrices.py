@@ -56,6 +56,9 @@ def create_group_matrix(list_groups: List[List[int]], input_dim: int) -> torch.T
         The rows must sum to 1 as each group is equally important a priori.
 
     """
+    # Use delayed import to avoid circular dependency
+    from ..error_handlers.validation import check_list_groups
+
     check_list_groups(list_groups, input_dim)
 
     if len(list_groups) == 0:
@@ -82,45 +85,3 @@ def create_group_matrix(list_groups: List[List[int]], input_dim: int) -> torch.T
             group_matrix[current_group_idx, remaining_feat_idx] = 1
             current_group_idx += 1
         return group_matrix
-
-
-def check_list_groups(list_groups: List[List[int]], input_dim: int) -> None:
-    """Check that list_groups is valid for group matrix construction.
-
-    - Is a list of list
-    - Does not contain the same feature in different groups
-    - Does not contain unknown features (>= input_dim)
-    - Does not contain empty groups.
-
-    Parameters
-    ----------
-    list_groups : list of list of int
-        Each element is a list representing features in the same group.
-        One feature should appear in maximum one group.
-        Feature that don't get assigned a group will be in their own group of one feature.
-    input_dim : int
-        Number of features in the initial dataset
-
-    """
-    assert isinstance(list_groups, list), "list_groups must be a list of list."
-
-    if len(list_groups) == 0:
-        return
-    else:
-        for group_pos, group in enumerate(list_groups):
-            msg = f"Groups must be given as a list of list, but found {group} in position {group_pos}."  # noqa
-            assert isinstance(group, list), msg
-            assert len(group) > 0, "Empty groups are forbidding please remove empty groups []"
-
-    n_elements_in_groups = np.sum([len(group) for group in list_groups])
-    flat_list = []
-    for group in list_groups:
-        flat_list.extend(group)
-    unique_elements = np.unique(flat_list)
-    n_unique_elements_in_groups = len(unique_elements)
-    msg = "One feature can only appear in one group, please check your grouped_features."
-    assert n_unique_elements_in_groups == n_elements_in_groups, msg
-
-    highest_feat = np.max(unique_elements)
-    assert highest_feat < input_dim, f"Number of features is {input_dim} but one group contains {highest_feat}."  # noqa
-    return

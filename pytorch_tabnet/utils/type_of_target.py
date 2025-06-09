@@ -40,11 +40,6 @@ def _is_multiclass(y: np.ndarray) -> bool:
     return bool((len(np.unique(y)) > 2) or (y.ndim >= 2 and len(y[0]) > 1))
 
 
-def _validate_input(y: np.ndarray) -> None:
-    if not _is_valid_input_type(y):
-        raise ValueError("Expected array-like (array or non-string sequence), got %r" % y)
-
-
 def type_of_target(y: np.ndarray) -> str:
     """Determine the type of data indicated by the target.
 
@@ -110,6 +105,9 @@ def type_of_target(y: np.ndarray) -> str:
     'multilabel-indicator'
 
     """
+    # Use delayed import to avoid circular dependency
+    from ..error_handlers.validation import _validate_input
+
     _validate_input(y)
 
     if is_multilabel(y):
