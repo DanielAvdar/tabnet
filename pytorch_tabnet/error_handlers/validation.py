@@ -5,8 +5,8 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 from sklearn.utils import check_array
 
-from ..utils._assert_all_finite import _assert_all_finite
 from ..utils.label_processing import unique_labels
+from ._assert_all_finite import _assert_all_finite
 
 
 def filter_weights(weights: Union[int, List, np.ndarray]) -> None:

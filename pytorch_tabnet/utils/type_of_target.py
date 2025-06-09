@@ -4,7 +4,6 @@ from typing import Sequence
 
 import numpy as np
 
-from ._assert_all_finite import _assert_all_finite
 from .is_multilabel import is_multilabel
 
 
@@ -134,7 +133,6 @@ def type_of_target(y: np.ndarray) -> str:
     # check float and contains non-integer float values
     if _is_continuous_float(y):
         # [.1, .2, 3] or [[.1, .2, 3]] or [[1., .2]] and not [1., 2., 3.]
-        _assert_all_finite(y)
         return "continuous" + suffix
 
     if _is_multiclass(y):
