@@ -14,7 +14,6 @@ from torch.nn.utils import clip_grad_norm_
 
 from pytorch_tabnet import tab_network
 from pytorch_tabnet.data_handlers import TBDataLoader, UnifiedDataset, create_dataloaders
-from pytorch_tabnet.error_handlers.validation import check_list_groups
 from pytorch_tabnet.metrics import MetricContainer, check_metrics
 from pytorch_tabnet.tab_models.abstract_models import TabModel
 from pytorch_tabnet.utils import create_group_matrix
@@ -101,7 +100,6 @@ class _TabSupervisedModel(TabModel):
         """Set up the network and explain matrix."""
         torch.manual_seed(self.seed)
 
-        check_list_groups(self.grouped_features, self.input_dim)
         self.group_matrix = create_group_matrix(self.grouped_features, self.input_dim)
 
         self.network = tab_network.TabNet(

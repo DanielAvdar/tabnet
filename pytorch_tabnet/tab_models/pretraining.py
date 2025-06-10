@@ -12,7 +12,6 @@ from torch.utils.data import DataLoader
 from .. import tab_network
 from ..data_handlers import UnifiedDataset, create_dataloaders_pt
 from ..error_handlers import filter_weights, validate_eval_set
-from ..error_handlers.validation import check_list_groups
 from ..metrics import (
     UnsupervisedLoss,
     UnsupMetricContainer,
@@ -203,7 +202,6 @@ class TabNetPretrainer(TabModel):
             self.pretraining_ratio = 0.5
         torch.manual_seed(self.seed)
 
-        check_list_groups(self.grouped_features, self.input_dim)
         self.group_matrix = create_group_matrix(self.grouped_features, self.input_dim)
 
         self.network = tab_network.TabNetPretraining(

@@ -59,6 +59,10 @@ def infer_multitask_output(y_train: np.ndarray) -> tuple[List[int], List[np.ndar
         If y_train does not have at least 2 dimensions or a task fails.
 
     """
+    # Import locally to avoid circular dependency
+    from ..error_handlers.validation import _validate_multitask_shape
+
+    _validate_multitask_shape(y_train)
     nb_tasks = y_train.shape[1]
     tasks_dims = []
     tasks_labels = []
