@@ -146,3 +146,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Web project dependencies and build artifacts
+web/node_modules/
+web/dist/
+web/dist-ssr/
+web/*.local
