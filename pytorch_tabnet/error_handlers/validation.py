@@ -154,3 +154,83 @@ def check_output_dim(labels: np.ndarray, y: np.ndarray) -> None:
                 f"{set(labels)}"""
             )
     return
+
+
+def check_list_groups(list_groups: List[List[int]], input_dim: int) -> None:
+    """Check that list_groups is valid for group matrix construction.
+
+    - Is a list of list
+    - Does not contain the same feature in different groups
+    - Does not contain unknown features (>= input_dim)
+    - Does not contain empty groups.
+
+    Parameters
+    ----------
+    list_groups : list of list of int
+        Each element is a list representing features in the same group.
+        One feature should appear in maximum one group.
+        Feature that don't get assigned a group will be in their own group of one feature.
+    input_dim : int
+        Number of features in the initial dataset
+
+    """
+    assert isinstance(list_groups, list), "list_groups must be a list of list."
+
+    if len(list_groups) == 0:
+        return
+    else:
+        for group_pos, group in enumerate(list_groups):
+            msg = f"Groups must be given as a list of list, but found {group} in position {group_pos}."  # noqa
+            assert isinstance(group, list), msg
+            assert len(group) > 0, "Empty groups are forbidding please remove empty groups []"
+
+    n_elements_in_groups = np.sum([len(group) for group in list_groups])
+    flat_list = []
+    for group in list_groups:
+        flat_list.extend(group)
+    unique_elements = np.unique(flat_list)
+    n_unique_elements_in_groups = len(unique_elements)
+    msg = "One feature can only appear in one group, please check your grouped_features."
+    assert n_unique_elements_in_groups == n_elements_in_groups, msg
+
+    highest_feat = np.max(unique_elements)
+    assert highest_feat < input_dim, f"Number of features is {input_dim} but one group contains {highest_feat}."  # noqa
+    return
+
+
+def _validate_input(y: np.ndarray) -> None:
+    """Validate that input is array-like and not a string.
+
+    Parameters
+    ----------
+    y : np.ndarray
+        Input to validate.
+
+    Raises
+    ------
+    ValueError
+        If input is not array-like or is a string.
+
+    """
+    from typing import Sequence
+
+    if not ((isinstance(y, (Sequence)) or hasattr(y, "__array__")) and not isinstance(y, str)):
+        raise ValueError("Expected array-like (array or non-string sequence), got %r" % y)
+
+
+def _validate_multitask_shape(y_train: np.ndarray) -> None:
+    """Validate that y_train has the correct shape for multitask learning.
+
+    Parameters
+    ----------
+    y_train : np.ndarray
+        Training targets array.
+
+    Raises
+    ------
+    ValueError
+        If y_train doesn't have at least 2 dimensions.
+
+    """
+    if len(y_train.shape) < 2:
+        raise ValueError("y_train should be of shape (n_examples, n_tasks)" + f"but got {y_train.shape}")

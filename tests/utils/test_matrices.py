@@ -1,8 +1,9 @@
 import pytest
 import torch
 
+from pytorch_tabnet.error_handlers.validation import check_list_groups
 from pytorch_tabnet.utils.matrices import _create_explain_matrix as create_explain_matrix  # noqa:
-from pytorch_tabnet.utils.matrices import check_list_groups, create_group_matrix
+from pytorch_tabnet.utils.matrices import create_group_matrix
 
 
 class TestMatrices:
