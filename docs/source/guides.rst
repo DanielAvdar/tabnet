@@ -3,7 +3,7 @@
 Guides
 ======
 
-This section contains comprehensive guides for using TabNet effectively.
+This section contains comprehensive guides for using TabNet effectively and additional utilities.
 
 .. toctree::
    :maxdepth: 2
@@ -13,3 +13,4 @@ This section contains comprehensive guides for using TabNet effectively.
    guides/custom_metrics_and_losses
    guides/pretraining_and_transfer
    guides/saving_and_loading
+   guides/gmail_api_batch
