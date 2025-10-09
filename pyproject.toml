@@ -9,6 +9,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Intended Audience :: Developers",
@@ -27,8 +28,8 @@ exclude = ["tabnet/*.ipynb"]
 
 dependencies = [
     "numpy",
-    "torch; python_version != '3.13'",
-    "torch>=2.6; python_version == '3.13'",
+    "torch; python_version < '3.13'",
+    "torch>=2.6; python_version >= '3.13'",
     "torcheval",
     "activations-plus>=0.1.1",
     "scikit-learn",

@@ -78,4 +78,4 @@ Key Improvements
 - Significantly reduced training time on both CPU and GPU, primarily due to the removal of the DataLoader and improved vectorization.
 - Enabled real-time validation metric calculation on the GPU during training, leveraging torcheval for efficient, on-device evaluation.
 - Added type annotations throughout the codebase for improved code clarity and static analysis.
-- Added support for newer versions of Python: 3.10, 3.11, 3.12, and 3.13.
+- Added support for newer versions of Python: 3.10, 3.11, 3.12, 3.13, and 3.14.
