@@ -268,3 +268,31 @@ def test_tabnet_encoder_device_movement():
     x = torch.rand((batch_size, input_dim))
     steps_output, M_loss = encoder_custom(x)
     assert len(steps_output) == n_steps
+
+
+def test_tabnet_encoder_device_movement_issue_269():
+    """Test that group_attention_matrix moves to the correct device with the model."""
+    import torch
+
+    from pytorch_tabnet.tab_network.tabnet_encoder import TabNetEncoder
+
+    input_random = torch.randn(2, 4)
+    tabnet_encoder = TabNetEncoder(
+        input_dim=4,
+        output_dim=5,
+        n_d=5,
+        n_a=5,
+        n_steps=3,
+        gamma=1.5,
+        n_independent=2,
+        n_shared=2,
+        epsilon=1e-15,
+        virtual_batch_size=2,
+        momentum=0.02,
+        mask_type="sparsemax",
+    )
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    tabnet_encoder = tabnet_encoder.to(device)
+    input_random = input_random.to(device)
+    _, _ = tabnet_encoder(input_random)
