@@ -97,7 +97,7 @@ line-length = 140
 # In addition to the standard set of exclusions, omit all tests, plus a specific file.
 extend-exclude = ["tests/intg/*", "intg/*", "docs/*", "release-script", "docs-scripts/*", "nbs/*"]
 [tool.ruff.lint]
-select = ["F", "I", "F", "W", "E", "A", "D", "DOC"]
+select = ["F", "I", "F", "W", "E", "A", "D", "DOC", "PLC0415"]
 
 fixable = ["ALL"]
 [tool.ruff.lint.per-file-ignores]
