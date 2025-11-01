@@ -272,10 +272,6 @@ def test_tabnet_encoder_device_movement():
 
 def test_tabnet_encoder_device_movement_issue_269():
     """Test that group_attention_matrix moves to the correct device with the model."""
-    import torch
-
-    from pytorch_tabnet.tab_network.tabnet_encoder import TabNetEncoder
-
     input_random = torch.randn(2, 4)
     tabnet_encoder = TabNetEncoder(
         input_dim=4,
