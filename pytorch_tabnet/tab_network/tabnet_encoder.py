@@ -73,14 +73,16 @@ class TabNetEncoder(torch.nn.Module):
         self.virtual_batch_size = virtual_batch_size
         self.mask_type = mask_type
         self.initial_bn = BatchNorm1d(self.input_dim, momentum=0.01)
-        self.group_attention_matrix = group_attention_matrix
 
-        if self.group_attention_matrix is None:
+        if group_attention_matrix is None:
             # no groups
-            self.group_attention_matrix = torch.eye(self.input_dim)
+            group_attention_matrix = torch.eye(self.input_dim)
             self.attention_dim = self.input_dim
         else:
-            self.attention_dim = self.group_attention_matrix.shape[0]
+            self.attention_dim = group_attention_matrix.shape[0]
+
+        # Register as buffer to ensure it moves with the model when .to(device) is called
+        self.register_buffer("group_attention_matrix", group_attention_matrix)
 
         if self.n_shared > 0:
             shared_feat_transform = torch.nn.ModuleList()

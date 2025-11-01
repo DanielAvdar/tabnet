@@ -218,3 +218,53 @@ def test_forward_masks_step_importance_explicit():
     finally:
         # Restore the original method
         TabNetEncoder.forward_masks = original_forward_masks
+
+
+def test_tabnet_encoder_device_movement():
+    """Test that group_attention_matrix moves to the correct device with the model."""
+    input_dim = 16
+    output_dim = 8
+    n_d = 8
+    n_a = 8
+    n_steps = 3
+
+    # Test without custom group_attention_matrix (default identity matrix)
+    encoder = TabNetEncoder(
+        input_dim=input_dim,
+        output_dim=output_dim,
+        n_d=n_d,
+        n_a=n_a,
+        n_steps=n_steps,
+    )
+
+    # Verify group_attention_matrix is registered as a buffer
+    assert "group_attention_matrix" in dict(encoder.named_buffers())
+
+    # Check that device of group_attention_matrix matches model parameters
+    model_param_device = next(encoder.parameters()).device
+    assert encoder.group_attention_matrix.device == model_param_device
+
+    # Test with custom group_attention_matrix
+    n_groups = 4
+    custom_group_matrix = torch.randint(0, 2, size=(n_groups, input_dim)).float()
+    encoder_custom = TabNetEncoder(
+        input_dim=input_dim,
+        output_dim=output_dim,
+        n_d=n_d,
+        n_a=n_a,
+        n_steps=n_steps,
+        group_attention_matrix=custom_group_matrix,
+    )
+
+    # Verify group_attention_matrix is registered as a buffer
+    assert "group_attention_matrix" in dict(encoder_custom.named_buffers())
+
+    # Check that device of group_attention_matrix matches model parameters
+    model_param_device = next(encoder_custom.parameters()).device
+    assert encoder_custom.group_attention_matrix.device == model_param_device
+
+    # Test that forward pass works after device movement (simulate with CPU)
+    batch_size = 10
+    x = torch.rand((batch_size, input_dim))
+    steps_output, M_loss = encoder_custom(x)
+    assert len(steps_output) == n_steps
