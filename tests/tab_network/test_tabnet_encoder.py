@@ -218,3 +218,81 @@ def test_forward_masks_step_importance_explicit():
     finally:
         # Restore the original method
         TabNetEncoder.forward_masks = original_forward_masks
+
+
+def test_tabnet_encoder_device_movement():
+    """Test that group_attention_matrix moves to the correct device with the model."""
+    input_dim = 16
+    output_dim = 8
+    n_d = 8
+    n_a = 8
+    n_steps = 3
+
+    # Test without custom group_attention_matrix (default identity matrix)
+    encoder = TabNetEncoder(
+        input_dim=input_dim,
+        output_dim=output_dim,
+        n_d=n_d,
+        n_a=n_a,
+        n_steps=n_steps,
+    )
+
+    # Verify group_attention_matrix is registered as a buffer
+    assert "group_attention_matrix" in dict(encoder.named_buffers())
+
+    # Check that device of group_attention_matrix matches model parameters
+    model_param_device = next(encoder.parameters()).device
+    assert encoder.group_attention_matrix.device == model_param_device
+
+    # Test with custom group_attention_matrix
+    n_groups = 4
+    custom_group_matrix = torch.randint(0, 2, size=(n_groups, input_dim)).float()
+    encoder_custom = TabNetEncoder(
+        input_dim=input_dim,
+        output_dim=output_dim,
+        n_d=n_d,
+        n_a=n_a,
+        n_steps=n_steps,
+        group_attention_matrix=custom_group_matrix,
+    )
+
+    # Verify group_attention_matrix is registered as a buffer
+    assert "group_attention_matrix" in dict(encoder_custom.named_buffers())
+
+    # Check that device of group_attention_matrix matches model parameters
+    model_param_device = next(encoder_custom.parameters()).device
+    assert encoder_custom.group_attention_matrix.device == model_param_device
+
+    # Test that forward pass works after device movement (simulate with CPU)
+    batch_size = 10
+    x = torch.rand((batch_size, input_dim))
+    steps_output, M_loss = encoder_custom(x)
+    assert len(steps_output) == n_steps
+
+
+def test_tabnet_encoder_device_movement_issue_269():
+    """Test that group_attention_matrix moves to the correct device with the model."""
+    import torch
+
+    from pytorch_tabnet.tab_network.tabnet_encoder import TabNetEncoder
+
+    input_random = torch.randn(2, 4)
+    tabnet_encoder = TabNetEncoder(
+        input_dim=4,
+        output_dim=5,
+        n_d=5,
+        n_a=5,
+        n_steps=3,
+        gamma=1.5,
+        n_independent=2,
+        n_shared=2,
+        epsilon=1e-15,
+        virtual_batch_size=2,
+        momentum=0.02,
+        mask_type="sparsemax",
+    )
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    tabnet_encoder = tabnet_encoder.to(device)
+    input_random = input_random.to(device)
+    _, _ = tabnet_encoder(input_random)
