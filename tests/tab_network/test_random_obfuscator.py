@@ -15,3 +15,21 @@ def test_random_obfuscator():
     assert masked_x.shape == x.shape
     assert obfuscated_groups.shape == (bs, group_matrix.shape[0])
     assert obfuscated_vars.shape == x.shape
+
+
+def test_random_obfuscator_device_movement():
+    """Test that RandomObfuscator moves to the correct device with the model."""
+    bs = 2
+    input_dim = 16
+    pretraining_ratio = 0.2
+    group_matrix = torch.randint(0, 2, size=(5, input_dim)).float()
+
+    obfuscator = RandomObfuscator(pretraining_ratio, group_matrix)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    obfuscator = obfuscator.to(device)
+
+    x = torch.rand((bs, input_dim)).to(device)
+
+    masked_x, obfuscated_groups, obfuscated_vars = obfuscator.forward(x)
+    assert masked_x.shape == x.shape

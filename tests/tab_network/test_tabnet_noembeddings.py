@@ -115,3 +115,32 @@ def test_tabnet_no_embeddings_multi_output():
     assert len(outputs) == len(output_dim)
     for i, dim in enumerate(output_dim):
         assert outputs[i].shape == (batch_size, dim)
+
+
+def test_tabnet_no_embeddings_device_movement():
+    """Test that TabNetNoEmbeddings moves to the correct device with the model."""
+    input_dim = 16
+    output_dim = 8
+
+    tabnet_no_emb = TabNetNoEmbeddings(
+        input_dim=input_dim,
+        output_dim=output_dim,
+        n_d=8,
+        n_a=8,
+        n_steps=3,
+        gamma=1.3,
+        n_independent=2,
+        n_shared=2,
+        virtual_batch_size=2,
+        momentum=0.02,
+        mask_type="sparsemax",
+    )
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    tabnet_no_emb = tabnet_no_emb.to(device)
+
+    batch_size = 2
+    x = torch.rand((batch_size, input_dim)).to(device)
+
+    out, M_loss = tabnet_no_emb.forward(x)
+    assert out.shape == (batch_size, output_dim)

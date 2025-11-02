@@ -38,3 +38,43 @@ def test_glu_block():
     # This should work now since we're using first=True
     output = glu_block(x)
     assert output.shape == (batch_size, output_dim)
+
+
+def test_glu_layer_device_movement():
+    """Test that GLU_Layer moves to the correct device with the model."""
+    input_dim = 16
+    output_dim = 8
+
+    glu_layer = GLU_Layer(input_dim, output_dim, virtual_batch_size=2, momentum=0.02)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    glu_layer = glu_layer.to(device)
+
+    batch_size = 2
+    x = torch.rand((batch_size, input_dim)).to(device)
+
+    output = glu_layer(x)
+    assert output.shape == (batch_size, output_dim)
+
+
+def test_glu_block_device_movement():
+    """Test that GLU_Block moves to the correct device with the model."""
+    input_dim = 8
+    output_dim = 8
+
+    glu_block = GLU_Block(
+        input_dim,
+        output_dim,
+        first=True,
+        virtual_batch_size=2,
+        momentum=0.02,
+    )
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    glu_block = glu_block.to(device)
+
+    batch_size = 2
+    x = torch.rand((batch_size, input_dim)).to(device)
+
+    output = glu_block(x)
+    assert output.shape == (batch_size, output_dim)
