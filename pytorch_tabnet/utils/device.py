@@ -20,15 +20,11 @@ def define_device(device_name: str) -> str:
 
     """
     if device_name == "auto":
-        if torch.backends.mps.is_available():
-            return "mps"
         elif torch.cuda.is_available():
             return "cuda"
         else:
             return "cpu"
     elif device_name == "cuda" and not torch.cuda.is_available():
-        return "cpu"
-    elif device_name == "mps" and not torch.backends.mps.is_available():
         return "cpu"
     else:
         return device_name
