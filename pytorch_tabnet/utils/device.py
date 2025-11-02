@@ -20,7 +20,7 @@ def define_device(device_name: str) -> str:
 
     """
     if device_name == "auto":
-        elif torch.cuda.is_available():
+        if torch.cuda.is_available():
             return "cuda"
         else:
             return "cpu"
