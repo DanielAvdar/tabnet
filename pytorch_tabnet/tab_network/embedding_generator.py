@@ -39,7 +39,8 @@ class EmbeddingGenerator(torch.nn.Module):
         if cat_dims == [] and cat_idxs == []:
             self.skip_embedding = True
             self.post_embed_dim = input_dim
-            self.embedding_group_matrix = group_matrix.to(group_matrix.device)
+            # Register as buffer to ensure it moves with the model when .to(device) is called
+            self.register_buffer("embedding_group_matrix", group_matrix.clone())
             return
         else:
             self.skip_embedding = False
@@ -60,23 +61,25 @@ class EmbeddingGenerator(torch.nn.Module):
 
         # update group matrix
         n_groups = group_matrix.shape[0]
-        self.embedding_group_matrix = torch.empty((n_groups, self.post_embed_dim), device=group_matrix.device)
+        embedding_group_matrix = torch.empty((n_groups, self.post_embed_dim), device=group_matrix.device)
         for group_idx in range(n_groups):
             post_emb_idx = 0
             cat_feat_counter = 0
             for init_feat_idx in range(input_dim):
                 if self.continuous_idx[init_feat_idx] == 1:
                     # this means that no embedding is applied to this column
-                    self.embedding_group_matrix[group_idx, post_emb_idx] = group_matrix[group_idx, init_feat_idx]  # noqa
+                    embedding_group_matrix[group_idx, post_emb_idx] = group_matrix[group_idx, init_feat_idx]  # noqa
                     post_emb_idx += 1
                 else:
                     # this is a categorical feature which creates multiple embeddings
                     n_embeddings = cat_emb_dims[cat_feat_counter]
-                    self.embedding_group_matrix[group_idx, post_emb_idx : post_emb_idx + n_embeddings] = (
+                    embedding_group_matrix[group_idx, post_emb_idx : post_emb_idx + n_embeddings] = (
                         group_matrix[group_idx, init_feat_idx] / n_embeddings
                     )  # noqa
                     post_emb_idx += n_embeddings
                     cat_feat_counter += 1
+        # Register as buffer to ensure it moves with the model when .to(device) is called
+        self.register_buffer("embedding_group_matrix", embedding_group_matrix)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Apply embeddings to inputs

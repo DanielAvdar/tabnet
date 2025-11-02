@@ -20,7 +20,8 @@ class RandomObfuscator(torch.nn.Module):
         super(RandomObfuscator, self).__init__()
         self.pretraining_ratio = pretraining_ratio
         # group matrix is set to boolean here to pass all posssible information
-        self.group_matrix = (group_matrix > 0) + 0.0
+        # Register as buffer to ensure it moves with the model when .to(device) is called
+        self.register_buffer("group_matrix", (group_matrix > 0) + 0.0)
         self.num_groups = group_matrix.shape[0]
 
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
