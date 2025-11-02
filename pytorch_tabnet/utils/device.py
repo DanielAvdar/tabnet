@@ -6,25 +6,29 @@ import torch
 def define_device(device_name: str) -> str:
     """Define the device to use during training and inference.
 
-    If auto it will detect automatically whether to use cuda or cpu.
+    If auto it will detect automatically whether to use mps, cuda or cpu.
 
     Parameters
     ----------
     device_name : str
-        Either "auto", "cpu" or "cuda"
+        Either "auto", "cpu", "cuda", or "mps"
 
     Returns
     -------
     str
-        Either "cpu" or "cuda"
+        Either "cpu", "cuda", or "mps"
 
     """
     if device_name == "auto":
-        if torch.cuda.is_available():
+        if torch.backends.mps.is_available():
+            return "mps"
+        elif torch.cuda.is_available():
             return "cuda"
         else:
             return "cpu"
     elif device_name == "cuda" and not torch.cuda.is_available():
+        return "cpu"
+    elif device_name == "mps" and not torch.backends.mps.is_available():
         return "cpu"
     else:
         return device_name
