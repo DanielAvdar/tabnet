@@ -117,3 +117,29 @@ def test_skip_embedding_tracing():
     finally:
         # Restore the original method
         EmbeddingGenerator.forward = original_forward
+
+
+def test_embedding_generator_device_movement():
+    """Test that EmbeddingGenerator moves to the correct device with the model."""
+    input_dim = 10
+    cat_idxs = [0, 2]
+    cat_dims = [3, 4]
+    cat_emb_dims = [2, 2]
+    group_matrix = torch.rand(2, input_dim)
+
+    generator = EmbeddingGenerator(
+        input_dim,
+        cat_dims,
+        cat_idxs,
+        cat_emb_dims,
+        group_matrix,
+    )
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    generator = generator.to(device)
+
+    batch_size = 2
+    x = torch.randint(0, 3, (batch_size, input_dim)).to(device)
+
+    output = generator(x)
+    assert output.shape[0] == batch_size

@@ -41,3 +41,29 @@ def test_tabnet_decoder_no_shared():
     out = decoder.forward(steps_output)
 
     assert out.shape == (batch_size, input_dim)
+
+
+def test_tabnet_decoder_device_movement():
+    """Test that TabNetDecoder moves to the correct device with the model."""
+    input_dim = 16
+    n_d = 8
+    n_steps = 3
+
+    decoder = TabNetDecoder(
+        input_dim=input_dim,
+        n_d=n_d,
+        n_steps=n_steps,
+        n_independent=2,
+        n_shared=2,
+        virtual_batch_size=2,
+        momentum=0.02,
+    )
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    decoder = decoder.to(device)
+
+    batch_size = 2
+    steps_output = [torch.rand((batch_size, n_d)).to(device) for _ in range(n_steps)]
+
+    out = decoder.forward(steps_output)
+    assert out.shape == (batch_size, input_dim)

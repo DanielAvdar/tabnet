@@ -238,3 +238,34 @@ def test_tabnet_pretraining_forward_masks():
     assert explanation_mask.shape == (batch_size, input_dim)
     assert isinstance(masks_dict, dict)
     assert len(masks_dict) == tabnet.n_steps
+
+
+def test_tabnet_pretraining_device_movement():
+    """Test that TabNetPretraining moves to the correct device with the model."""
+    input_dim = 16
+    pretraining_ratio = 0.2
+    group_matrix = torch.rand((2, input_dim))
+
+    tabnet_pretraining = TabNetPretraining(
+        input_dim=input_dim,
+        pretraining_ratio=pretraining_ratio,
+        n_d=8,
+        n_a=8,
+        n_steps=3,
+        gamma=1.3,
+        n_independent=2,
+        n_shared=2,
+        virtual_batch_size=2,
+        momentum=0.02,
+        mask_type="sparsemax",
+        group_attention_matrix=group_matrix,
+    )
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    tabnet_pretraining = tabnet_pretraining.to(device)
+
+    batch_size = 2
+    x = torch.rand((batch_size, input_dim)).to(device)
+
+    reconstructed, embedded_x, obf_vars = tabnet_pretraining.forward(x)
+    assert reconstructed.shape[0] == batch_size

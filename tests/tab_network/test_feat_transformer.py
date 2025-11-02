@@ -65,3 +65,28 @@ def test_feat_transformer_no_independent_layers():
     input_data = torch.rand((bs, input_dim))
     output = transformer.forward(input_data)
     assert output.shape == (bs, output_dim)
+
+
+def test_feat_transformer_device_movement():
+    """Test that FeatTransformer moves to the correct device with the model."""
+    input_dim = 10
+    output_dim = 8
+    shared_layers = torch.nn.ModuleList([torch.nn.Linear(10, 16)])
+
+    transformer = FeatTransformer(
+        input_dim,
+        output_dim,
+        shared_layers,
+        n_glu_independent=2,
+        virtual_batch_size=2,
+        momentum=0.02,
+    )
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    transformer = transformer.to(device)
+
+    bs = 2
+    input_data = torch.rand((bs, input_dim)).to(device)
+
+    output = transformer.forward(input_data)
+    assert output.shape == (bs, output_dim)
