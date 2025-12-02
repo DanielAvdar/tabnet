@@ -3623,11 +3623,11 @@ wheels = [
 
 [[package]]
 name = "sybil"
-version = "9.2.0"
+version = "9.3.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/fe/01/cd109cc45ad8be87a3338ebb2d0e9f4a46a635952a7cf25f1f30fd13a794/sybil-9.2.0.tar.gz", hash = "sha256:a7cbccf4b06af7e946a218e23fd59fde36738e91eb698b15619a4d5f97b176bb", size = 43757, upload-time = "2025-08-08T09:00:27.632Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c6/46/bae21847b8d761ddd6ede1811d32818342dbd482c32a2a5805c28d9b2f18/sybil-9.3.0.tar.gz", hash = "sha256:847d1d17b8a857c4bb3f8471b4a57b8affa939a60fbf507e70aa72ad79097c05", size = 89078, upload-time = "2025-12-02T09:29:09.302Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d0/e1/14e7b92ebebd8264a36555967e450035249f5a065f57a71d16a5ed7c36a9/sybil-9.2.0-py3-none-any.whl", hash = "sha256:c0c82823a86c2a9e202fb628526aa973700cc20dbfd5c91481c265521e40b742", size = 38521, upload-time = "2025-08-08T09:00:26.824Z" },
+    { url = "https://files.pythonhosted.org/packages/2c/08/cd3cf2a82570748cfb3142e795044197deff81ad3b70a0b9a9c22331e70a/sybil-9.3.0-py3-none-any.whl", hash = "sha256:0b108b980ab9fac774953042b07fcb5858aa19a38404d0cb42c30c93423ac0c1", size = 39286, upload-time = "2025-12-02T09:29:08.417Z" },
 ]
 
 [package.optional-dependencies]
