@@ -806,11 +806,11 @@ wheels = [
 
 [[package]]
 name = "filelock"
-version = "3.20.0"
+version = "3.20.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/58/46/0028a82567109b5ef6e4d2a1f04a583fb513e6cf9527fcdd09afd817deeb/filelock-3.20.0.tar.gz", hash = "sha256:711e943b4ec6be42e1d4e6690b48dc175c822967466bb31c0c293f34334c13f4", size = 18922, upload-time = "2025-10-08T18:03:50.056Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a7/23/ce7a1126827cedeb958fc043d61745754464eb56c5937c35bbf2b8e26f34/filelock-3.20.1.tar.gz", hash = "sha256:b8360948b351b80f420878d8516519a2204b07aefcdcfd24912a5d33127f188c", size = 19476, upload-time = "2025-12-15T23:54:28.027Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/76/91/7216b27286936c16f5b4d0c530087e4a54eead683e6b0b73dd0c64844af6/filelock-3.20.0-py3-none-any.whl", hash = "sha256:339b4732ffda5cd79b13f4e2711a31b0365ce445d95d243bb996273d072546a2", size = 16054, upload-time = "2025-10-08T18:03:48.35Z" },
+    { url = "https://files.pythonhosted.org/packages/e3/7f/a1a97644e39e7316d850784c642093c99df1290a460df4ede27659056834/filelock-3.20.1-py3-none-any.whl", hash = "sha256:15d9e9a67306188a44baa72f569d2bfd803076269365fdea0934385da4dc361a", size = 16666, upload-time = "2025-12-15T23:54:26.874Z" },
 ]
 
 [[package]]
@@ -3059,12 +3059,24 @@ wheels = [
 ]
 
 [[package]]
-name = "roman-numerals-py"
-version = "3.1.0"
+name = "roman-numerals"
+version = "4.0.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/30/76/48fd56d17c5bdbdf65609abbc67288728a98ed4c02919428d4f52d23b24b/roman_numerals_py-3.1.0.tar.gz", hash = "sha256:be4bf804f083a4ce001b5eb7e3c0862479d10f94c936f6c4e5f250aa5ff5bd2d", size = 9017, upload-time = "2025-02-22T07:34:54.333Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6b/20/a6b20239f54814de5c34bf3f504e553b11780c2aad3677ad2daf989f1fb3/roman_numerals-4.0.0.tar.gz", hash = "sha256:231287018a8788bf8c0718482a08c15b90458523ea1d840a18a791a86d4583b3", size = 9027, upload-time = "2025-12-16T01:53:36.309Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/53/97/d2cbbaa10c9b826af0e10fdf836e1bf344d9f0abb873ebc34d1f49642d3f/roman_numerals_py-3.1.0-py3-none-any.whl", hash = "sha256:9da2ad2fb670bcf24e81070ceb3be72f6c11c440d73bd579fbeca1e9f330954c", size = 7742, upload-time = "2025-02-22T07:34:52.422Z" },
+    { url = "https://files.pythonhosted.org/packages/ad/9d/ad950fd3b65cf0974c633862320829f3d461aef125b981504277c8409a93/roman_numerals-4.0.0-py3-none-any.whl", hash = "sha256:4131feb23ba1a542494873e4cee7844ec8d226a750134efc65ceb20939ed33c9", size = 7668, upload-time = "2025-12-16T01:53:34.922Z" },
+]
+
+[[package]]
+name = "roman-numerals-py"
+version = "4.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "roman-numerals", marker = "python_full_version >= '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7e/02/6cb667fc1872c5fe814971be2973317f0747d86f1c0aac37d0e1a1df1ecc/roman_numerals_py-4.0.0.tar.gz", hash = "sha256:f7fa8dff5b7b7251d3a7586b97c57a0698e2e28898fa42c23bcc0cf51b02aee9", size = 1119, upload-time = "2025-12-16T01:53:43.097Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d2/b7/c0aa3b0154e022faa8e8b4eadda0c49f53b09b6b8d55ed3b7cd311abfd92/roman_numerals_py-4.0.0-py3-none-any.whl", hash = "sha256:dfcecf6e0cddbf2ee1112e7e2ebf58ba771984f075cb57a30e1811cee4f06332", size = 1244, upload-time = "2025-12-16T01:53:42.369Z" },
 ]
 
 [[package]]
