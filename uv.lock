@@ -2810,10 +2810,10 @@ requires-dist = [
     { name = "activations-plus", specifier = ">=0.1.1" },
     { name = "numpy" },
     { name = "scikit-learn" },
-    { name = "torch", marker = "python_full_version != '3.13.*' and sys_platform == 'darwin'" },
-    { name = "torch", marker = "python_full_version == '3.13.*' and sys_platform == 'darwin'", specifier = ">=2.6" },
-    { name = "torch", marker = "python_full_version != '3.13.*' and sys_platform != 'darwin'", index = "https://download.pytorch.org/whl/cu124" },
-    { name = "torch", marker = "python_full_version == '3.13.*' and sys_platform != 'darwin'", specifier = ">=2.6", index = "https://download.pytorch.org/whl/cu124" },
+    { name = "torch", marker = "python_full_version < '3.13' and sys_platform == 'darwin'" },
+    { name = "torch", marker = "python_full_version >= '3.13' and sys_platform == 'darwin'", specifier = ">=2.6" },
+    { name = "torch", marker = "python_full_version < '3.13' and sys_platform != 'darwin'", index = "https://download.pytorch.org/whl/cu124" },
+    { name = "torch", marker = "python_full_version >= '3.13' and sys_platform != 'darwin'", specifier = ">=2.6", index = "https://download.pytorch.org/whl/cu124" },
     { name = "torcheval" },
 ]
 
