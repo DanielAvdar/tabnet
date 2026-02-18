@@ -31,7 +31,7 @@ class TBDataLoader:
         ds_len = len(self.dataset)
         perm = None
         if not self.predict:
-            perm = torch.randperm(ds_len, pin_memory=self.pin_memory)
+            perm = torch.randperm(ds_len, device="cpu")
         batched_starts = [i for i in range(0, ds_len, self.batch_size)]
         batched_starts += [0] if len(batched_starts) == 0 else []
         for start in batched_starts[: len(self)]:
