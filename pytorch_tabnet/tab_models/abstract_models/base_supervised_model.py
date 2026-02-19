@@ -85,7 +85,7 @@ class _TabSupervisedModel(TabModel):
             X = X.to(self.device)  # type: ignore
             y = y.to(self.device)  # type: ignore
             if w is not None:  # type: ignore
-                w = w.to(self.device)  # type: ignore
+                w = w.to(device=self.device, dtype=torch.float32)  # type: ignore
 
             batch_logs = self._train_batch(X, y, w)
 

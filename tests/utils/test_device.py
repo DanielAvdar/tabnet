@@ -10,6 +10,7 @@ class TestDevice:
         """Test define_device with 'auto' when CUDA is available."""
         # Mock torch.cuda.is_available to return True
         monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+        monkeypatch.setattr(torch.backends.mps, "is_available", lambda: False)
 
         assert define_device("auto") == "cuda"
 
@@ -17,13 +18,23 @@ class TestDevice:
         """Test define_device with 'auto' when CUDA is not available."""
         # Mock torch.cuda.is_available to return False
         monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+        monkeypatch.setattr(torch.backends.mps, "is_available", lambda: False)
 
         assert define_device("auto") == "cpu"
+
+    def test_define_device_auto_with_mps(self, monkeypatch):
+        """Test define_device with 'auto' when MPS is available."""
+        # Mock torch.cuda.is_available to return False
+        monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+        monkeypatch.setattr(torch.backends.mps, "is_available", lambda: True)
+
+        assert define_device("auto") == "mps"
 
     def test_define_device_cuda_not_available(self, monkeypatch):
         """Test define_device with 'cuda' when CUDA is not available."""
         # Mock torch.cuda.is_available to return False
         monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+        monkeypatch.setattr(torch.backends.mps, "is_available", lambda: False)
 
         assert define_device("cuda") == "cpu"
 
@@ -31,6 +42,7 @@ class TestDevice:
         """Test define_device with 'cuda' when CUDA is available."""
         # Mock torch.cuda.is_available to return True
         monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+        monkeypatch.setattr(torch.backends.mps, "is_available", lambda: False)
 
         assert define_device("cuda") == "cuda"
 

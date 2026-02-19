@@ -10,7 +10,7 @@ from torch.nn.utils import clip_grad_norm_
 from torch.utils.data import DataLoader
 
 from .. import tab_network
-from ..data_handlers import UnifiedDataset, create_dataloaders_pt
+from ..data_handlers import create_dataloaders_pt
 from ..error_handlers import filter_weights, validate_eval_set
 from ..metrics import (
     UnsupervisedLoss,
@@ -396,7 +396,7 @@ class TabNetPretrainer(TabModel):
             Model outputs, embedded inputs, and obfuscated variables.
 
         """
-        X = X.to(self.device).float()
+        X = X.float().to(self.device)
         return self.network(X)
 
     def stack_batches(  # type: ignore[override]
@@ -427,38 +427,21 @@ class TabNetPretrainer(TabModel):
         obf_vars = torch.vstack(list_obfuscation)
         return output, embedded_x, obf_vars
 
-    def predict(self, X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        """Predict outputs and embeddings for a batch.
+    def predict(self, X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        """Predict reconstructed values for inputs.
 
         Parameters
         ----------
-        X : np.ndarray or scipy.sparse.csr_matrix
-            Input data.
+        X : np.ndarray
+            Input matrix.
 
         Returns
         -------
-        tuple
-            Predictions and embedded inputs.
+        Tuple[np.ndarray, np.ndarray]
+            Reconstructed values and masks.
 
         """
         self.network.eval()
-
-        dataloader = DataLoader(
-            UnifiedDataset(X),
-            batch_size=self.batch_size,
-            shuffle=False,
-        )
-
-        results = []
-        embedded_res = []
-        with torch.no_grad():
-            for _batch_nb, data in enumerate(dataloader):
-                data = data.to(self.device).float()
-                output, embeded_x, _ = self.network(data)
-                predictions = output
-                results.append(predictions)
-                embedded_res.append(embeded_x)
-        res_output = torch.vstack(results).cpu().detach().numpy()
-
-        embedded_inputs = torch.vstack(embedded_res).cpu().detach().numpy()
-        return res_output, embedded_inputs
+        X = torch.from_numpy(X).float().to(self.device)
+        output, _, obf_vars = self.network(X)
+        return output.cpu().detach().numpy(), obf_vars.cpu().detach().numpy()
