@@ -844,7 +844,7 @@ wheels = [
 
 [[package]]
 name = "db-dtypes"
-version = "1.6.0"
+version = "1.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -853,9 +853,9 @@ dependencies = [
     { name = "pandas" },
     { name = "pyarrow" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/dd/35/3bedb365a0c42b4f65a8cfb8c4dc392a9f93e22035b862117ef1b2a0d80b/db_dtypes-1.6.0.tar.gz", hash = "sha256:4ba87b15cc972a7cc0aed2b7483e0823c7765eca88128453f52c88c5e0f4ae46", size = 35966, upload-time = "2026-05-07T08:03:38.016Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/67/9f/5569a989ad23915e51fd1b4a52ecbc7513832c1c7b5e5df262bcecae1b21/db_dtypes-1.7.0.tar.gz", hash = "sha256:30951c7cda9e5455e43636eebe041c9a637ff28bc49a95d82cb68759d7625467", size = 35793, upload-time = "2026-06-03T14:52:07.908Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c4/02/56cf9e3f231ee6bfab73ead0f08077661c0decaa8e6b7414137b7c3a5d27/db_dtypes-1.6.0-py3-none-any.whl", hash = "sha256:03f0ff5798fa5e407f07e84de2d619cbc363b8dcc40104825a85519793ffee8d", size = 18535, upload-time = "2026-05-07T08:01:59.765Z" },
+    { url = "https://files.pythonhosted.org/packages/be/7a/797ed371bde520223e49dbbe0f8762fa4cc724d0e21fc6af944bb8f82150/db_dtypes-1.7.0-py3-none-any.whl", hash = "sha256:c80a1d9bc7dda3cc63638a3f2cf4ec27af50b809ec2d92b8a94cb9d8438cdc76", size = 17740, upload-time = "2026-06-03T14:51:15.287Z" },
 ]
 
 [[package]]
